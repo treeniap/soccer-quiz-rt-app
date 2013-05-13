@@ -1,0 +1,55 @@
+settings = 
+{
+	orientation =
+ 	{
+		default = "portrait"
+	},
+
+    android =
+    {
+            versionCode = "100",
+            installLocation = "preferExternal",
+            usesPermissions =
+            {
+                "com.android.vending.BILLING",
+            },
+    },
+	androidPermissions =
+    {
+        "android.permission.INTERNET",
+    },
+
+	iphone =
+	{
+		plist =
+        		{
+        	        CFBundleIconFile = "Icon.png",
+        	        CFBundleIconFiles =
+        	        {
+        	           "Icon.png",
+        	           "Icon@2x.png",
+        	           "Icon-72.png",
+        	        },
+        	        UIAppFonts =
+                    {
+                        "Myriad Pro Bold Condensed.otf",
+                        "Myriad Pro Bold.otf",
+                        "Myriad Pro Condensed.otf",
+                        "Myriad Pro.otf"
+                    },
+        	        UIApplicationExitsOnSuspend = false,
+        	        CFBundleURLTypes =
+                    {
+                        {
+                            CFBundleURLName = "com.ffgfriends.",
+                            CFBundleURLSchemes =
+                            {
+                                "fbXXXXXXXXXXXXXXX",
+                            }
+                        }
+                    },
+                    CFBundleIdentifier = "com.ffgfriends.",
+        		},
+        		components = {}	-- no openfeint
+	}
+}
