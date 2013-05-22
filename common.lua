@@ -72,6 +72,102 @@ function printTable(tab)
     --]]
 end
 
+local MyriadProBoldCondSize = {
+    ["0"] = 43,
+    ["1"] = 43,
+    ["2"] = 43,
+    ["3"] = 43,
+    ["4"] = 43,
+    ["5"] = 43,
+    ["6"] = 43,
+    ["7"] = 43,
+    ["8"] = 43,
+    ["9"] = 43,
+    ["A"] = 47,
+    ["B"] = 50,
+    ["C"] = 42,
+    ["D"] = 51,
+    ["E"] = 42,
+    ["F"] = 41,
+    ["G"] = 49,
+    ["H"] = 54,
+    ["I"] = 27,
+    ["J"] = 31,
+    ["K"] = 48,
+    ["L"] = 40,
+    ["M"] = 66,
+    ["N"] = 54,
+    ["O"] = 50,
+    ["P"] = 47,
+    ["Q"] = 50,
+    ["R"] = 49,
+    ["S"] = 42,
+    ["T"] = 42,
+    ["U"] = 52,
+    ["V"] = 47,
+    ["W"] = 70,
+    ["X"] = 43,
+    ["Y"] = 43,
+    ["Z"] = 41,
+    ["a"] = 43,
+    ["b"] = 45,
+    ["c"] = 32,
+    ["d"] = 45,
+    ["e"] = 42,
+    ["f"] = 29,
+    ["g"] = 45,
+    ["h"] = 45,
+    ["i"] = 22,
+    ["j"] = 22,
+    ["k"] = 42,
+    ["l"] = 22,
+    ["m"] = 68,
+    ["n"] = 45,
+    ["o"] = 43,
+    ["p"] = 45,
+    ["q"] = 45,
+    ["r"] = 30,
+    ["s"] = 32,
+    ["t"] = 31,
+    ["u"] = 45,
+    ["v"] = 40,
+    ["w"] = 61,
+    ["x"] = 40,
+    ["y"] = 39,
+    ["z"] = 35,
+    ["."] = 23,
+    [","] = 23,
+    [":"] = 23,
+    [";"] = 23,
+    ["!"] = 24,
+    ["?"] = 33,
+    ["-"] = 26,
+    ["="] = 60,
+    ["/"] = 28,
+    ["'"] = 17,
+    ["\""] = 33,
+    [" "] = 15,
+}
+function getFontLettersSize(letter)
+    if MyriadProBoldCondSize[letter] then
+        return MyriadProBoldCondSize[letter]
+    else
+        return 50
+    end
+    return MyriadProBoldCondSize
+    --[[
+    local letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,:;!?-=/\'\" "
+    print("local MyriadProBoldCondSize = {")
+    for i = 1, letters:len() do
+        local letter = letters:sub(i, i)
+        local l = display.newText(letter, 0, 0, "MyriadPro-BoldCond", 100)
+        print("[\"" .. letter .. "\"] = " .. l.width .. ",")
+    end
+    print("}")
+    --]]
+end
+
+getFontLettersSize("MyriadPro-BoldCond")
 -- Monitors memory
 -- Uncomment to monitor app's lua memory/texture memory usage in terminal...
 local memTable = {}

@@ -6,12 +6,10 @@
 BtnMoreCoins = {}
 
 function BtnMoreCoins:createView()
-    --TODO Art tirar botão da barra
-    self.default = TextureManager.newImage("stru_buttoncoin_on", self)
+    self.default = TextureManager.newImage("stru_button_coins", self)
     self.default.x = 0
     self.default.y = 0
-    self.default.alpha = 0.01
-    self.over = TextureManager.newImage("stru_buttoncoin_on", self)
+    self.over = TextureManager.newImage("stru_button_coins", self)
     self.over.x = 0
     self.over.y = 0
     self.over:setFillColor(255, 255)

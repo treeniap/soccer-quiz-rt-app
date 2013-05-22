@@ -1,13 +1,11 @@
 --[[==============
 == We Love Quiz
-== Date: 06/05/13
-== Time: 12:23
+== Date: 13/05/13
+== Time: 16:55
 ==============]]--
-TopBar = {}
+SideMenu = {}
 
-require "scripts.widgets.view.button_more_coins"
-require "scripts.widgets.view.button_menu"
-require "scripts.widgets.view.total_coins"
+local menuFoilGroup
 
 local function showHideMenu(btn, event)
     if ((btn.hasMoved and btn.group.x ~= btn.group.visibleX) or not btn.hasMoved) and btn.isOpen then
@@ -28,48 +26,28 @@ local function showHideMenu(btn, event)
     return true
 end
 
-function TopBar:createView()
-    local bg = TextureManager.newImage("stru_bartop", self)
-    bg.x = display.contentCenterX
-    bg.y = 0
-
-    --- More coins
-    local moreCoinsBtn = BtnMoreCoins:new(function() end)
-    moreCoinsBtn.x = 300
-    moreCoinsBtn.y = 0
-    self:insert(moreCoinsBtn)
-
-    --- Total coins
-    local totalCoins = TotalCoinsView:new()
-    totalCoins.x = 211
-    totalCoins.y = -26
-    TotalCoinsView:update(0)
-    timer.performWithDelay(2000, function() TotalCoinsView:update(1000) end)
-    self:insert(totalCoins)
-
-    --- Menu
-    local menuFoilGroup = display.newGroup()
-
+local function createView()
     --scalable menu background
-    local menuFoilCenter = TextureManager.newImageRect(menuFoilGroup, "images/stru_menufoil_center.png", 140 + display.screenOriginX*-2, 570)
+    local menuFoilCenter = TextureManager.newImageRect("images/stru_menufoil_center.png", 140 + display.screenOriginX*-2, 570, menuFoilGroup)
     menuFoilCenter.x = SCREEN_LEFT + menuFoilCenter.width*0.5
-    menuFoilCenter.y = menuFoilCenter.height*0.5 - bg.height*0.5
+    menuFoilCenter.y = 0
     menuFoilCenter:addEventListener("touch", function() return true end)
 
     -- menu background border
-    local menuFoilBorda = TextureManager.newImageRect(menuFoilGroup, "images/stru_menufoil_borda.png", 142, 570)
+    local menuFoilBorda = TextureManager.newImage("stru_menufoil_borda", menuFoilGroup)
     menuFoilBorda.x = menuFoilCenter.x + menuFoilCenter.width*0.5 + menuFoilBorda.width*0.5
-    menuFoilBorda.y = menuFoilBorda.height*0.5 - bg.height*0.5
+    menuFoilBorda.y = 0
     menuFoilBorda:addEventListener("touch", function() return true end)
 
     -- menu open/close button
-    local menuFoilBtn = BtnMenu:new(showHideMenu)
-    menuFoilBtn.x = menuFoilBorda.x + menuFoilBorda.width*0.5 + menuFoilBtn.width*0.5
-    menuFoilBtn.y = -7.5
+    local menuFoilBtn = BtnSideMenu:new(showHideMenu)
+    menuFoilBtn.x = menuFoilBorda.x + menuFoilBorda.width*0.5 + menuFoilBtn.width*0.5 - 1
+    menuFoilBtn.y = -menuFoilBorda.height*0.5 + menuFoilBtn.height*0.5 + 3.6
     menuFoilGroup:insert(menuFoilBtn)
 
     -- menu touch blocker for objects behind
-    local touchBlocker = display.newRect(0, -bg.height*0.5, 384, 572)
+    local touchBlocker = display.newRect(0, 0, 384, 572)
+    touchBlocker.y = 0
     touchBlocker:addEventListener("touch", menuFoilBtn)
     touchBlocker.alpha = 0.01
     touchBlocker.isVisible = false
@@ -97,21 +75,18 @@ function TopBar:createView()
         end
     end
     menuFoilGroup:setX(menuFoilGroup.hideX)
-
-    self:insert(menuFoilGroup)
 end
 
-function TopBar:new()
-    local topBarGroup = display.newGroup()
-    for k, v in pairs(TopBar) do
-        topBarGroup[k] = v
+function SideMenu:new()
+    if menuFoilGroup then
+        return menuFoilGroup
     end
-
-    topBarGroup:createView()
-    topBarGroup:setReferencePoint(display.CenterReferencePoint)
-    topBarGroup.y = SCREEN_TOP + topBarGroup.height*0.5
-
-    return topBarGroup
+    menuFoilGroup = display.newGroup()
+    for k, v in pairs(SideMenu) do
+        menuFoilGroup[k] = v
+    end
+    createView()
+    return menuFoilGroup
 end
 
-return TopBar
+return SideMenu

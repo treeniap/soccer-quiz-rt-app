@@ -4,6 +4,7 @@ system.setIdleTimer(false)
 require "common"
 require "params"
 require "scripts.management.texture_manager"
+require "scripts.management.screen_manager"
 require "util.tween"
 
 -- FLURRY
@@ -28,7 +29,7 @@ local function main()
     require "scripts.widgets.view.chronometer"
     require "scripts.widgets.view.bottom_ranking"
     require "scripts.widgets.view.top_bar"
-    local bg = TextureManager.newImageRect("images/stru_bg01.png", 360, 570) --1520 x 2280
+    local bg = TextureManager.newImageRect("stru_bg01", 360, 570) --1520 x 2280
     bg.x = display.contentCenterX
     bg.y = display.contentCenterY
     local undoBtn
@@ -62,7 +63,7 @@ local function main()
     clearBtn.y = display.contentCenterY + 60
     buttons[#buttons + 1] = clearBtn
 
-    local drawer = TextureManager.newImageRect("images/stru_drawer.png", 360, 360) --1520 x 2280
+    local drawer = TextureManager.newImageRect("stru_drawer", 360, 360) --1520 x 2280
     drawer.x = display.contentCenterX
     drawer.y = SCREEN_BOTTOM + 16
 
@@ -139,7 +140,9 @@ local function main()
 
     TopBar:new()
 end
-main()
+--main()
+
+ScreenManager:show("in_game")
 
 local onSystem = function(event)
     if event.type == "applicationSuspend" then

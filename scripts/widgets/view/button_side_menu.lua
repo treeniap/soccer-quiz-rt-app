@@ -3,13 +3,13 @@
 == Date: 09/05/13
 == Time: 11:15
 ==============]]--
-BtnMenu = {}
+BtnSideMenu = {}
 
-function BtnMenu:createView()
-    self.default = TextureManager.newImageRect(self, "images/stru_buttonmenu.png", 40, 49)
+function BtnSideMenu:createView()
+    self.default = TextureManager.newImage("stru_buttonmenu", self)
     self.default.x = 0
     self.default.y = 0
-    self.over = TextureManager.newImageRect(self, "images/stru_buttonmenu.png", 38, 45)
+    self.over = TextureManager.newImage("stru_buttonmenu", self)
     self.over.x = 0
     self.over.y = 0
     self.over:setFillColor(255, 255)
@@ -20,10 +20,10 @@ function BtnMenu:createView()
     self.symbol.y = -self.symbol.height*0.5
 end
 
-function BtnMenu:new(onRelease)
-    local backBtnGroup = PressRelease:new(BtnMenu, onRelease)
+function BtnSideMenu:new(onRelease)
+    local backBtnGroup = PressRelease:new(BtnSideMenu, onRelease)
     backBtnGroup.touch = TouchHandler.pressPushHandler
     return backBtnGroup
 end
 
-return BtnMenu
+return BtnSideMenu

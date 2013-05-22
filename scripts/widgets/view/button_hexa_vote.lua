@@ -116,7 +116,7 @@ function BtnHexaVote:showFriendVoted(friend)
     local photoBg = TextureManager.newImage("stru_albumframe", self)
     photoBg.x = -28
     photoBg.y = -48
-    local photo = TextureManager.newImageRect(self, friend.photo, 53, 53)
+    local photo = TextureManager.newImageRect(friend.photo, 53, 53, self)
     photo.x = -25
     photo.y = -45
 
