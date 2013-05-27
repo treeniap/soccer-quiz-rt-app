@@ -84,10 +84,10 @@ function ScreenManager:show(screenName)
     --    end)
     --end)
 
-    currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
-    timer.performWithDelay(3000, function()
-        currentScreen:onGameOver(finalResultInfo)
-    end)
+    --currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
+    --timer.performWithDelay(3000, function()
+    --    currentScreen:onGameOver(finalResultInfo)
+    --end)
 end
 
 return ScreenManager

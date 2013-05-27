@@ -20,8 +20,8 @@ function BtnFacebook:createView()
 end
 
 function BtnFacebook:new(onRelease)
-    local backBtnGroup = PressRelease:new(BtnFacebook, onRelease)
-    return backBtnGroup
+    local facebookBtnGroup = PressRelease:new(BtnFacebook, onRelease)
+    return facebookBtnGroup
 end
 
 return BtnFacebook

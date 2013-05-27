@@ -54,11 +54,17 @@ function printTable(tab)
     --print("--==TABLE")
     local n = ""
     level = level + 1
+    if level > 10 then
+        return
+    end
     if type(tab) ~= "table" then
         print(tab)
         return
     end
     for k, v in pairs(tab) do
+        if tostring(k) == "_class" then
+            return
+        end
         n = n..getLevel()..tostring(k)
         if type(v) == "table" then
             print(n)
