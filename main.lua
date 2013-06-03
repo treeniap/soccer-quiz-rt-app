@@ -5,6 +5,7 @@ require "common"
 require "params"
 require "scripts.management.texture_manager"
 require "scripts.management.screen_manager"
+require "scripts.server.server_communication"
 require "util.tween"
 
 -- FLURRY
@@ -18,7 +19,8 @@ else
     --analytics.init(Params.flurryId)
 end
 
-ScreenManager:show("profile")
+Server.init()
+ScreenManager:enterMatch("51a561b4e1b5914834000017")
 
 local onSystem = function(event)
     if event.type == "applicationSuspend" then

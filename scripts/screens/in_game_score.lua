@@ -79,7 +79,7 @@ local function createMatchTimer(matchMinutes, matchTime)
 end
 
 function InGameScore:showUp()
-    transition.to(self, {time = 400, alpha = 1})
+    transition.to(self, {delay = 500, time = 1000, alpha = 1})
 end
 
 function InGameScore:hide()

@@ -168,7 +168,7 @@ function QuestionsBar:createView()
     questionsBarGroup:insert(openCloseBtn)
 
     --- Next Button
-    nextBtn = BtnNext:new(function() return true end)
+    nextBtn = BtnNext:new(function() ScreenManager:callNext() end)
     nextBtn.x = 311
     nextBtn.y = bar.y + 3
     nextBtn.isVisible = false

@@ -40,14 +40,26 @@ local challengeInfo = {
     }
 }
 
-local eventInfo = {
-    eventName = "ESCANTEIO!",
-    teamBadge = "pictures/clubes_bragantino.png",
-    teamName  = "LINGUIÇA MECÂNICA"
+local eventsInfo = {
+    penalty = {
+        eventName = "PÊNALTIIIIII!",
+        teamBadge = "pictures/clubes_bragantino.png",
+        teamName  = "LINGUIÇA MECÂNICA"
+    },
+    foul = {
+        eventName = "FALTA!",
+        teamBadge = "pictures/clubes_scaetano.png",
+        teamName  = "AZULÃO"
+    },
+    corner_kick = {
+        eventName = "ESCANTEIO!",
+        teamBadge = "pictures/clubes_bragantino.png",
+        teamName  = "LINGUIÇA MECÂNICA"
+    },
 }
 --resultInfo.type, resultInfo.betCoins, resultInfo.valueMult, resultInfo.friend
 local resultInfo = {
-    type        = "clear",
+    type        = "cleared",
     resultTitle = "AFAAAAASTA A ZAGA!",
     isRight     = true,
     prize       = 8,
@@ -73,7 +85,7 @@ function ScreenManager:show(screenName)
 
     --currentScreen:onPreKickOffQuestions(challengeInfo)
 
-    --currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
+    currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
     --timer.performWithDelay(5000, function()
     --    currentScreen:onEventStart(eventInfo)
     --    timer.performWithDelay(11000, function()
@@ -88,6 +100,33 @@ function ScreenManager:show(screenName)
     --timer.performWithDelay(3000, function()
     --    currentScreen:onGameOver(finalResultInfo)
     --end)
+end
+
+function ScreenManager:callNext()
+    currentScreen:onGame()
+end
+
+local function showMatch()
+    currentScreen = require("scripts.screens.in_game")
+    currentScreen:new()
+
+    currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
+end
+
+local function matchServerListener(message)
+    local _eventInfo = eventsInfo[message.key]
+    _eventInfo.alternatives = message.alternatives
+
+    currentScreen:onEventStart(_eventInfo)
+
+    timer.performWithDelay(11000, function()
+        currentScreen:onEventEnd(resultInfo)
+    end)
+end
+
+function ScreenManager:enterMatch(channel)
+    Server.pubnubSubscribe(channel, matchServerListener)
+    showMatch()
 end
 
 return ScreenManager

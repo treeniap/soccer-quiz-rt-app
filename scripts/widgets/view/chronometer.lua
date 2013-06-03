@@ -21,6 +21,11 @@ function Chronometer:createView()
     self.bar.maskX = -82
 end
 
+function Chronometer:resetBar()
+    self.bar.x = 13
+    self.bar.maskX = -82
+end
+
 function Chronometer:moveBar()
     self.bar.x = self.bar.x - 1
     self.bar.maskX = self.bar.maskX + 1
@@ -28,6 +33,7 @@ end
 
 function Chronometer:start(time, onFinish)
     local BAR_SIZE = 163
+    self:resetBar()
     timer.performWithDelay(time/BAR_SIZE, function(event)
         self:moveBar()
         if event.count == BAR_SIZE then

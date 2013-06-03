@@ -78,12 +78,12 @@ function BtnHexaVote:createCoinSlot()
 end
 
 local questionsAlternatives = {
-    goal  = {text = "GOL",    frameName = "stru_pic_gol_vote"},
-    save  = {text = "SALVA",  frameName = "stru_pic_defende_vote"},
-    clear = {text = "AFASTA", frameName = "stru_pic_tira_vote"},
-    out   = {text = "FORA",   frameName = "stru_pic_fora_vote"},
-    yes   = {text = "SIM"},
-    no    = {text = "NÃO"}
+    goal    = {text = "GOL",    frameName = "stru_pic_gol_vote"},
+    saved   = {text = "SALVA",  frameName = "stru_pic_defende_vote"},
+    cleared = {text = "AFASTA", frameName = "stru_pic_tira_vote"},
+    missed  = {text = "FORA",   frameName = "stru_pic_fora_vote"},
+    yes     = {text = "SIM"},
+    no      = {text = "NÃO"}
 }
 
 function BtnHexaVote:createAlternativePicture(question)
@@ -99,7 +99,7 @@ function BtnHexaVote:createAlternativeText(question)
 end
 
 function BtnHexaVote:createMultiplier(value)
-    newLockableText(self, string.format("%.1f", value), 34, 9, 24)
+    self.multiplierTxt = newLockableText(self, string.format("%.1f", value), 34, 9, 24)
     newLockableText(self, "x", 42, 10, 16)
 end
 
@@ -113,12 +113,15 @@ function BtnHexaVote:showFriendVoted(friend)
         {x = -2, y = 1}
     }
 
+    self.friendView = {}
     local photoBg = TextureManager.newImage("stru_albumframe", self)
     photoBg.x = -28
     photoBg.y = -48
+    self.friendView[#self.friendView + 1] = photoBg
     local photo = TextureManager.newImageRect(friend.photo, 53, 53, self)
     photo.x = -25
     photo.y = -45
+    self.friendView[#self.friendView + 1] = photo
 
     local coinSlotGroup = display.newGroup()
     for i = 1, friend.coins do
@@ -129,6 +132,18 @@ function BtnHexaVote:showFriendVoted(friend)
     coinSlotGroup.x = -44
     coinSlotGroup.y = -38
     self:insert(coinSlotGroup)
+    self.friendView[#self.friendView + 1] = coinSlotGroup
+end
+
+function BtnHexaVote:resetButton(multiplier)
+    self:lock(false)
+    if self.friendView then
+        for i, v in ipairs(self.friendView) do
+            v:removeSelf()
+        end
+        self.friendView = nil
+    end
+    self.multiplierTxt.text = string.format("%.1f", multiplier)
 end
 
 function BtnHexaVote:addCoin()

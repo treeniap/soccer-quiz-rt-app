@@ -8,6 +8,8 @@ InGameEvent = {}
 local eventGroup
 
 local eventFoil, whistle, voteButtons, resultBar
+local onTimeUp
+local isShowingResults
 
 local voteButtonsPositionsY = {
     display.contentCenterY - 92,
@@ -58,12 +60,12 @@ local function createEventFoil(eventName, teamBadge, teamName)
 end
 
 local questionsAlternatives = {
-    goal  = {text = "GOL",    frameName = "stru_pic_gol_vote"},
-    save  = {text = "SALVA",  frameName = "stru_pic_defende_vote"},
-    clear = {text = "AFASTA", frameName = "stru_pic_tira_vote"},
-    out   = {text = "FORA",   frameName = "stru_pic_fora_vote"},
-    yes   = {text = "SIM"},
-    no    = {text = "NÃO"}
+    goal    = {text = "GOL",    frameName = "stru_pic_gol_vote"},
+    saved   = {text = "SALVA",  frameName = "stru_pic_defende_vote"},
+    cleared = {text = "AFASTA", frameName = "stru_pic_tira_vote"},
+    missed  = {text = "FORA",   frameName = "stru_pic_fora_vote"},
+    yes     = {text = "SIM"},
+    no      = {text = "NÃO"}
 }
 
 local coinSlotsPosition = {
@@ -211,6 +213,10 @@ local function createWhistle()
 end
 
 function InGameEvent:showUp(onComplete)
+    if isShowingResults then
+        self:hide(function() self:showUp(onComplete) end)
+        return
+    end
     transition.to(eventFoil, {time = 500, x = SCREEN_LEFT, transition = easeOutQuad})
     transition.to(whistle, {time = 500, x = SCREEN_RIGHT - 50, transition = easeOutQuad, onComplete = function()
         transition.to(eventFoil, {delay = 3000, time = 500, x = SCREEN_LEFT - eventFoil.width, transition = easeInCirc})
@@ -235,11 +241,13 @@ function InGameEvent:showResult(resultInfo, onComplete)
     end
     transition.to(resultBar, {delay = 1800, time = 500, x = SCREEN_RIGHT + 20, transition = easeOutQuad})
     eventGroup:insert(resultBar)
+    isShowingResults = true
 end
 
 function InGameEvent:hide(onComplete)
     transition.to(eventFoil, {time = 500, x = SCREEN_LEFT - eventFoil.width, transition = easeInCirc, onComplete = onComplete})
     transition.to(resultBar, {time = 500, x = SCREEN_RIGHT + resultBar.width, transition = easeInCirc})
+    isShowingResults = false
 end
 
 function InGameEvent:create(eventInfo)
@@ -247,6 +255,8 @@ function InGameEvent:create(eventInfo)
     for k, v in pairs(InGameEvent) do
         eventGroup[k] = v
     end
+
+    isShowingResults = false
 
     local undoBtn = QuestionsBar:getUndoBtn()
 
@@ -272,36 +282,47 @@ function InGameEvent:create(eventInfo)
         return true
     end
 
-    local goalBtn = BtnHexaVote:new("goal", 10.8, releaseHandler)
-    goalBtn.x = display.contentCenterX - goalBtn.width*0.45
-    goalBtn.y = SCREEN_BOTTOM + goalBtn.height -- display.contentCenterY - 90
-    voteButtons[#voteButtons + 1] = goalBtn
-    eventGroup:insert(1, goalBtn)
-    local saveBtn = BtnHexaVote:new("save", 1.5, releaseHandler)
-    saveBtn.x = display.contentCenterX + saveBtn.width*0.45
-    saveBtn.y = SCREEN_BOTTOM + goalBtn.height -- display.contentCenterY - 60
-    voteButtons[#voteButtons + 1] = saveBtn
-    eventGroup:insert(1, saveBtn)
-    local outBtn = BtnHexaVote:new("out", 1.2, releaseHandler)
-    outBtn.x = display.contentCenterX - outBtn.width*0.45
-    outBtn.y = SCREEN_BOTTOM + goalBtn.height -- display.contentCenterY + 30
-    voteButtons[#voteButtons + 1] = outBtn
-    eventGroup:insert(1, outBtn)
-    local clearBtn = BtnHexaVote:new("clear", 1.1, releaseHandler)
-    clearBtn.x = display.contentCenterX + clearBtn.width*0.45
-    clearBtn.y = SCREEN_BOTTOM + goalBtn.height -- display.contentCenterY + 60
-    voteButtons[#voteButtons + 1] = clearBtn
-    eventGroup:insert(1, clearBtn)
+    local btnLabel = "goal"
+    local topLeftBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
+    topLeftBtn.x = display.contentCenterX - topLeftBtn.width*0.45
+    topLeftBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY - 90
+    topLeftBtn.label = btnLabel
+    voteButtons[#voteButtons + 1] = topLeftBtn
+    eventGroup:insert(1, topLeftBtn)
 
-    local function onTimeUp()
+    btnLabel = "saved"
+    local topRightBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
+    topRightBtn.x = display.contentCenterX + topRightBtn.width*0.45
+    topRightBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY - 60
+    topRightBtn.label = btnLabel
+    voteButtons[#voteButtons + 1] = topRightBtn
+    eventGroup:insert(1, topRightBtn)
+
+    btnLabel = "missed"
+    local bottomLeftBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
+    bottomLeftBtn.x = display.contentCenterX - bottomLeftBtn.width*0.45
+    bottomLeftBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY + 30
+    bottomLeftBtn.label = btnLabel
+    voteButtons[#voteButtons + 1] = bottomLeftBtn
+    eventGroup:insert(1, bottomLeftBtn)
+
+    btnLabel = "cleared"
+    local bottomRightBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
+    bottomRightBtn.x = display.contentCenterX + bottomRightBtn.width*0.45
+    bottomRightBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY + 60
+    bottomRightBtn.label = btnLabel
+    voteButtons[#voteButtons + 1] = bottomRightBtn
+    eventGroup:insert(1, bottomRightBtn)
+
+    onTimeUp = function()
         local f1 = {photo = "pictures/pic_5.png",  coins = 3}
         local f2 = {photo = "pictures/pic_8.png",  coins = 5}
         local f3 = {photo = "pictures/pic_12.png", coins = 1}
         local f4 = {photo = "pictures/pic_3.png",  coins = 3}
-        goalBtn:showFriendVoted(f1)
-        saveBtn:showFriendVoted(f2)
-        outBtn:showFriendVoted(f3)
-        clearBtn:showFriendVoted(f4)
+        topLeftBtn:showFriendVoted(f1)
+        topRightBtn:showFriendVoted(f2)
+        bottomLeftBtn:showFriendVoted(f3)
+        bottomRightBtn:showFriendVoted(f4)
 
         undoBtn:lock(true)
     end

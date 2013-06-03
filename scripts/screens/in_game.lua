@@ -37,7 +37,12 @@ function InGameScreen:onGame(gameInfo)
         inGameGroup:insert(1, scoreView)
     end
     if eventView then
-        eventView:hide()
+        local oldEventView = eventView
+        oldEventView:hide(function()
+            oldEventView:removeSelf()
+            oldEventView = nil
+        end)
+        eventView = nil
     end
     scoreView:showUp()
 end
@@ -45,6 +50,15 @@ end
 function InGameScreen:onEventStart(eventInfo)
     scoreView:hide()
     local onTimeUp
+    if eventView then
+        questionsBar:onGame()
+        local oldEventView = eventView
+        oldEventView:hide(function()
+            oldEventView:removeSelf()
+            oldEventView = nil
+        end)
+        eventView = nil
+    end
     eventView, onTimeUp = InGameEvent:create(eventInfo)
     inGameGroup:insert(2, eventView)
     eventView:showUp(function()
