@@ -153,6 +153,10 @@ function BtnHexaVote:addCoin()
     end
 end
 
+function BtnHexaVote:getBetCoins()
+    return self.coinSlot.coinsAmount
+end
+
 function BtnHexaVote:resetCoins()
     local btnCoinSlot = self.coinSlot
     while btnCoinSlot.coinsAmount > 0 do

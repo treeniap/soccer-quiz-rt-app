@@ -5,6 +5,8 @@
 ==============]]--
 require "scripts.widgets.view.top_bar_menu"
 require "scripts.widgets.view.button_import_profile"
+require "scripts.widgets.view.button_profile"
+require "scripts.widgets.view.button_text_underline"
 
 ProfileScreen = {}
 
@@ -12,6 +14,7 @@ local profileGroup
 local scrollGroup
 local textFields
 local isKeyboardOn
+local HEIGHT_DIFF = display.screenOriginY*-0.2
 
 local function createBG()
     local bg = TextureManager.newImageRect("images/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, profileGroup)
@@ -114,17 +117,26 @@ end
 local function createImportProfileBtn()
     local btn = BtnImportProfile:new(function() end)
     btn.x = display.contentCenterX
-    btn.y = SCREEN_TOP + 128
+    btn.y = SCREEN_TOP + 128 + HEIGHT_DIFF
     scrollGroup:insert(btn)
 end
 
 local function createOuLine()
-    scrollGroup:insert(TextureManager.newHorizontalLine(SCREEN_LEFT + CONTENT_WIDTH*0.225, SCREEN_TOP + 174, CONTENT_WIDTH*0.4))
-    scrollGroup:insert(TextureManager.newHorizontalLine(SCREEN_LEFT + CONTENT_WIDTH*0.775, SCREEN_TOP + 174, CONTENT_WIDTH*0.4))
-    local ouTxt = display.newText("OU", 0, SCREEN_TOP + 164, "MyriadPro-BoldCond", 16)
+    scrollGroup:insert(TextureManager.newHorizontalLine(SCREEN_LEFT + CONTENT_WIDTH*0.225, SCREEN_TOP + 174 + HEIGHT_DIFF*2, CONTENT_WIDTH*0.4))
+    scrollGroup:insert(TextureManager.newHorizontalLine(SCREEN_LEFT + CONTENT_WIDTH*0.775, SCREEN_TOP + 174 + HEIGHT_DIFF*2, CONTENT_WIDTH*0.4))
+    local ouTxt = display.newText("OU", 0, SCREEN_TOP + 164 + HEIGHT_DIFF*2, "MyriadPro-BoldCond", 16)
     ouTxt.x = display.contentCenterX
     ouTxt:setTextColor(135)
     scrollGroup:insert(ouTxt)
+end
+
+local function createELine()
+    scrollGroup:insert(TextureManager.newHorizontalLine(SCREEN_LEFT + CONTENT_WIDTH*0.225, SCREEN_TOP + 387 + HEIGHT_DIFF*4, CONTENT_WIDTH*0.4))
+    scrollGroup:insert(TextureManager.newHorizontalLine(SCREEN_LEFT + CONTENT_WIDTH*0.775, SCREEN_TOP + 387 + HEIGHT_DIFF*4, CONTENT_WIDTH*0.4))
+    local eTxt = display.newText("E", 0, SCREEN_TOP + 377 + HEIGHT_DIFF*4, "MyriadPro-BoldCond", 16)
+    eTxt.x = display.contentCenterX
+    eTxt:setTextColor(135)
+    scrollGroup:insert(eTxt)
 end
 
 local function createTextField(x, y, text, inputType, isSecure)
@@ -137,7 +149,7 @@ local function createTextField(x, y, text, inputType, isSecure)
     textFieldBG.y = y
 
     local function textListener(target, event)
-        print(event.phase)
+        --print(event.phase)
 
         if event.phase == "began" then
             -- user begins editing textField
@@ -178,18 +190,18 @@ local function createTextField(x, y, text, inputType, isSecure)
 end
 
 local function createEmailLogin()
-    local preenchaTxt = display.newText("PREENCHA SEUS DADOS MANUALMENTE", 24, SCREEN_TOP + 194, "MyriadPro-BoldCond", 16)
+    local preenchaTxt = display.newText("PREENCHA SEUS DADOS MANUALMENTE", 24, SCREEN_TOP + 194 + HEIGHT_DIFF*3, "MyriadPro-BoldCond", 16)
     preenchaTxt:setTextColor(0)
     scrollGroup:insert(preenchaTxt)
 
     local photo = TextureManager.newSpriteRect("stru_pic", 60, 60)
     photo:setReferencePoint(display.TopLeftReferencePoint)
     photo.x = 24
-    photo.y = SCREEN_TOP + 224
+    photo.y = SCREEN_TOP + 224 + HEIGHT_DIFF*3
     scrollGroup:insert(photo)
 
     local textFieldX = photo.x + photo.width + 8
-    local textFieldY = SCREEN_TOP + 224
+    local textFieldY = SCREEN_TOP + 224 + HEIGHT_DIFF*3
 
     local textFieldNameBG = createTextField(textFieldX, textFieldY, "NOME E SOBRENOME", "default")
 
@@ -202,6 +214,29 @@ local function createEmailLogin()
 
     textFieldY = textFieldY + 35
     local textFieldCondifrmPasswordBG = createTextField(textFieldX, textFieldY, "CONFIRME SUA SENHA", "default", true)
+
+    local btn = BtnProfile:new("SALVAR", "PERFIL", function() end)
+    btn:setReferencePoint(display.TopRightReferencePoint)
+    btn.x = 295
+    btn.y = textFieldY - 35
+    scrollGroup:insert(btn)
+
+    local login = BtnTextUnderline:new("LOGAR COM CONTA EXISTENTE", function() end)
+    login:setReferencePoint(display.TopRightReferencePoint)
+    login.x = 230
+    login.y = textFieldY + 30
+    scrollGroup:insert(login)
+end
+
+local function createChooseFavoriteTeam()
+    local badge = TextureManager.newSpriteRect("stru_chooseteam", 60, 60)
+    badge:setReferencePoint(display.TopLeftReferencePoint)
+    badge.x = 24
+    badge.y = SCREEN_TOP + 395 + HEIGHT_DIFF*6
+    scrollGroup:insert(badge)
+    local chooseTeamTxt = display.newText("ESCOLHA SEU TIME DO CORAÇÃO!!!", badge.x + badge.width + 4, badge.y + badge.height*0.5 - 8, "MyriadPro-BoldCond", 16)
+    chooseTeamTxt:setTextColor(0)
+    scrollGroup:insert(chooseTeamTxt)
 end
 
 function ProfileScreen:showUp(onComplete)
@@ -221,6 +256,8 @@ function ProfileScreen:new()
     createImportProfileBtn()
     createOuLine()
     createEmailLogin()
+    createELine()
+    createChooseFavoriteTeam()
 
     isKeyboardOn = false
 

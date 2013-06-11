@@ -5,6 +5,13 @@
 ==============]]--
 InGameEvent = {}
 
+local TextureManager = TextureManager
+local BtnHexaVote = BtnHexaVote
+local SCREEN_TOP = SCREEN_TOP
+local SCREEN_BOTTOM = SCREEN_BOTTOM
+local SCREEN_RIGHT = SCREEN_RIGHT
+local SCREEN_LEFT = SCREEN_LEFT
+
 local eventGroup
 
 local eventFoil, whistle, voteButtons, resultBar
@@ -287,6 +294,7 @@ function InGameEvent:create(eventInfo)
     topLeftBtn.x = display.contentCenterX - topLeftBtn.width*0.45
     topLeftBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY - 90
     topLeftBtn.label = btnLabel
+    topLeftBtn.url = eventInfo.alternatives[btnLabel].url
     voteButtons[#voteButtons + 1] = topLeftBtn
     eventGroup:insert(1, topLeftBtn)
 
@@ -295,6 +303,7 @@ function InGameEvent:create(eventInfo)
     topRightBtn.x = display.contentCenterX + topRightBtn.width*0.45
     topRightBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY - 60
     topRightBtn.label = btnLabel
+    topRightBtn.url = eventInfo.alternatives[btnLabel].url
     voteButtons[#voteButtons + 1] = topRightBtn
     eventGroup:insert(1, topRightBtn)
 
@@ -303,16 +312,21 @@ function InGameEvent:create(eventInfo)
     bottomLeftBtn.x = display.contentCenterX - bottomLeftBtn.width*0.45
     bottomLeftBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY + 30
     bottomLeftBtn.label = btnLabel
+    bottomLeftBtn.url = eventInfo.alternatives[btnLabel].url
     voteButtons[#voteButtons + 1] = bottomLeftBtn
     eventGroup:insert(1, bottomLeftBtn)
 
     btnLabel = "cleared"
-    local bottomRightBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
-    bottomRightBtn.x = display.contentCenterX + bottomRightBtn.width*0.45
-    bottomRightBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY + 60
-    bottomRightBtn.label = btnLabel
-    voteButtons[#voteButtons + 1] = bottomRightBtn
-    eventGroup:insert(1, bottomRightBtn)
+    local bottomRightBtn
+    if eventInfo.alternatives[btnLabel] then
+        bottomRightBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
+        bottomRightBtn.x = display.contentCenterX + bottomRightBtn.width*0.45
+        bottomRightBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY + 60
+        bottomRightBtn.label = btnLabel
+        bottomRightBtn.url = eventInfo.alternatives[btnLabel].url
+        voteButtons[#voteButtons + 1] = bottomRightBtn
+        eventGroup:insert(1, bottomRightBtn)
+    end
 
     onTimeUp = function()
         local f1 = {photo = "pictures/pic_5.png",  coins = 3}
@@ -322,7 +336,15 @@ function InGameEvent:create(eventInfo)
         topLeftBtn:showFriendVoted(f1)
         topRightBtn:showFriendVoted(f2)
         bottomLeftBtn:showFriendVoted(f3)
-        bottomRightBtn:showFriendVoted(f4)
+        if bottomRightBtn then
+            bottomRightBtn:showFriendVoted(f4)
+        end
+
+        for i, vB in ipairs(voteButtons) do
+            if vB:getBetCoins() > 0 then
+                Server.postBet(vB.url)
+            end
+        end
 
         undoBtn:lock(true)
     end

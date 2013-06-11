@@ -5,6 +5,7 @@
 ==============]]--
 Server = {}
 
+local json = require "json"
 require "pubnub"
 
 local STATUS_REACHABLE   = "reachable"
@@ -24,7 +25,7 @@ local function log(...)
 end
 
 ---=======================================================================---
----/////////////////////////// NETWORK STATUS ///////////////////////////---
+---/////////////////////////// NETWORK STATUS ////////////////////////////---
 ---=======================================================================---
 
 local function networkStatusListener(event)
@@ -84,6 +85,14 @@ function Server.pubnubSubscribe(channel, listener)
             print("Oh no!!! Dropped 3G Conection!")
         end
     })
+end
+
+function Server.postBet(url)
+    network.request(url, "POST", function() end)
+end
+
+function Server.getMatches(url, listener)
+    network.request(url, "GET", listener)
 end
 
 ---=====================================================---

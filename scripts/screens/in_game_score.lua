@@ -6,6 +6,7 @@
 InGameScore = {}
 
 local infoGroup
+local transitionHandler
 
 local function createChampionshipInfo(championshipBadge, championshipName, championshipRound)
     local championshipGroup = display.newGroup()
@@ -79,11 +80,17 @@ local function createMatchTimer(matchMinutes, matchTime)
 end
 
 function InGameScore:showUp()
-    transition.to(self, {delay = 500, time = 1000, alpha = 1})
+    if transitionHandler then
+        return
+    end
+    transitionHandler = transition.to(self, {delay = 500, time = 1000, alpha = 1, onComplete = function() transitionHandler = nil end})
 end
 
 function InGameScore:hide()
-    transition.to(self, {time = 400, alpha = 0})
+    if transitionHandler then
+        transition.cancel(transitionHandler)
+    end
+    transitionHandler = transition.to(self, {time = 400, alpha = 0, onComplete = function() transitionHandler = nil end})
 end
 
 --championshipBadge = "pictures/fpf.png",

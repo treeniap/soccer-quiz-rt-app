@@ -32,14 +32,28 @@ function Chronometer:moveBar()
 end
 
 function Chronometer:start(time, onFinish)
-    local BAR_SIZE = 163
     self:resetBar()
-    timer.performWithDelay(time/BAR_SIZE, function(event)
-        self:moveBar()
-        if event.count == BAR_SIZE then
-            onFinish()
+    local BAR_SIZE = 163
+    local MILLISECONDS_PER_PIXEL = time/BAR_SIZE
+    local count = 0
+    local lastTime = system.getTimer()
+    local cycleTimeElapsed = 0
+    local function updateChronometer(event)
+        local currentTime = system.getTimer()
+        cycleTimeElapsed = cycleTimeElapsed + (currentTime - lastTime)
+        lastTime = currentTime
+        while cycleTimeElapsed >= MILLISECONDS_PER_PIXEL do
+            self:moveBar()
+            cycleTimeElapsed = cycleTimeElapsed - MILLISECONDS_PER_PIXEL
+            count = count + 1
+            if count == BAR_SIZE then
+                onFinish()
+                Runtime:removeEventListener("enterFrame", updateChronometer)
+                return
+            end
         end
-    end, BAR_SIZE)
+    end
+    Runtime:addEventListener("enterFrame", updateChronometer)
 end
 
 function Chronometer:new()

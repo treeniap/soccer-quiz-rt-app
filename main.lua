@@ -5,6 +5,7 @@ require "common"
 require "params"
 require "scripts.management.texture_manager"
 require "scripts.management.screen_manager"
+require "scripts.management.match_manager"
 require "scripts.server.server_communication"
 require "util.tween"
 
@@ -20,7 +21,11 @@ else
 end
 
 Server.init()
-ScreenManager:enterMatch("51a561b4e1b5914834000017")
+MatchManager:requestMatches()
+--timer.performWithDelay(3000, function()
+--    ScreenManager:enterMatch(MatchManager:setCurrentMatch(1))
+--end)
+ScreenManager:show("profile")
 
 local onSystem = function(event)
     if event.type == "applicationSuspend" then

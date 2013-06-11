@@ -36,17 +36,39 @@ function BtnOpenQuestions:createView()
     self.toClosePressed.isVisible = false
 end
 
+function BtnOpenQuestions:changeState(isPressed)
+    if self.isOpen then
+        if isPressed then
+            self.toClosePressed.isVisible = true
+            self.toClose.isVisible = true
+            self.toOpenPressed.isVisible = false
+            self.toOpen.isVisible = false
+        else
+            self.toClosePressed.isVisible = false
+            self.toClose.isVisible = true
+            self.toOpenPressed.isVisible = false
+            self.toOpen.isVisible = false
+        end
+    else
+        if isPressed then
+            self.toClosePressed.isVisible = false
+            self.toClose.isVisible = false
+            self.toOpenPressed.isVisible = true
+            self.toOpen.isVisible = true
+        else
+            self.toClosePressed.isVisible = false
+            self.toClose.isVisible = false
+            self.toOpenPressed.isVisible = false
+            self.toOpen.isVisible = true
+        end
+    end
+end
+
 function BtnOpenQuestions:onPressed()
     if self.isPressed then
         return
     end
-    if self.isOpen then
-        self.toClosePressed.isVisible = true
-        self.toClose.isVisible = false
-    else
-        self.toOpenPressed.isVisible = true
-        self.toOpen.isVisible = false
-    end
+    self:changeState(true)
     self.isPressed = true
 end
 
@@ -54,13 +76,7 @@ function BtnOpenQuestions:onReleased()
     if not self.isPressed then
         return
     end
-    if self.isOpen then
-        self.toClose.isVisible = true
-        self.toClosePressed.isVisible = false
-    else
-        self.toOpen.isVisible = true
-        self.toOpenPressed.isVisible = false
-    end
+    self:changeState(false)
     self.isPressed = false
 end
 

@@ -31,6 +31,7 @@ function InGameScreen:onPreKickOffQuestions(challengeInfo)
 end
 
 function InGameScreen:onGame(gameInfo)
+    display.getCurrentStage():setFocus(nil)
     questionsBar:onGame()
     if not scoreView then
         scoreView = InGameScore:create(gameInfo)
@@ -48,6 +49,7 @@ function InGameScreen:onGame(gameInfo)
 end
 
 function InGameScreen:onEventStart(eventInfo)
+    display.getCurrentStage():setFocus(nil)
     scoreView:hide()
     local onTimeUp
     if eventView then
@@ -62,16 +64,18 @@ function InGameScreen:onEventStart(eventInfo)
     eventView, onTimeUp = InGameEvent:create(eventInfo)
     inGameGroup:insert(2, eventView)
     eventView:showUp(function()
-        questionsBar:onEventBet(onTimeUp)
+        questionsBar:onEventBet(onTimeUp, eventInfo.userBetTimeout)
     end)
     questionsBar:lock()
 end
 
 function InGameScreen:onEventEnd(resultInfo)
+    display.getCurrentStage():setFocus(nil)
     eventView:showResult(resultInfo, function() questionsBar:onEventResult() end)
 end
 
 function InGameScreen:onGameOver(finalResultInfo)
+    display.getCurrentStage():setFocus(nil)
     scoreView:hide()
     endView = InGameEnd:create(finalResultInfo)
     inGameGroup:insert(2, endView)
@@ -113,7 +117,7 @@ function InGameScreen:showUp(onComplete)
         ranking[i].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
         ranking[i].score = (14 - i)*123
     end
-    ranking[9].isPlayer = true
+    ranking[3].isPlayer = true
     bottomRanking:showUp(function()
         bottomRanking:updateRankingPositions(ranking)
         topBar:showUp()
@@ -129,7 +133,7 @@ function InGameScreen:new()
     questionsBar:setQuestions(questions)
     inGameGroup:insert(questionsBar)
 
-    bottomRanking = BottomRanking:new("pictures/pic_9.png")
+    bottomRanking = BottomRanking:new("pictures/pic_3.png")
 
     inGameGroup:insert(bottomRanking)
 

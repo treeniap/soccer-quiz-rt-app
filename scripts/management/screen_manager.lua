@@ -6,6 +6,7 @@
 require "scripts.widgets.controller.button_press_release"
 require "scripts.widgets.controller.button_touch_handler"
 require "scripts.widgets.view.top_bar"
+require "util.utf8"
 
 ScreenManager = {}
 
@@ -42,19 +43,16 @@ local challengeInfo = {
 
 local eventsInfo = {
     penalty = {
-        eventName = "PÊNALTIIIIII!",
+        eventName = "PÊNALTI!",
         teamBadge = "pictures/clubes_bragantino.png",
-        teamName  = "LINGUIÇA MECÂNICA"
     },
     foul = {
         eventName = "FALTA!",
         teamBadge = "pictures/clubes_scaetano.png",
-        teamName  = "AZULÃO"
     },
     corner_kick = {
         eventName = "ESCANTEIO!",
         teamBadge = "pictures/clubes_bragantino.png",
-        teamName  = "LINGUIÇA MECÂNICA"
     },
 }
 --resultInfo.type, resultInfo.betCoins, resultInfo.valueMult, resultInfo.friend
@@ -82,10 +80,11 @@ local finalResultInfo = {
 function ScreenManager:show(screenName)
     currentScreen = require("scripts.screens." .. screenName)
     currentScreen:new()
+    currentScreen:showUp()
 
     --currentScreen:onPreKickOffQuestions(challengeInfo)
 
-    currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
+    --currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
     --timer.performWithDelay(5000, function()
     --    currentScreen:onEventStart(eventInfo)
     --    timer.performWithDelay(11000, function()
@@ -113,19 +112,33 @@ local function showMatch()
     currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
 end
 
-local function matchServerListener(message)
-    local _eventInfo = eventsInfo[message.key]
-    _eventInfo.alternatives = message.alternatives
+local function getBetTimeoutInMilliseconds(userBetTimeout)
+    local timeoutInSec = dateTimeStringToSeconds(userBetTimeout) + getTimezoneOffset(os.time())
+    return (timeoutInSec - os.time())*1000
+end
 
+local function matchServerListener(message)
+    printTable(message)
+    local _eventInfo = eventsInfo[message.template.key]
+    _eventInfo.alternatives = message.template.alternatives
+
+    _eventInfo.teamName = string.utf8upper(MatchManager:getTeamName(message.team_id))
+    _eventInfo.userBetTimeout = getBetTimeoutInMilliseconds(message.user_bet_timeout)
     currentScreen:onEventStart(_eventInfo)
 
-    timer.performWithDelay(11000, function()
+    timer.performWithDelay(_eventInfo.userBetTimeout + 7000, function()
         currentScreen:onEventEnd(resultInfo)
+        --timer.performWithDelay(8000, function()
+        --    matchServerListener({key = "corner_kick", alternatives = {goal = {multiplier = 4}, saved = {multiplier = 2}, cleared = {multiplier = 1}, missed = {multiplier = 10} }})
+        --end)
     end)
 end
 
 function ScreenManager:enterMatch(channel)
     Server.pubnubSubscribe(channel, matchServerListener)
+    --timer.performWithDelay(5000, function()
+    --    matchServerListener({key = "penalty", alternatives = {goal = {multiplier = 3}, saved = {multiplier = 2}, cleared = {multiplier = 1}, missed = {multiplier = 1} }})
+    --end)
     showMatch()
 end
 

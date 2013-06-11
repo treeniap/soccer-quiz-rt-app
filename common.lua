@@ -174,6 +174,32 @@ function getFontLettersSize(letter)
 end
 
 getFontLettersSize("MyriadPro-BoldCond")
+
+-- return the timezone offset in seconds, as it was on the time given by ts
+-- Eric Feliksik
+local timeZoneOffset
+function getTimezoneOffset(ts)
+    if not timeZoneOffset then
+        local utcdate   = os.date("!*t", ts)
+        local localdate = os.date("*t", ts)
+        localdate.isdst = false -- this is the trick
+        timeZoneOffset = os.difftime(os.time(localdate), os.time(utcdate))
+    end
+    return timeZoneOffset
+end
+
+function dateTimeStringToSeconds(dateTime)
+    local dateTimeTable = {
+        year  = dateTime:sub(1, 4),
+        month = dateTime:sub(6, 7),
+        day   = dateTime:sub(9, 10),
+        hour  = dateTime:sub(12, 13),
+        min   = dateTime:sub(15, 16),
+        sec   = dateTime:sub(18, 19),
+    }
+    return os.time(dateTimeTable)
+end
+
 -- Monitors memory
 -- Uncomment to monitor app's lua memory/texture memory usage in terminal...
 local memTable = {}

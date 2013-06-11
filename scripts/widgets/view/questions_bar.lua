@@ -27,16 +27,12 @@ local function openCloseListener(button, event)
     if button.isOpen then
         barTrans = transition.to(questionsBarGroup, {time = 1000, y = questionsBarGroup.closedY, transition = easeOutBounce, onComplete = function()
             barTrans = nil
-            button.toClosePressed.isVisible = false
-            button.toClose.isVisible = false
-            button.toOpen.isVisible = true
+            button:changeState(false)
         end})
     else
         barTrans = transition.to(questionsBarGroup, {time = 250, y = questionsBarGroup.openedY, transition = easeInBack, onComplete = function()
             barTrans = nil
-            button.toOpenPressed.isVisible = false
-            button.toOpen.isVisible = false
-            button.toClose.isVisible = true
+            button:changeState(false)
         end})
     end
     button.isOpen = not button.isOpen
@@ -216,6 +212,8 @@ function QuestionsBar:lock()
     if self.y ~= self.closedY then
         transition.to(self, {time = 400, y = self.closedY, transition = easeOutQuint})
     end
+    openCloseBtn.isOpen = false
+    openCloseBtn:changeState(false)
     openCloseBtn:lock(true)
 end
 
@@ -225,6 +223,8 @@ function QuestionsBar:showUp(onComplete)
         barTrans = nil
     end
     transition.to(self, {time = 400, y = self.closedY, transition = easeOutQuint, onComplete = onComplete})
+    openCloseBtn.isOpen = false
+    openCloseBtn:changeState(false)
 end
 
 function QuestionsBar:hide(onComplete)
@@ -233,6 +233,8 @@ function QuestionsBar:hide(onComplete)
         barTrans = nil
     end
     transition.to(self, {time = 400, y = SCREEN_BOTTOM, transition = easeOutQuint, onComplete = onComplete})
+    openCloseBtn.isOpen = false
+    openCloseBtn:changeState(false)
 end
 
 function QuestionsBar:onGame()
@@ -248,7 +250,7 @@ function QuestionsBar:onGame()
     end)
 end
 
-function QuestionsBar:onEventBet(onTimeUp)
+function QuestionsBar:onEventBet(onTimeUp, time)
     self:hide(function()
         openCloseBtn.isVisible = false
         nextBtn.isVisible = false
@@ -258,7 +260,7 @@ function QuestionsBar:onEventBet(onTimeUp)
         twitterBtn.isVisible = false
 
         if onTimeUp then
-            chronometer:start(1000, onTimeUp)
+            chronometer:start(time, onTimeUp)
         end
         self:showUp()
     end)
