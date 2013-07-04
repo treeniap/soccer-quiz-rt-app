@@ -1,13 +1,17 @@
 display.setStatusBar(display.DarkStatusBar)
 system.setIdleTimer(false)
+require "scripts.management.texture_manager"
+require "scripts.widgets.view.loading_ball"
+LoadingBall:newScreen()
 
 require "common"
 require "params"
-require "scripts.management.texture_manager"
 require "scripts.management.screen_manager"
 require "scripts.management.match_manager"
-require "scripts.server.server_communication"
+require "scripts.management.assets_manager"
+require "scripts.network.server_communication"
 require "util.tween"
+require "util.date"
 
 -- FLURRY
 if system.getInfo("environment") == "simulator" then
@@ -21,11 +25,15 @@ else
 end
 
 Server.init()
-MatchManager:requestMatches()
---timer.performWithDelay(3000, function()
---    ScreenManager:enterMatch(MatchManager:setCurrentMatch(1))
---end)
-ScreenManager:show("profile")
+
+-- if tutorial
+--ScreenManager:startTutorial()
+local function initialScreen()
+    ScreenManager:init()
+    ScreenManager:show("initial")
+    LoadingBall:dismissScreen()
+end
+MatchManager:requestMatches(initialScreen)
 
 local onSystem = function(event)
     if event.type == "applicationSuspend" then

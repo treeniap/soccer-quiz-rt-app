@@ -6,23 +6,26 @@
 InGameEvent = {}
 
 local TextureManager = TextureManager
-local BtnHexaVote = BtnHexaVote
+local BtnHexaVote = require "scripts.widgets.view.button_hexa_vote"
 local SCREEN_TOP = SCREEN_TOP
 local SCREEN_BOTTOM = SCREEN_BOTTOM
 local SCREEN_RIGHT = SCREEN_RIGHT
 local SCREEN_LEFT = SCREEN_LEFT
 
-local eventGroup
+local currentAnswer
 
-local eventFoil, whistle, voteButtons, resultBar
-local onTimeUp
-local isShowingResults
-
-local voteButtonsPositionsY = {
+local VOTE_BUTTONS_POSITIONS_Y = {
     display.contentCenterY - 92,
     display.contentCenterY - 62,
     display.contentCenterY + 28,
     display.contentCenterY + 58
+}
+
+local VOTE_BUTTONS_START_POSITIONS_Y = {
+    SCREEN_LEFT - 128,
+    SCREEN_RIGHT + 128,
+    SCREEN_LEFT - 128,
+    SCREEN_RIGHT + 128
 }
 
 local function createEventFoil(eventName, teamBadge, teamName)
@@ -44,7 +47,7 @@ local function createEventFoil(eventName, teamBadge, teamName)
     foilGroup.title = eventNameTxt
     foilGroup:insert(TextureManager.newHorizontalLine(20, -135 + (display.screenOriginY*-0.75), 180))
 
-    local teamBadgeImg = TextureManager.newImageRect(teamBadge, 128, 128, foilGroup)
+    local teamBadgeImg = TextureManager.newLogo(teamBadge, 128, foilGroup)
     teamBadgeImg.x = 20
     teamBadgeImg.y = -50 + (display.screenOriginY*-0.75)
     foilGroup.badge = teamBadgeImg
@@ -83,7 +86,14 @@ local coinSlotsPosition = {
     {x = -2, y = -19}
 }
 
-local function createHexaResult(type, betCoins, valueMult, friend)
+local function createHexaResult(type, voteButtons)
+    local valueMult, betCoins
+    for i, vB in ipairs(voteButtons) do
+        if vB.label == type then
+            valueMult = vB.multiplierValue
+            betCoins = vB:getBetCoins()
+        end
+    end
     local hexaGroup = display.newGroup()
     local topHexaBtn = TextureManager.newImage("stru_buttonhexa_back_vote", hexaGroup)
     topHexaBtn.x = 0
@@ -103,12 +113,15 @@ local function createHexaResult(type, betCoins, valueMult, friend)
     label.y = 28
     label:setTextColor(0)
 
-    local value = display.newText(hexaGroup, string.format("%.1f", valueMult), 0, 0, "MyriadPro-BoldCond", 24)
-    value.x = 34 - value.width*0.5
+    --local value = display.newText(hexaGroup, string.format("%.1f", valueMult), 0, 0, "MyriadPro-BoldCond", 24) -- float mode
+    local value = display.newText(hexaGroup, valueMult, 0, 0, "MyriadPro-BoldCond", 24)
+    --value.x = 34 - value.width*0.5 -- float mode
+    value.x = 24 - value.width*0.5
     value.y = 27
     value:setTextColor(0)
     local mult = display.newText(hexaGroup, "x", 0, 0, "MyriadPro-BoldCond", 16)
-    mult.x = 42 - mult.width*0.5
+    --mult.x = 42 - mult.width*0.5 -- float mode
+    mult.x = 32 - mult.width*0.5
     mult.y = 28
     mult:setTextColor(0)
 
@@ -134,7 +147,7 @@ local function createHexaResult(type, betCoins, valueMult, friend)
         {x = 2, y = 5},
         {x = -2, y = 1}
     }
-
+    --[[ for friends
     local photoBg = TextureManager.newImage("stru_albumframe", hexaGroup)
     photoBg.x = -63
     photoBg.y = 57
@@ -151,19 +164,19 @@ local function createHexaResult(type, betCoins, valueMult, friend)
     coinSlotGroup.x = -79
     coinSlotGroup.y = 68
     hexaGroup:insert(coinSlotGroup)
-
+    --]]
     return hexaGroup
 end
 
-local function changeFoilToResult(_eventFoil, resultInfo)
+local function changeFoilToResult(_eventFoil, resultInfo, voteButtons)
     _eventFoil.description:removeSelf()
     _eventFoil.badge:removeSelf()
-    _eventFoil.title:setText(resultInfo.resultTitle)
-    local hexaVote = createHexaResult(resultInfo.type, resultInfo.betCoins, resultInfo.valueMult, resultInfo.friend)
+    _eventFoil.title:setText(resultInfo.title)
+    local hexaVote = createHexaResult(resultInfo.type, voteButtons)
     hexaVote:setReferencePoint(display.CenterReferencePoint)
     hexaVote.x = 26
     hexaVote.y = -40 + (-display.screenOriginY)
-    eventFoil:insert(hexaVote)
+    _eventFoil:insert(hexaVote)
 end
 
 local function createRightBet(prize)
@@ -192,7 +205,7 @@ local function createRightBet(prize)
 end
 
 local function createWrongBet()
-    local wrongBar = TextureManager.newImage("stru_perrado", eventGroup)
+    local wrongBar = TextureManager.newImage("stru_perrado")
     wrongBar.x = SCREEN_RIGHT + wrongBar.width
     wrongBar.y = display.contentCenterY - wrongBar.height
     wrongBar:setReferencePoint(display.CenterRightReferencePoint)
@@ -219,55 +232,94 @@ local function createWhistle()
     return whistleGroup
 end
 
-function InGameEvent:showUp(onComplete)
-    if isShowingResults then
-        self:hide(function() self:showUp(onComplete) end)
-        return
+local resultInfo = {
+    goal = {
+        type = "goal",
+        title = "GOOOOL!!!",
+        earnedCoins = 10,
+        totalCoins = 999
+    },
+    saved = {
+        type = "saved",
+        title = "O GOLEIRO SALVOU!",
+        earnedCoins = 5,
+        totalCoins = 999
+    },
+    cleared = {
+        type = "cleared",
+        title = "AFASTA A ZAGA!",
+        earnedCoins = 2,
+        totalCoins = 999
+    },
+    missed = {
+        type = "missed",
+        title = "PRA FORA!",
+        earnedCoins = 3,
+        totalCoins = 999
+    }
+}
+
+function InGameEvent.betResultListener(message)
+    local isRight = type(message.correct) == "boolean" and message.correct or (message.correct == "true")
+    local _resultInfo
+
+    if isRight then
+        _resultInfo = resultInfo[currentAnswer]
+        currentAnswer = nil
+    else
+        _resultInfo = resultInfo[message.answer]
     end
-    transition.to(eventFoil, {time = 500, x = SCREEN_LEFT, transition = easeOutQuad})
-    transition.to(whistle, {time = 500, x = SCREEN_RIGHT - 50, transition = easeOutQuad, onComplete = function()
-        transition.to(eventFoil, {delay = 3000, time = 500, x = SCREEN_LEFT - eventFoil.width, transition = easeInCirc})
-        transition.to(whistle, {delay = 3000, time = 500, x = SCREEN_RIGHT + 64, transition = easeInCirc})
-        for i, btn in ipairs(voteButtons) do
-            transition.to(btn, {delay = 2800 + i*200, time = 1000, y = voteButtonsPositionsY[i], transition = easeOutBack})
+    _resultInfo.earnedCoins = message.coins.earned
+    _resultInfo.totalCoins = message.coins.total
+    _resultInfo.isRight = isRight
+    InGameScreen:onEventEnd(_resultInfo)
+end
+
+function InGameEvent:showUp(onComplete)
+    local MOVE_TIME = 300
+    local SHOW_DURATION = 1500
+    transition.to(self.eventFoil, {time = MOVE_TIME, x = SCREEN_LEFT, transition = easeOutQuad})
+    transition.to(self.whistle, {time = MOVE_TIME, x = SCREEN_RIGHT - 50, transition = easeOutQuad, onComplete = function()
+        transition.to(self.eventFoil, {delay = SHOW_DURATION, time = MOVE_TIME, x = SCREEN_LEFT - self.eventFoil.width, transition = easeInQuad})
+        transition.to(self.whistle, {delay = SHOW_DURATION, time = MOVE_TIME, x = SCREEN_RIGHT + 64, transition = easeInQuad})
+        for i, btn in ipairs(self.voteButtons) do
+            btn.isVisible = true
+            transition.from(btn, {delay = SHOW_DURATION, time = MOVE_TIME, x = VOTE_BUTTONS_START_POSITIONS_Y[i], transition = easeOutQuad})
         end
-        timer.performWithDelay(4000, onComplete)
+        timer.performWithDelay(SHOW_DURATION, onComplete)
     end})
 end
 
 function InGameEvent:showResult(resultInfo, onComplete)
-    for i, btn in ipairs(voteButtons) do
-        transition.to(btn, {delay = 800 - i*200, time = 1000, y = SCREEN_BOTTOM + btn.height, transition = easeInBack})
+    for i, btn in ipairs(self.voteButtons) do
+        transition.to(btn, {time = 300, x = VOTE_BUTTONS_START_POSITIONS_Y[i], transition = easeInQuad})
     end
-    changeFoilToResult(eventFoil, resultInfo)
-    transition.to(eventFoil, {delay = 1800, time = 500, x = SCREEN_LEFT, transition = easeOutQuad, onComplete = onComplete})
+    changeFoilToResult(self.eventFoil, resultInfo, self.voteButtons)
+    transition.to(self.eventFoil, {time = 300, x = SCREEN_LEFT, transition = easeOutQuad})
     if resultInfo.isRight then
-        resultBar = createRightBet(resultInfo.prize)
+        self.resultBar = createRightBet(resultInfo.earnedCoins)
     else
-        resultBar = createWrongBet()
+        self.resultBar = createWrongBet()
     end
-    transition.to(resultBar, {delay = 1800, time = 500, x = SCREEN_RIGHT + 20, transition = easeOutQuad})
-    eventGroup:insert(resultBar)
-    isShowingResults = true
+    transition.to(self.resultBar, {time = 300, x = SCREEN_RIGHT + 20, transition = easeOutQuad})
+    self:insert(self.resultBar)
+    onComplete()
 end
 
 function InGameEvent:hide(onComplete)
-    transition.to(eventFoil, {time = 500, x = SCREEN_LEFT - eventFoil.width, transition = easeInCirc, onComplete = onComplete})
-    transition.to(resultBar, {time = 500, x = SCREEN_RIGHT + resultBar.width, transition = easeInCirc})
-    isShowingResults = false
+    transition.to(self.eventFoil, {time = 300, x = SCREEN_LEFT - self.eventFoil.width, transition = easeInQuad, onComplete = onComplete})
+    transition.to(self.resultBar, {time = 300, x = SCREEN_RIGHT + self.resultBar.width, transition = easeInQuad})
 end
 
 function InGameEvent:create(eventInfo)
-    eventGroup = display.newGroup()
+    local eventGroup = display.newGroup()
     for k, v in pairs(InGameEvent) do
         eventGroup[k] = v
     end
 
-    isShowingResults = false
-
     local undoBtn = QuestionsBar:getUndoBtn()
 
-    voteButtons = {}
+    local voteButtons = {}
     local function pressHandler(button)
         button:lock(true)
         for i, btn in ipairs(voteButtons) do
@@ -292,7 +344,8 @@ function InGameEvent:create(eventInfo)
     local btnLabel = "goal"
     local topLeftBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
     topLeftBtn.x = display.contentCenterX - topLeftBtn.width*0.45
-    topLeftBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY - 90
+    topLeftBtn.y = VOTE_BUTTONS_POSITIONS_Y[1]
+    topLeftBtn.isVisible = false
     topLeftBtn.label = btnLabel
     topLeftBtn.url = eventInfo.alternatives[btnLabel].url
     voteButtons[#voteButtons + 1] = topLeftBtn
@@ -301,7 +354,8 @@ function InGameEvent:create(eventInfo)
     btnLabel = "saved"
     local topRightBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
     topRightBtn.x = display.contentCenterX + topRightBtn.width*0.45
-    topRightBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY - 60
+    topRightBtn.y = VOTE_BUTTONS_POSITIONS_Y[2]
+    topRightBtn.isVisible = false
     topRightBtn.label = btnLabel
     topRightBtn.url = eventInfo.alternatives[btnLabel].url
     voteButtons[#voteButtons + 1] = topRightBtn
@@ -310,7 +364,8 @@ function InGameEvent:create(eventInfo)
     btnLabel = "missed"
     local bottomLeftBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
     bottomLeftBtn.x = display.contentCenterX - bottomLeftBtn.width*0.45
-    bottomLeftBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY + 30
+    bottomLeftBtn.y = VOTE_BUTTONS_POSITIONS_Y[3]
+    bottomLeftBtn.isVisible = false
     bottomLeftBtn.label = btnLabel
     bottomLeftBtn.url = eventInfo.alternatives[btnLabel].url
     voteButtons[#voteButtons + 1] = bottomLeftBtn
@@ -321,40 +376,44 @@ function InGameEvent:create(eventInfo)
     if eventInfo.alternatives[btnLabel] then
         bottomRightBtn = BtnHexaVote:new(btnLabel, eventInfo.alternatives[btnLabel].multiplier, releaseHandler)
         bottomRightBtn.x = display.contentCenterX + bottomRightBtn.width*0.45
-        bottomRightBtn.y = SCREEN_BOTTOM + topLeftBtn.height -- display.contentCenterY + 60
+        bottomRightBtn.y = VOTE_BUTTONS_POSITIONS_Y[4]
+        bottomRightBtn.isVisible = false
         bottomRightBtn.label = btnLabel
         bottomRightBtn.url = eventInfo.alternatives[btnLabel].url
         voteButtons[#voteButtons + 1] = bottomRightBtn
         eventGroup:insert(1, bottomRightBtn)
     end
 
-    onTimeUp = function()
-        local f1 = {photo = "pictures/pic_5.png",  coins = 3}
-        local f2 = {photo = "pictures/pic_8.png",  coins = 5}
-        local f3 = {photo = "pictures/pic_12.png", coins = 1}
-        local f4 = {photo = "pictures/pic_3.png",  coins = 3}
-        topLeftBtn:showFriendVoted(f1)
-        topRightBtn:showFriendVoted(f2)
-        bottomLeftBtn:showFriendVoted(f3)
-        if bottomRightBtn then
-            bottomRightBtn:showFriendVoted(f4)
-        end
+    eventGroup.onTimeUp = function()
+        --local f1 = {photo = "pictures/pic_5.png",  coins = 3}
+        --local f2 = {photo = "pictures/pic_8.png",  coins = 5}
+        --local f3 = {photo = "pictures/pic_12.png", coins = 1}
+        --local f4 = {photo = "pictures/pic_3.png",  coins = 3}
+        --topLeftBtn:showFriendVoted(f1)
+        --topRightBtn:showFriendVoted(f2)
+        --bottomLeftBtn:showFriendVoted(f3)
+        --if bottomRightBtn then
+        --    bottomRightBtn:showFriendVoted(f4)
+        --end
 
         for i, vB in ipairs(voteButtons) do
             if vB:getBetCoins() > 0 then
-                Server.postBet(vB.url)
+                Server.postBet(vB.url, "test", vB:getBetCoins())
+                currentAnswer = vB.label
             end
+            vB:lock(true)
         end
 
         undoBtn:lock(true)
     end
 
-    whistle = createWhistle()
-    eventFoil = createEventFoil(eventInfo.eventName, eventInfo.teamBadge, eventInfo.teamName)
-    eventGroup:insert(whistle)
-    eventGroup:insert(eventFoil)
+    eventGroup.voteButtons = voteButtons
+    eventGroup.whistle = createWhistle()
+    eventGroup.eventFoil = createEventFoil(eventInfo.title, eventInfo.teamBadge, eventInfo.teamName)
+    eventGroup:insert(eventGroup.whistle)
+    eventGroup:insert(eventGroup.eventFoil)
 
-    return eventGroup, onTimeUp
+    return eventGroup
 end
 
 return InGameEvent

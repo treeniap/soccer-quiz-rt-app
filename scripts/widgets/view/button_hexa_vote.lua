@@ -91,7 +91,8 @@ function BtnHexaVote:createAlternativePicture(question)
     self:insert(pic)
     pic.x = -18
     pic.y = -30
-    local label = newLockableText(self, question.text, -2, 10, 16)
+    --local label = newLockableText(self, question.text, -2, 10, 16) -- float mode
+    local label = newLockableText(self, question.text, 4, 10, 16)
 end
 
 function BtnHexaVote:createAlternativeText(question)
@@ -99,8 +100,10 @@ function BtnHexaVote:createAlternativeText(question)
 end
 
 function BtnHexaVote:createMultiplier(value)
-    self.multiplierTxt = newLockableText(self, string.format("%.1f", value), 34, 9, 24)
-    newLockableText(self, "x", 42, 10, 16)
+    self.multiplierValue = value
+    --self.multiplierTxt = newLockableText(self, string.format("%.1f", value), 34, 9, 24) -- float mode
+    self.multiplierTxt = newLockableText(self, value, 28, 9, 24)
+    newLockableText(self, "x", 34, 10, 16)
 end
 
 function BtnHexaVote:showFriendVoted(friend)
@@ -197,7 +200,7 @@ function BtnHexaVote:new(questionLabel, multiplierValue, onRelease)
     for k, v in pairs(BtnHexaVote) do
         hexaBtnGroup[k] = v
     end
-
+    hexaBtnGroup.label = questionLabel
     if questionsAlternatives[questionLabel].frameName then
         hexaBtnGroup:createAlternativePicture(questionsAlternatives[questionLabel])
     else

@@ -85,9 +85,8 @@ function BtnOpenQuestions:lock(isLock)
 end
 
 function BtnOpenQuestions:new(onRelease)
-    local backBtnGroup = PressRelease:new(BtnOpenQuestions, onRelease)
-    backBtnGroup.touch = TouchHandler.pressReleaseHandler
-    return backBtnGroup
+    local openQuestionsBtnGroup = PressRelease:new(BtnOpenQuestions, onRelease)
+    return openQuestionsBtnGroup
 end
 
 return BtnOpenQuestions

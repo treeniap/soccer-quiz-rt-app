@@ -5,10 +5,6 @@
 ==============]]--
 InGameEnd = {}
 
-local endGroup
-
-local leftSideView, rightSideView
-
 local stats, scores
 local finalScore
 
@@ -184,7 +180,7 @@ local function createRightSide(totalCoupons, championshipName, position)
     return rightSideGroup
 end
 
-local function showScore(onComplete)
+local function showScore(onComplete, rightSideView)
     local pts = 0
     local count = 0
     for i, v in ipairs(stats) do
@@ -202,6 +198,9 @@ local function showScore(onComplete)
                     rightSideView.isVisible = true
                     transition.from(rightSideView, {delay = 2000, time = 700, x = SCREEN_RIGHT + rightSideView.width, transition = easeOutExpo, onComplete = onComplete})
                 end
+                --TODO check
+                stats, scores = nil, nil
+                finalScore = nil
             end})
         end})
         v.x = -100 + display.screenOriginX
@@ -210,24 +209,24 @@ local function showScore(onComplete)
 end
 
 function InGameEnd:showUp(onComplete)
-    endGroup.isVisible = true
-    rightSideView.isVisible = false
+    self.isVisible = true
+    self.rightSideView.isVisible = false
 
-    transition.from(leftSideView, {time = 700, x = SCREEN_LEFT - leftSideView.width, transition = easeOutExpo, onComplete = function() showScore(onComplete) end})
+    transition.from(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = function() showScore(onComplete, self.rightSideView) end})
 end
 
 function InGameEnd:create(finalResultInfo)
-    endGroup = display.newGroup()
+    local endGroup = display.newGroup()
     for k, v in pairs(InGameEnd) do
         endGroup[k] = v
     end
 
     stats, scores = {}, {}
 
-    leftSideView = createFinalFoil(finalResultInfo)
-    rightSideView = createRightSide(finalResultInfo.totalCoupons, finalResultInfo.championshipName, finalResultInfo.position)
-    endGroup:insert(leftSideView)
-    endGroup:insert(rightSideView)
+    endGroup.leftSideView = createFinalFoil(finalResultInfo)
+    endGroup.rightSideView = createRightSide(finalResultInfo.totalCoupons, finalResultInfo.championshipName, finalResultInfo.position)
+    endGroup:insert(endGroup.leftSideView)
+    endGroup:insert(endGroup.rightSideView)
 
     endGroup.isVisible = false
 

@@ -7,12 +7,12 @@ settings =
 
     android =
     {
-            versionCode = "100",
-            installLocation = "preferExternal",
-            usesPermissions =
-            {
-                "com.android.vending.BILLING",
-            },
+        versionCode = "100",
+        installLocation = "preferExternal",
+        usesPermissions =
+        {
+            "com.android.vending.BILLING",
+        },
     },
 	androidPermissions =
     {
@@ -21,35 +21,41 @@ settings =
 
 	iphone =
 	{
-		plist =
-        		{
-        	        CFBundleIconFile = "Icon.png",
-        	        CFBundleIconFiles =
-        	        {
-        	           "Icon.png",
-        	           "Icon@2x.png",
-        	           "Icon-72.png",
-        	        },
-        	        UIAppFonts =
+        plist =
+            {
+                CFBundleIconFile = "Icon.png",
+                CFBundleIconFiles =
+                {
+                    "Icon.png",
+                    "Icon@2x.png",
+                    "Icon-72.png",
+                    "Icon-72@2x.png",
+                    "Icon-Small-50.png",
+                    "Icon-Small-50@2x.png",
+                    "Icon-Small.png",
+                    "Icon-Small@2x.png"
+                },
+                UIAppFonts =
+                {
+                    "MyriadPro-BoldCond.ttf",
+                    "MyriadPro-Bold.ttf",
+                    "MyriadPro-Cond.ttf",
+                    "MyriadPro-Regular.ttf"
+                },
+                UIApplicationExitsOnSuspend = false,
+                FacebookAppID = "XXXXXXXXXX",
+                CFBundleURLTypes =
+                {
                     {
-                        "Myriad Pro Bold Condensed.otf",
-                        "Myriad Pro Bold.otf",
-                        "Myriad Pro Condensed.otf",
-                        "Myriad Pro.otf"
-                    },
-        	        UIApplicationExitsOnSuspend = false,
-        	        CFBundleURLTypes =
-                    {
+                        CFBundleURLName = "com.ffgfriends.realgoal",
+                        CFBundleURLSchemes =
                         {
-                            CFBundleURLName = "com.ffgfriends.",
-                            CFBundleURLSchemes =
-                            {
-                                "fbXXXXXXXXXXXXXXX",
-                            }
+                            "fbXXXXXXXXXXXXXXX",
                         }
-                    },
-                    CFBundleIdentifier = "com.ffgfriends.",
-        		},
-        		components = {}	-- no openfeint
+                    }
+                },
+                CFBundleIdentifier = "com.ffgfriends.realgoal",
+            },
+            components = {}	-- no openfeint
 	}
 }

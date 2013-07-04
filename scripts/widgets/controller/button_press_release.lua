@@ -41,6 +41,12 @@ function PressRelease:new(button, onRelease)
     btnGroup.touch = TouchHandler.pressReleaseHandler
     btnGroup:addEventListener("touch", btnGroup)
 
+    btnGroup._removeSelf = btnGroup.removeSelf
+    function btnGroup:removeSelf()
+        self:removeEventListener("touch", self)
+        self:_removeSelf()
+    end
+
     return btnGroup
 end
 

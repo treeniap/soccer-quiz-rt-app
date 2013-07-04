@@ -15,14 +15,18 @@ function BtnSideMenu:createView()
     self.over:setFillColor(255, 255)
     self.over.blendMode = "screen"
     self.over.isVisible = false
-    self.symbol = TextureManager.newImage("stru_buttonmenu_icon", self)
-    self.symbol.x = -self.symbol.width*0.25
-    self.symbol.y = -self.symbol.height*0.5
 end
 
-function BtnSideMenu:new(onRelease)
+function BtnSideMenu:new(onRelease, isMenu)
     local backBtnGroup = PressRelease:new(BtnSideMenu, onRelease)
     backBtnGroup.touch = TouchHandler.pressPushHandler
+    if isMenu then
+        backBtnGroup.symbol = TextureManager.newImage("stru_buttonmenu_icon_config", backBtnGroup)
+    else
+        backBtnGroup.symbol = TextureManager.newImage("stru_buttonmenu_icon", backBtnGroup)
+    end
+    backBtnGroup.symbol.x = -backBtnGroup.symbol.width*0.25
+    backBtnGroup.symbol.y = -backBtnGroup.symbol.height*0.5
     return backBtnGroup
 end
 

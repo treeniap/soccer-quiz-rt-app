@@ -3,13 +3,11 @@
 == Date: 13/05/13
 == Time: 12:23
 ==============]]--
-require "scripts.widgets.view.button_hexa_vote"
 require "scripts.widgets.view.button_undo_vote"
 require "scripts.widgets.view.button_back"
 require "scripts.widgets.view.button_facebook"
 require "scripts.widgets.view.button_twitter"
 require "scripts.widgets.view.chronometer"
-require "scripts.widgets.view.bottom_ranking"
 require "scripts.widgets.view.questions_bar"
 require "scripts.screens.in_game_questions"
 require "scripts.screens.in_game_score"
@@ -51,7 +49,6 @@ end
 function InGameScreen:onEventStart(eventInfo)
     display.getCurrentStage():setFocus(nil)
     scoreView:hide()
-    local onTimeUp
     if eventView then
         questionsBar:onGame()
         local oldEventView = eventView
@@ -61,17 +58,20 @@ function InGameScreen:onEventStart(eventInfo)
         end)
         eventView = nil
     end
-    eventView, onTimeUp = InGameEvent:create(eventInfo)
+    eventView = InGameEvent:create(eventInfo)
     inGameGroup:insert(2, eventView)
     eventView:showUp(function()
-        questionsBar:onEventBet(onTimeUp, eventInfo.userBetTimeout)
+        questionsBar:onEventBet(eventView.onTimeUp, eventInfo.userBetTimeout)
     end)
     questionsBar:lock()
 end
 
 function InGameScreen:onEventEnd(resultInfo)
     display.getCurrentStage():setFocus(nil)
-    eventView:showResult(resultInfo, function() questionsBar:onEventResult() end)
+    eventView:showResult(resultInfo, function()
+        questionsBar:onEventResult()
+        topBar:updateTotalCoins(resultInfo.totalCoins)
+    end)
 end
 
 function InGameScreen:onGameOver(finalResultInfo)
@@ -95,27 +95,12 @@ local questions = {
 }
 
 function InGameScreen:showUp(onComplete)
-    local teams = {
-        "spaulo",
-        "spaulo",
-        "spaulo",
-        "scaetano",
-        "bragantino",
-        "scaetano",
-        "spaulo",
-        "santos",
-        "spaulo",
-        "portuguesa",
-        "bragantino",
-        "palmeiras",
-        "corinthians"
-    }
     local ranking = {}
     for i = 1, 13 do
         ranking[i] = {}
-        ranking[i].photo = "pictures/pic_" .. i .. ".png"
-        ranking[i].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
-        ranking[i].score = (14 - i)*123
+        --ranking[i].photo = "pictures/pic_" .. i .. ".png"
+        --ranking[i].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
+        ranking[i].score = (14 - i)*999
     end
     ranking[3].isPlayer = true
     bottomRanking:showUp(function()
@@ -124,25 +109,54 @@ function InGameScreen:showUp(onComplete)
         onComplete()
     end)
 
+    topBar:updateMatchTeams(MatchManager:getTeamLogoImg(true, "mini"), MatchManager:getTeamLogoImg(false, "mini"))
+end
+
+function InGameScreen:hide(onComplete)
+    questionsBar:hide()
+    scoreView:hide(function()
+        topBar:hide()
+        bottomRanking:hide(function()
+            InGameScreen:destroy()
+            onComplete()
+        end)
+    end)
 end
 
 function InGameScreen:new()
     inGameGroup = display.newGroup()
 
     questionsBar = QuestionsBar:new()
-    questionsBar:setQuestions(questions)
+    --questionsBar:setQuestions(questions)
     inGameGroup:insert(questionsBar)
 
-    bottomRanking = BottomRanking:new("pictures/pic_3.png")
+    bottomRanking = BottomRanking:new()
 
     inGameGroup:insert(bottomRanking)
 
     topBar = TopBar:new()
-    topBar:updateTotalCoins(99999)
-    topBar:updateMatchTeams("pictures/clubes_bragantino_p.png", "pictures/clubes_scaetano_p.png")
     inGameGroup:insert(topBar)
 
     return inGameGroup
+end
+
+function InGameScreen:destroy()
+    scoreView:removeSelf()
+    if eventView then
+        eventView:removeSelf()
+    end
+    if endView then
+        endView:removeSelf()
+    end
+    topBar:destroy()
+    questionsBar:destroy()
+    bottomRanking:destroy()
+    if inGameGroup and inGameGroup.removeSelf then
+        inGameGroup:removeSelf()
+    end
+    inGameGroup = nil
+    topBar, questionsBar, bottomRanking = nil, nil, nil
+    scoreView, eventView, endView = nil, nil, nil
 end
 
 return InGameScreen

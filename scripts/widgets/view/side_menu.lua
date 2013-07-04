@@ -29,7 +29,7 @@ local function showHideMenu(btn, event)
 end
 
 local function createOptions()
-    local widget = require( "widget" )
+    local widget = require("widget")
 
     local optionsGroup = display.newGroup()
 
@@ -161,27 +161,95 @@ local function createOptions()
     return optionsGroup
 end
 
-local function createView()
+local function createMenuOptions()
+    local widget = require( "widget" )
+
+    local optionsGroup = display.newGroup()
+
+    local lineX = 8
+    local lineY = -240
+
+    local color =
+    {
+        highlight =
+        {
+            r =255, g = 255, b = 255, a = 128
+        },
+        shadow =
+        {
+            r = 0, g = 0, b = 0, a = 128
+        }
+    }
+    -- Handle press events for the switches
+    local function onSwitchPress( event )
+        local switch = event.target
+
+        --print( switch.id, "is on?:", switch.isOn )
+    end
+
+    -- AUDIO TITLE
+    local audioTitleTxt = display.newEmbossedText(optionsGroup, "ÁUDIO", lineX, lineY, "MyriadPro-BoldCond", 14)
+    audioTitleTxt:setTextColor(192)
+    audioTitleTxt:setEmbossColor(color)
+    optionsGroup:insert(TextureManager.newHorizontalLine(104, lineY + 18, 220 + display.screenOriginX*-2))
+
+    -- SONS
+    lineY = lineY + 28
+    local sonsTxt = display.newText(optionsGroup, "SONS", lineX, lineY, "MyriadPro-BoldCond", 18)
+    sonsTxt:setTextColor(0)
+    -- SONS on/off switch
+    local soundsOnOffSwitch = widget.newSwitch
+        {
+            left = 120,
+            top = lineY - 8,
+            initialSwitchState = true,
+            onPress = onSwitchPress,
+            onRelease = onSwitchPress,
+        }
+    optionsGroup:insert(soundsOnOffSwitch)
+
+    -- RECURSOS E MENUS
+    lineY = lineY + 44 + (display.screenOriginY*-0.5)
+    local recursosTitleTxt = display.newEmbossedText(optionsGroup, "RECURSOS E MENUS", lineX, lineY, "MyriadPro-BoldCond", 14)
+    recursosTitleTxt:setTextColor(192)
+    recursosTitleTxt:setEmbossColor(color)
+    optionsGroup:insert(TextureManager.newHorizontalLine(104, lineY + 18, 220 + display.screenOriginX*-2))
+    -- SAIR
+    lineY = lineY + 28
+    local sairLink = BtnLink:new("SAIR", lineX, lineY, function()
+        transition.to(menuFoilGroup, {time = 300, x = menuFoilGroup.hideX, transition = easeOutBack, onComplete = function()
+            ScreenManager:show("initial")
+        end})
+    end)
+    optionsGroup:insert(sairLink)
+
+    return optionsGroup
+end
+
+local function createView(isMenu)
+    local function blockTouch()
+        return true
+    end
     --scalable menu background
     local menuFoilCenter = TextureManager.newImageRect("images/stru_menufoil_center.png", 140 + display.screenOriginX*-2, 570, menuFoilGroup)
     menuFoilCenter.x = SCREEN_LEFT + menuFoilCenter.width*0.5
     menuFoilCenter.y = 0
-    menuFoilCenter:addEventListener("touch", function() return true end)
+    menuFoilCenter:addEventListener("touch", blockTouch)
 
     -- menu background border
     local menuFoilBorda = TextureManager.newImage("stru_menufoil_borda", menuFoilGroup)
     menuFoilBorda.x = menuFoilCenter.x + menuFoilCenter.width*0.5 + menuFoilBorda.width*0.5
     menuFoilBorda.y = 0
-    menuFoilBorda:addEventListener("touch", function() return true end)
+    menuFoilBorda:addEventListener("touch", blockTouch)
 
     -- menu open/close button
-    local menuFoilBtn = BtnSideMenu:new(showHideMenu)
+    local menuFoilBtn = BtnSideMenu:new(showHideMenu, isMenu)
     menuFoilBtn.x = menuFoilBorda.x + menuFoilBorda.width*0.5 + menuFoilBtn.width*0.5 - 1
     menuFoilBtn.y = -menuFoilBorda.height*0.5 + menuFoilBtn.height*0.5 + 3.6
     menuFoilGroup:insert(menuFoilBtn)
 
     -- menu title
-    local title = display.newEmbossedText(menuFoilGroup, "CONFIGURAÇÕES",
+    local title = display.newEmbossedText(menuFoilGroup, isMenu and "CONFIGURAÇÕES" or "OPÇÕES",
         display.contentCenterX - 96, -menuFoilCenter.height*0.5 + 4,
         "MyriadPro-BoldCond", 24)
     title:setTextColor(255)
@@ -217,19 +285,32 @@ local function createView()
     end
     menuFoilGroup:setX(menuFoilGroup.hideX)
 
-    menuFoilGroup:insert(createOptions())
+    function menuFoilGroup:removeEventListeners()
+        menuFoilCenter:removeEventListener("touch", blockTouch)
+        menuFoilBorda:removeEventListener("touch", blockTouch)
+        touchBlocker:removeEventListener("touch", menuFoilBtn)
+    end
+
+    if isMenu then
+        menuFoilGroup:insert(createOptions())
+    else
+        menuFoilGroup:insert(createMenuOptions())
+    end
 end
 
-function SideMenu:new()
-    if menuFoilGroup then
-        return menuFoilGroup
-    end
+function SideMenu:new(isMenu)
     menuFoilGroup = display.newGroup()
     for k, v in pairs(SideMenu) do
         menuFoilGroup[k] = v
     end
-    createView()
+    createView(isMenu)
     return menuFoilGroup
+end
+
+function SideMenu:destroy()
+    menuFoilGroup:removeEventListeners()
+    menuFoilGroup:removeSelf()
+    menuFoilGroup = nil
 end
 
 return SideMenu

@@ -22,7 +22,7 @@ local function createMatchViewer()
     return matchTeamsGroup
 end
 
-function TopBar:createView()
+function TopBar:createView(isMenu)
     local bg = TextureManager.newImage("stru_header", self)
     bg.x = display.contentCenterX
     bg.y = 0
@@ -39,14 +39,8 @@ function TopBar:createView()
     totalCoins.y = -32
     self:insert(totalCoins)
 
-    --- Match Teams
-    matchTeams = createMatchViewer()
-    matchTeams.x = 85
-    matchTeams.y = -8
-    self:insert(matchTeams)
-
     --- Menu
-    menuFoilGroup = SideMenu:new()
+    menuFoilGroup = SideMenu:new(isMenu)
     menuFoilGroup.y = menuFoilGroup.height*0.5 - bg.height*0.5 - 1
     menuFoilGroup.isVisible = false
     --self:insert(menuFoilGroup)
@@ -57,23 +51,30 @@ function TopBar:updateTotalCoins(coins)
 end
 
 function TopBar:updateMatchTeams(team1BadgeDir, team2BadgeDir)
-    if matchTeams.team1Badge then
-        matchTeams.team1Badge:removeSelf()
+    if not matchTeams then
+        matchTeams = createMatchViewer()
+        matchTeams.x = 85
+        matchTeams.y = -8
+        self:insert(matchTeams)
+    else
+        if matchTeams.team1Badge then
+            matchTeams.team1Badge:removeSelf()
+        end
+        if matchTeams.team2Badge then
+            matchTeams.team2Badge:removeSelf()
+        end
     end
-    if matchTeams.team2Badge then
-        matchTeams.team2Badge:removeSelf()
-    end
-    local BADGE_SIZE = 24
-    matchTeams.team1Badge = TextureManager.newImageRect(team1BadgeDir, BADGE_SIZE, BADGE_SIZE, matchTeams)
+    local BADGE_SIZE = 32
+    matchTeams.team1Badge = TextureManager.newLogo(team1BadgeDir, BADGE_SIZE, matchTeams)
     matchTeams.team1Badge.x = -BADGE_SIZE
     matchTeams.team1Badge.y = -4
-    matchTeams.team2Badge = TextureManager.newImageRect(team2BadgeDir, BADGE_SIZE, BADGE_SIZE, matchTeams)
+    matchTeams.team2Badge = TextureManager.newLogo(team2BadgeDir, BADGE_SIZE, matchTeams)
     matchTeams.team2Badge.x = BADGE_SIZE
     matchTeams.team2Badge.y = -4
 end
 
 function TopBar:showUp(onComplete)
-    transition.to(self, {delay = 400, time = 400, y = SCREEN_TOP + self.height*0.5 - 1, transition = easeOutQuint, onComplete = function()
+    transition.to(self, {delay = 150, time = 150, y = SCREEN_TOP + self.height*0.5 - 1, transition = easeOutQuint, onComplete = function()
         menuFoilGroup.isVisible = true
         self:insert(menuFoilGroup)
         transition.from(menuFoilGroup, {time = 1000, x = menuFoilGroup.x - menuFoilGroup.width})
@@ -84,22 +85,36 @@ function TopBar:showUp(onComplete)
 end
 
 function TopBar:hide(onComplete)
+    transition.to(self, {delay = 150, time = 150, y = SCREEN_TOP - topBarGroup.height*0.5 - 1, transition = easeInQuint, onComplete = onComplete})
 end
 
-function TopBar:new()
-    if topBarGroup then
-        return topBarGroup
+function TopBar:new(isMenu)
+    if topBarGroup and topBarGroup.removeSelf then
+        topBarGroup:removeSelf()
     end
     topBarGroup = display.newGroup()
     for k, v in pairs(TopBar) do
         topBarGroup[k] = v
     end
 
-    topBarGroup:createView()
+    topBarGroup:createView(isMenu)
     topBarGroup:setReferencePoint(display.CenterReferencePoint)
     topBarGroup.y = SCREEN_TOP - topBarGroup.height*0.5 - 1
 
     return topBarGroup
+end
+
+function TopBar:destroy()
+    totalCoins:destroy()
+    if matchTeams then
+        matchTeams:removeSelf()
+    end
+    menuFoilGroup:destroy()
+    topBarGroup:removeSelf()
+
+    topBarGroup, menuFoilGroup = nil, nil
+    totalCoins = nil
+    matchTeams = nil
 end
 
 return TopBar

@@ -55,6 +55,7 @@ function printTable(tab)
     local n = ""
     level = level + 1
     if level > 10 then
+        level = level - 1
         return
     end
     if type(tab) ~= "table" then
@@ -198,6 +199,37 @@ function dateTimeStringToSeconds(dateTime)
         sec   = dateTime:sub(18, 19),
     }
     return os.time(dateTimeTable)
+end
+
+local lfs = require "lfs"
+function hasFile(fileName, dir)
+    local noError, result = pcall(function()
+        for file in lfs.dir(system.pathForFile(dir or "", system.DocumentsDirectory)) do
+            if string.find(file, fileName) then
+                return true
+            end
+        end
+    end)
+    if noError then
+        return result
+    end
+end
+
+function getImagePrefix()
+    if display.imageSuffix then
+        if display.imageSuffix == "@2x" then
+            return "2x"
+        elseif display.imageSuffix == "@4x" then
+            return "4x"
+        end
+    end
+    return "default"
+end
+
+function setICloudBackupFalse(fileName)
+    local value, err = native.setSync(fileName, {iCloudBackup = false}) -- off
+    --print("setICloudBackupFalse", value, err)
+    if not value then print("Error", fileName, err) end
 end
 
 -- Monitors memory

@@ -68,6 +68,43 @@ function Server.addNetworkStatusListener(listener)
     networkStatusChangeListeners[#networkStatusChangeListeners + 1] = listener
 end
 
+local function encode(_payload)
+    local content = json.encode(_payload)
+    return {
+        ["headers"] = { ["Accept"] = "application/json", ["Content-Type"] = "application/json" },
+        ["body"] = content
+    }
+end
+
+---==============================================================---
+---////////////////////////// DOWNLOAD //////////////////////////---
+---==============================================================---
+function Server:downloadLogos(logosList, listener)
+    local downloadCount = #logosList
+    if downloadCount <= 0 then
+        listener()
+        return
+    end
+    local function logoDownloadListener(event)
+        if not event.isError then
+            --print("downloaded", event.response.filename)
+            if not event.response.filename then
+                printTable(event)
+            else
+                setICloudBackupFalse(event.response.filename)
+            end
+            downloadCount = downloadCount - 1
+            if downloadCount <= 0 then
+                listener()
+            end
+        end
+    end
+    for i, logo in ipairs(logosList) do
+        --print("download", logo.fileName, logo.url)
+        network.download(logo.url, "GET", logoDownloadListener, logo.fileName, system.DocumentsDirectory)
+    end
+end
+
 ---==============================================================---
 ---/////////////////////////// PUBNUB ///////////////////////////---
 ---==============================================================---
@@ -87,8 +124,19 @@ function Server.pubnubSubscribe(channel, listener)
     })
 end
 
-function Server.postBet(url)
-    network.request(url, "POST", function() end)
+local function getBet()
+    local payload = {
+        facebook = {access_token = _accessToken}
+    }
+    return encode(payload)
+end
+function Server.postBet(url, id, coins)
+    local payload = {
+        user_id = id,
+        coins = coins
+    }
+    --print("POST", url)
+    network.request(url, "POST", function(event) --[[printTable(event)]] end, encode(payload))
 end
 
 function Server.getMatches(url, listener)
@@ -100,7 +148,7 @@ end
 ---=====================================================---
 
 function Server.init()
-    network.setStatusListener("www.google.com", networkStatusListener)
+    network.setStatusListener("http://soccer-questions-api.herokuapp.com", networkStatusListener)
     networkStatusChangeListeners = {}
 
     pubnubObj = pubnub.new({
@@ -108,6 +156,7 @@ function Server.init()
         ssl           = false,
         origin        = "pubsub.pubnub.com"
     })
+    AssetsManager:createFolder("logos")
 end
 
 return Server

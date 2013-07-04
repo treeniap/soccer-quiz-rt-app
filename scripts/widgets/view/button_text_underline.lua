@@ -27,6 +27,12 @@ function BtnTextUnderline:new(text, onPress)
     textUnderlineBtnGroup.touch = TouchHandler.touchBeganHandler
     textUnderlineBtnGroup:addEventListener("touch", textUnderlineBtnGroup)
 
+    textUnderlineBtnGroup._removeSelf = textUnderlineBtnGroup.removeSelf
+    function textUnderlineBtnGroup:removeSelf()
+        self:removeEventListener("touch", self)
+        self:_removeSelf()
+    end
+
     return textUnderlineBtnGroup
 end
 

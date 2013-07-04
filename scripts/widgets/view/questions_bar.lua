@@ -17,7 +17,7 @@ local VER_LINE_2_X = 260 + (-display.screenOriginX)
 
 local HOR_LINE_Y_INCR = 60
 
-local OPENED_MASK = "big"
+local OPENED_MASK = "half"
 local OPENED_SIZE = OPENED_MASK == "big" and 100 or 0
 
 local function openCloseListener(button, event)
@@ -25,12 +25,12 @@ local function openCloseListener(button, event)
         return true
     end
     if button.isOpen then
-        barTrans = transition.to(questionsBarGroup, {time = 1000, y = questionsBarGroup.closedY, transition = easeOutBounce, onComplete = function()
+        barTrans = transition.to(button.bar, {time = 1000, y = button.bar.closedY, transition = easeOutBounce, onComplete = function()
             barTrans = nil
             button:changeState(false)
         end})
     else
-        barTrans = transition.to(questionsBarGroup, {time = 250, y = questionsBarGroup.openedY, transition = easeInBack, onComplete = function()
+        barTrans = transition.to(button.bar, {time = 250, y = button.bar.openedY, transition = easeInBack, onComplete = function()
             barTrans = nil
             button:changeState(false)
         end})
@@ -140,7 +140,7 @@ function QuestionsBar:setQuestions(questions)
     local list = createQuestionsList(questions)
     list.x = 0
     list.y = -135 - (-display.screenOriginY)
-    questionsBarGroup:insert(2, list)
+    self:insert(2, list)
 end
 
 function QuestionsBar:createView()
@@ -149,10 +149,10 @@ function QuestionsBar:createView()
     bg.x = display.contentCenterX
     bg.y = 0
     bg:setFillColor(216)
-    questionsBarGroup:insert(bg)
+    self:insert(bg)
 
     --- Bar
-    local bar = TextureManager.newImage("stru_drawer", questionsBarGroup)
+    local bar = TextureManager.newImage("stru_drawer", self)
     bar.x = display.contentCenterX
     bar.y = -bg.height*0.5 - bar.height*0.5 + 7
 
@@ -161,14 +161,15 @@ function QuestionsBar:createView()
     openCloseBtn.x = display.contentCenterX
     openCloseBtn.y = bar.y - 8
     openCloseBtn.isVisible = false
-    questionsBarGroup:insert(openCloseBtn)
+    openCloseBtn.bar = self
+    self:insert(openCloseBtn)
 
     --- Next Button
     nextBtn = BtnNext:new(function() ScreenManager:callNext() end)
     nextBtn.x = 311
     nextBtn.y = bar.y + 3
     nextBtn.isVisible = false
-    questionsBarGroup:insert(nextBtn)
+    self:insert(nextBtn)
 
     --- Undo Button
     undoBtn = BtnUndoVote:new()
@@ -176,32 +177,32 @@ function QuestionsBar:createView()
     undoBtn.y = bar.y - 15
     undoBtn:lock(true)
     undoBtn.isVisible = false
-    questionsBarGroup:insert(undoBtn)
+    self:insert(undoBtn)
 
     --- Chronometer
     chronometer = Chronometer:new()
     chronometer.x = 211
     chronometer.y = bar.y + 11
     chronometer.isVisible = false
-    questionsBarGroup:insert(chronometer)
+    self:insert(chronometer)
     --chronometer:addEventListener("touch", dragAndDrop)
 
     facebookBtn = BtnFacebook:new(function() return true end)
     facebookBtn.x = 31
     facebookBtn.y = bar.y - 19
     facebookBtn.isVisible = false
-    questionsBarGroup:insert(facebookBtn)
+    self:insert(facebookBtn)
     --facebookBtn:addEventListener("touch", dragAndDrop)
 
     twitterBtn = BtnTwitter:new(function() return true end)
     twitterBtn.x = 98
     twitterBtn.y = bar.y - 16
     twitterBtn.isVisible = false
-    questionsBarGroup:insert(twitterBtn)
+    self:insert(twitterBtn)
     --twitterBtn:addEventListener("touch", dragAndDrop)
 
-    questionsBarGroup.closedY = SCREEN_BOTTOM - 172
-    questionsBarGroup.openedY = SCREEN_TOP + 113 - OPENED_SIZE
+    self.closedY = SCREEN_BOTTOM - 172
+    self.openedY = SCREEN_TOP + 113 - OPENED_SIZE
 end
 
 function QuestionsBar:lock()
@@ -210,7 +211,7 @@ function QuestionsBar:lock()
         barTrans = nil
     end
     if self.y ~= self.closedY then
-        transition.to(self, {time = 400, y = self.closedY, transition = easeOutQuint})
+        transition.to(self, {time = 300, y = self.closedY, transition = easeOutQuint})
     end
     openCloseBtn.isOpen = false
     openCloseBtn:changeState(false)
@@ -222,7 +223,7 @@ function QuestionsBar:showUp(onComplete)
         transition.cancel(barTrans)
         barTrans = nil
     end
-    transition.to(self, {time = 400, y = self.closedY, transition = easeOutQuint, onComplete = onComplete})
+    transition.to(self, {time = 150, y = self.closedY, transition = easeOutQuint, onComplete = onComplete})
     openCloseBtn.isOpen = false
     openCloseBtn:changeState(false)
 end
@@ -232,14 +233,14 @@ function QuestionsBar:hide(onComplete)
         transition.cancel(barTrans)
         barTrans = nil
     end
-    transition.to(self, {time = 400, y = SCREEN_BOTTOM, transition = easeOutQuint, onComplete = onComplete})
+    transition.to(self, {time = 150, y = SCREEN_BOTTOM, transition = easeOutQuint, onComplete = onComplete})
     openCloseBtn.isOpen = false
     openCloseBtn:changeState(false)
 end
 
 function QuestionsBar:onGame()
     self:hide(function()
-        openCloseBtn.isVisible = true
+        --openCloseBtn.isVisible = true
         openCloseBtn:lock(false)
         nextBtn.isVisible = false
         undoBtn.isVisible = false
@@ -280,7 +281,7 @@ end
 
 function QuestionsBar:onGameOver()
     self:hide(function()
-        openCloseBtn.isVisible = true
+        --openCloseBtn.isVisible = true
         openCloseBtn:lock(false)
         nextBtn.isVisible = true
         undoBtn.isVisible = false
@@ -305,6 +306,21 @@ function QuestionsBar:new()
     questionsBarGroup.y = SCREEN_BOTTOM
 
     return questionsBarGroup
+end
+
+function QuestionsBar:destroy()
+    if barTrans then
+        transition.cancel(barTrans)
+        barTrans = nil
+    end
+    openCloseBtn:removeSelf()
+    nextBtn:removeSelf()
+    undoBtn:removeSelf()
+    chronometer:removeSelf()
+    facebookBtn:removeSelf()
+    twitterBtn:removeSelf()
+    questionsBarGroup = nil
+    openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn = nil, nil, nil, nil, nil, nil
 end
 
 return QuestionsBar

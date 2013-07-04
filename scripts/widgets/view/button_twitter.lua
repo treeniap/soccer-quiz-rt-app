@@ -20,8 +20,8 @@ function BtnTwitter:createView()
 end
 
 function BtnTwitter:new(onRelease)
-    local backBtnGroup = PressRelease:new(BtnTwitter, onRelease)
-    return backBtnGroup
+    local twitterBtnGroup = PressRelease:new(BtnTwitter, onRelease)
+    return twitterBtnGroup
 end
 
 return BtnTwitter

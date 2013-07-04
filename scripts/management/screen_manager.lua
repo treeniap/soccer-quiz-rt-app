@@ -6,24 +6,21 @@
 require "scripts.widgets.controller.button_press_release"
 require "scripts.widgets.controller.button_touch_handler"
 require "scripts.widgets.view.top_bar"
+require "scripts.widgets.view.bottom_ranking"
 require "util.utf8"
 
 ScreenManager = {}
 
-local bg = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
-bg.x = display.contentCenterX
-bg.y = display.contentCenterY
-
 local currentScreen
+local previousScreen
+local answer
 
 local gameInfo = {
-    championshipBadge = "pictures/fpf.png",
-    championshipName  = "CAMPEONATO PAULISTA",
-    championshipRound = "15ª RODADA",
-    homeTeamBadge     = "pictures/clubes_bragantino.png",
+    championshipBadge = "pictures/cbf.png",
+    championshipName  = "CAMPEONATO BRASILEIRO 2013",
+    championshipRound = "5ª RODADA",
     homeTeamScore     = 3,
     homeTeamName      = "CLUBE ATLÉTICO BRAGANTINO",
-    awayTeamBadge     = "pictures/clubes_scaetano.png",
     awayTeamScore     = 3,
     awayTeamName      = "ASSOCIAÇÃO DESPORTIVA SÃO CAETANO",
     matchMinutes      = 32,
@@ -43,28 +40,16 @@ local challengeInfo = {
 
 local eventsInfo = {
     penalty = {
-        eventName = "PÊNALTI!",
-        teamBadge = "pictures/clubes_bragantino.png",
+        title = "PÊNALTI!",
     },
     foul = {
-        eventName = "FALTA!",
-        teamBadge = "pictures/clubes_scaetano.png",
+        title = "FALTA!",
     },
     corner_kick = {
-        eventName = "ESCANTEIO!",
-        teamBadge = "pictures/clubes_bragantino.png",
+        title = "ESCANTEIO!",
     },
 }
 --resultInfo.type, resultInfo.betCoins, resultInfo.valueMult, resultInfo.friend
-local resultInfo = {
-    type        = "cleared",
-    resultTitle = "AFAAAAASTA A ZAGA!",
-    isRight     = true,
-    prize       = 8,
-    betCoins    = 4,
-    valueMult   = 2,
-    friend      = {coins = 3, photo = "pictures/pic_4.png"},
-}
 
 local finalResultInfo = {
     rightGuesses       = {number = 8, points = 7000},
@@ -77,28 +62,30 @@ local finalResultInfo = {
     position           = "12345º"
 }
 
-function ScreenManager:show(screenName)
+local function showScreen(screenName)
     currentScreen = require("scripts.screens." .. screenName)
     currentScreen:new()
     currentScreen:showUp()
+end
 
-    --currentScreen:onPreKickOffQuestions(challengeInfo)
+function ScreenManager:show(screenName)
+    if currentScreen then
+        currentScreen:hide(function() showScreen(screenName) end)
+        previousScreen = currentScreen
+    else
+        showScreen(screenName)
+    end
+end
 
-    --currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
-    --timer.performWithDelay(5000, function()
-    --    currentScreen:onEventStart(eventInfo)
-    --    timer.performWithDelay(11000, function()
-    --        currentScreen:onEventEnd(resultInfo)
-    --        timer.performWithDelay(5000, function()
-    --            currentScreen:onGame()
-    --        end)
-    --    end)
-    --end)
-
-    --currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
-    --timer.performWithDelay(3000, function()
-    --    currentScreen:onGameOver(finalResultInfo)
-    --end)
+function ScreenManager:callPrevious()
+    if previousScreen then
+        currentScreen:hide(function()
+            previousScreen:new()
+            previousScreen:showUp()
+            currentScreen = previousScreen
+            previousScreen = nil
+        end)
+    end
 end
 
 function ScreenManager:callNext()
@@ -106,40 +93,69 @@ function ScreenManager:callNext()
 end
 
 local function showMatch()
-    currentScreen = require("scripts.screens.in_game")
-    currentScreen:new()
-
     currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
 end
 
+local function prepareMatch()
+    currentScreen = require("scripts.screens.in_game")
+    currentScreen:new()
+
+    gameInfo.homeTeamScore = MatchManager:getTeamScore(true)
+    gameInfo.awayTeamScore = MatchManager:getTeamScore(false)
+    gameInfo.homeTeamName = string.utf8upper(MatchManager:getTeamName(MatchManager:getTeamId(true)))
+    gameInfo.awayTeamName = string.utf8upper(MatchManager:getTeamName(MatchManager:getTeamId(false)))
+    MatchManager:downloadTeamsLogos({sizes = {"big", "medium", "mini"}, listener = showMatch})
+end
+
 local function getBetTimeoutInMilliseconds(userBetTimeout)
+    --TODO usar lua date
     local timeoutInSec = dateTimeStringToSeconds(userBetTimeout) + getTimezoneOffset(os.time())
-    return (timeoutInSec - os.time())*1000
+    return timeoutInSec
 end
 
 local function matchServerListener(message)
-    printTable(message)
+    --printTable(message)
     local _eventInfo = eventsInfo[message.template.key]
     _eventInfo.alternatives = message.template.alternatives
 
     _eventInfo.teamName = string.utf8upper(MatchManager:getTeamName(message.team_id))
+    _eventInfo.teamBadge = "logos/big_" .. message.team_id .. ".png"
     _eventInfo.userBetTimeout = getBetTimeoutInMilliseconds(message.user_bet_timeout)
     currentScreen:onEventStart(_eventInfo)
-
-    timer.performWithDelay(_eventInfo.userBetTimeout + 7000, function()
-        currentScreen:onEventEnd(resultInfo)
-        --timer.performWithDelay(8000, function()
-        --    matchServerListener({key = "corner_kick", alternatives = {goal = {multiplier = 4}, saved = {multiplier = 2}, cleared = {multiplier = 1}, missed = {multiplier = 10} }})
-        --end)
-    end)
 end
 
 function ScreenManager:enterMatch(channel)
     Server.pubnubSubscribe(channel, matchServerListener)
-    --timer.performWithDelay(5000, function()
-    --    matchServerListener({key = "penalty", alternatives = {goal = {multiplier = 3}, saved = {multiplier = 2}, cleared = {multiplier = 1}, missed = {multiplier = 1} }})
-    --end)
-    showMatch()
+    Server.pubnubSubscribe("test", require("scripts.screens.in_game_event").betResultListener)
+    currentScreen:hide(prepareMatch)
+end
+
+function ScreenManager:init()
+    TextureManager.loadMainSheet()
+    local bg = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
+    bg.x = display.contentCenterX
+    bg.y = display.contentCenterY
+    display.getCurrentStage():insert(1, bg)
+end
+
+function ScreenManager:startTutorial()
+    --TODO download logos
+    local teamsList = {
+        {name = "Bragantino", badge = "pictures/clubes_bragantino.png"},
+        {name = "Corinthians", badge = "pictures/clubes_corinthians.png"},
+        {name = "Palmeiras", badge = "pictures/clubes_palmeiras.png"},
+        {name = "Portuguesa", badge = "pictures/clubes_portuguesa.png"},
+        {name = "Santos", badge = "pictures/clubes_santos.png"},
+        {name = "São Caetano", badge = "pictures/clubes_scaetano.png"},
+        {name = "São Paulo", badge = "pictures/clubes_spaulo.png"},
+        {name = "Criciuma", badge = "pictures/criciuma_esporte_clube.png"},
+        {name = "Vitória", badge = "pictures/ec_vitoria.png"},
+        {name = "Fluminense", badge = "pictures/fluminense_fc.png"},
+        {name = "Salgueiro", badge = "pictures/salgueiro_atletico_clube.png"},
+        {name = "Internacional", badge = "pictures/sc_internacional.png"},
+    }
+    require "scripts.screens.tutorial"
+    TutorialScreen:new(teamsList)
 end
 
 return ScreenManager

@@ -170,7 +170,7 @@ local function createTextField(x, y, text, inputType, isSecure)
     textField = native.newTextField( 0, 0, 196, 24 )
     --textFieldGroup:insert(textField)
     textField.userInput = textListener
-    textField:addEventListener( "userInput", textField)
+    textField:addEventListener("userInput", textField)
     textField.text = ""
     local defaultTxt = display.newText(textFieldGroup, text, x + 3, y + 4, "MyriadPro-BoldCond", 18)
     defaultTxt:setTextColor(200)

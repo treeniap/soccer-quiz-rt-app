@@ -26,15 +26,20 @@ function TotalCoinsView:update(newText)
 end
 
 function TotalCoinsView:new()
-    if totalCoinsGroup then
-        return totalCoinsGroup
-    end
     totalCoinsGroup = display.newGroup()
     for k, v in pairs(TotalCoinsView) do
         totalCoinsGroup[k] = v
     end
     createView()
+
     return totalCoinsGroup
+end
+
+function TotalCoinsView:destroy()
+    text:removeSelf()
+    totalCoinsGroup:removeSelf()
+    text = nil
+    totalCoinsGroup = nil
 end
 
 return TotalCoinsView

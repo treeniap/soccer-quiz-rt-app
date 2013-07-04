@@ -17,8 +17,8 @@ function BtnBack:createView()
     self.over.isVisible = false
 end
 
-function BtnBack:new(onRelease)
-    local backBtnGroup = PressRelease:new(BtnBack, onRelease)
+function BtnBack:new()
+    local backBtnGroup = PressRelease:new(BtnBack, ScreenManager.callPrevious)
     return backBtnGroup
 end
 

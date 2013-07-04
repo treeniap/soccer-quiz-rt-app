@@ -31,7 +31,8 @@ function Chronometer:moveBar()
     self.bar.maskX = self.bar.maskX + 1
 end
 
-function Chronometer:start(time, onFinish)
+function Chronometer:start(endTime, onFinish)
+    local time = (endTime - os.time())*1000
     self:resetBar()
     local BAR_SIZE = 163
     local MILLISECONDS_PER_PIXEL = time/BAR_SIZE
