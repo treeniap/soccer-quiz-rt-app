@@ -79,8 +79,8 @@ end
 ---==============================================================---
 ---////////////////////////// DOWNLOAD //////////////////////////---
 ---==============================================================---
-function Server:downloadLogos(logosList, listener)
-    local downloadCount = #logosList
+function Server:downloadFilesList(filesList, listener)
+    local downloadCount = #filesList
     if downloadCount <= 0 then
         listener()
         return
@@ -97,12 +97,59 @@ function Server:downloadLogos(logosList, listener)
             if downloadCount <= 0 then
                 listener()
             end
+            --print("downloadCount", #logosList, downloadCount)
         end
     end
-    for i, logo in ipairs(logosList) do
-        --print("download", logo.fileName, logo.url)
-        network.download(logo.url, "GET", logoDownloadListener, logo.fileName, system.DocumentsDirectory)
+    for i, file in ipairs(filesList) do
+        --print("download", file.fileName, file.url)
+        network.download(file.url, "GET", logoDownloadListener, file.fileName, system.DocumentsDirectory)
     end
+end
+
+---============================================================---
+---/////////////////////////// USER ///////////////////////////---
+---============================================================---
+function Server:checkUser(userInfo)
+    local url = "http://api.users.welovequiz.com/v1/facebook_profiles/" .. userInfo.facebook_profile.id
+    --print("GET", url)
+    network.request(url, "GET", function(event)
+        if event.status ~= 200 then
+            printTable(event)
+        end
+
+        if event.status == 404 then -- usuário não cadastrado
+            Server:createUser(userInfo)
+            return
+        elseif event.status >= 500 or event.status == -1 then -- erro no servidor
+            Server:checkUser(userInfo)
+            return
+        end
+        --usuário cadastrado
+        local noError, jsonContent = pcall(json.decode, event.response)
+        if noError and jsonContent then
+            UserData:setUserId(jsonContent.facebook_profile.user_id) --TODO mudar "user_id" de lugar
+            ScreenManager:init()
+        end
+    end)
+end
+
+function Server:createUser(userInfo)
+    local payload = {}
+    payload.user = userInfo
+    local url = "http://api.users.welovequiz.com/v1/users"
+    --print("POST", url)
+    network.request(url, "POST", function(event)
+        --printTable(event)
+        if event.status == 201 then
+            local noError, jsonContent = pcall(json.decode, event.response)
+            if noError and jsonContent then
+                UserData:setUserId(jsonContent.user.id)
+                ScreenManager:init()
+            end
+        else
+            Server:createUser(userInfo)
+        end
+    end, encode(payload))
 end
 
 ---==============================================================---
@@ -140,6 +187,7 @@ function Server.postBet(url, id, coins)
 end
 
 function Server.getMatches(url, listener)
+    --print("GET Matches", url)
     network.request(url, "GET", listener)
 end
 
@@ -157,6 +205,7 @@ function Server.init()
         origin        = "pubsub.pubnub.com"
     })
     AssetsManager:createFolder("logos")
+    AssetsManager:createFolder("pictures")
 end
 
 return Server

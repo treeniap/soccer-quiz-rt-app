@@ -43,18 +43,18 @@ settings =
                     "MyriadPro-Regular.ttf"
                 },
                 UIApplicationExitsOnSuspend = false,
-                FacebookAppID = "XXXXXXXXXX",
+                FacebookAppID = "371360562986250",
                 CFBundleURLTypes =
                 {
                     {
-                        CFBundleURLName = "com.ffgfriends.realgoal",
+                        CFBundleURLName = "com.ffgfriends.chutepremiado",
                         CFBundleURLSchemes =
                         {
-                            "fbXXXXXXXXXXXXXXX",
+                            "fb371360562986250",
                         }
                     }
                 },
-                CFBundleIdentifier = "com.ffgfriends.realgoal",
+                CFBundleIdentifier = "com.ffgfriends.chutepremiado",
             },
             components = {}	-- no openfeint
 	}

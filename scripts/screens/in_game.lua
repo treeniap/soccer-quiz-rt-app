@@ -109,7 +109,7 @@ function InGameScreen:showUp(onComplete)
         onComplete()
     end)
 
-    topBar:updateMatchTeams(MatchManager:getTeamLogoImg(true, "mini"), MatchManager:getTeamLogoImg(false, "mini"))
+    topBar:updateMatchTeams(MatchManager:getTeamLogoImg(true, 1), MatchManager:getTeamLogoImg(false, 1))
 end
 
 function InGameScreen:hide(onComplete)
@@ -130,7 +130,7 @@ function InGameScreen:new()
     --questionsBar:setQuestions(questions)
     inGameGroup:insert(questionsBar)
 
-    bottomRanking = BottomRanking:new()
+    bottomRanking = BottomRanking:new(UserData:getUserPicture())
 
     inGameGroup:insert(bottomRanking)
 

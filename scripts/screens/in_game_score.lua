@@ -117,7 +117,7 @@ function InGameScore:create(gameInfo)
     infoGroup:insert(championshioInfo)
 
     --- Score
-    local score = createScore(MatchManager:getTeamLogoImg(true, "big"), MatchManager:getTeamLogoImg(false, "big"), gameInfo.homeTeamScore, gameInfo.awayTeamScore)
+    local score = createScore(MatchManager:getTeamLogoImg(true, 3), MatchManager:getTeamLogoImg(false, 3), gameInfo.homeTeamScore, gameInfo.awayTeamScore)
     score.x = display.contentCenterX
     score.y = 156
     infoGroup:insert(score)

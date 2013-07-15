@@ -11,7 +11,7 @@ function BtnHomeScreen:createView()
     self.default.y = 0
     self.over = TextureManager.newImageRect("images/stru_bar_gold_mid.png", CONTENT_WIDTH*0.7, 47, self)
     self.over.x = 0
-    self.over.y = 1
+    self.over.y = 0
     self.over.xScale = 0.98
     self.over.yScale = 0.95
     self.over:setFillColor(255, 255)
@@ -25,10 +25,10 @@ function BtnHomeScreen:createView()
     self.isVisible = false
 end
 
-function BtnHomeScreen:showUp()
+function BtnHomeScreen:showUp(onComplete)
     timer.performWithDelay(1000, function()
         self.isVisible = true
-        transition.from(self, {time = 200, yScale = 0.1})
+        transition.from(self, {time = 200, yScale = 0.1, onComplete = onComplete})
     end)
 end
 

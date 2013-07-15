@@ -309,12 +309,7 @@ local function createScreen5(teamsList)
 
     local button = BtnTutorial:new(function()
         TutorialScreen:hide(function()
-            local function initialScreen()
-                ScreenManager:init()
-                ScreenManager:show("initial")
-                LoadingBall:dismissScreen()
-            end
-            MatchManager:requestMatches(initialScreen)
+            ScreenManager:init()
         end)
         return true
     end, tutorialSheetImage, tutorialSheetInfo, {

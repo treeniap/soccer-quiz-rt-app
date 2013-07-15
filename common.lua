@@ -10,6 +10,7 @@ SCREEN_TOP     = display.screenOriginY + display.topStatusBarContentHeight
 SCREEN_BOTTOM  = display.contentHeight + (-display.screenOriginY)
 SCREEN_LEFT    = display.screenOriginX
 SCREEN_RIGHT   = display.contentWidth + (-display.screenOriginX)
+IS_SIMULATOR   = system.getInfo("environment") == "simulator"
 
 -- Check if it's Android
 function isAndroid()
@@ -226,10 +227,55 @@ function getImagePrefix()
     return "default"
 end
 
+function getLogoFileName(teamId, size)
+    if size <= 1 then
+        size = "mini"
+    elseif size == 2 then
+        size = "medium"
+    elseif size >= 3 then
+        size = "big"
+    end
+    return "logos/logo_" ..size .. "_" .. teamId .. ".png"
+end
+
+function getPictureFileName(userId)
+    return "pictures/pic_" .. userId .. (display.imageSuffix or "") .. ".jpg"
+end
+
 function setICloudBackupFalse(fileName)
     local value, err = native.setSync(fileName, {iCloudBackup = false}) -- off
     --print("setICloudBackupFalse", value, err)
     if not value then print("Error", fileName, err) end
+end
+
+function lockScreen()
+    if lockRect then
+        unlockScreen()
+    end
+    lockRect = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, CONTENT_HEIGHT)
+    lockRect.alpha = 0.01
+    lockRect.touch = function()
+        return true
+    end
+    lockRect:addEventListener("touch", lockRect)
+end
+
+function unlockScreen()
+    if lockRect then
+        lockRect:removeEventListener("touch", lockRect)
+        lockRect:removeSelf()
+        lockRect = nil
+    end
+end
+
+function getCurrentDate()
+    local _date = os.date("*t")
+    --TODO set date to test
+    _date.day = 17
+    _date.hour = 19
+    _date.min = 45
+    local currentDate = date(_date)
+    return currentDate
 end
 
 -- Monitors memory

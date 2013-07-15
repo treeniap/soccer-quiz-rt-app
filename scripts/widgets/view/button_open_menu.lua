@@ -6,11 +6,11 @@
 ButtonOpenMenu = {}
 
 function ButtonOpenMenu:createView()
-    self.over = display.newRect(self, 0, 0, CONTENT_WIDTH, 42)
+    self.over = display.newRect(self, 0, 0, CONTENT_WIDTH, 50)
     self.over.x = 0
     self.over.y = 0
-    self.over:setFillColor(graphics.newGradient({160, 4}, {64, 12}, "down"))
-    self.over.blendMode = "add"
+    self.over:setFillColor(graphics.newGradient({255, 128}, {128, 96}, "down"))
+    --self.over.blendMode = "add"
     self.over.alpha = 0.01
     self.default = TextureManager.newImage("stru_iconarrow", self)
     self.default.x = CONTENT_WIDTH*0.5 - self.default.width*0.5 - 8

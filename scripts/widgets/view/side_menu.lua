@@ -221,6 +221,8 @@ local function createMenuOptions()
             ScreenManager:show("initial")
         end})
     end)
+    sairLink.xScale = 1.5
+    sairLink.yScale = 1.5
     optionsGroup:insert(sairLink)
 
     return optionsGroup
@@ -249,7 +251,7 @@ local function createView(isMenu)
     menuFoilGroup:insert(menuFoilBtn)
 
     -- menu title
-    local title = display.newEmbossedText(menuFoilGroup, isMenu and "CONFIGURAÇÕES" or "OPÇÕES",
+    local title = display.newEmbossedText(menuFoilGroup, isMenu and "CONFIGURAÇÕES" or "MENU DA PARTIDA",
         display.contentCenterX - 96, -menuFoilCenter.height*0.5 + 4,
         "MyriadPro-BoldCond", 24)
     title:setTextColor(255)

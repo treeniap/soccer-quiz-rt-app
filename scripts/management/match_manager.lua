@@ -190,26 +190,41 @@ local matchesInfoTEST = {
     },
 }
 
-local function organizeMatchesByDate(championships)
-    for i, championship in ipairs(championships) do
-        local championshipMatches = championship.matches
-        for j, _match in ipairs(championshipMatches) do
-            local dateObj = date(_match.starts_at)
-            _match.starts_at = dateObj:addseconds(getTimezoneOffset(os.time()))
-        end
-        for j, _match in ipairs(championshipMatches) do
-            if j > 1 then
-                for j = 1, j - 1 do
-                    local d = date.diff(championshipMatches[j].starts_at, _match.starts_at)
-                    if d:spanminutes() > 0 then
-                        table.insert(championshipMatches, j, table.remove(championshipMatches, j))
-                        --printDates()
-                        break
-                    end
+local function organizeMatchesByDate(matchesList)
+    for j, _match in ipairs(matchesList) do
+        if j > 1 then
+            for k = 1, j - 1 do
+                local d = date.diff(matchesList[k].starts_at, _match.starts_at)
+                if d:spanminutes() > 0 then
+                    --print("Crescent", j, k, d:spanminutes())
+                    table.insert(matchesList, k, table.remove(matchesList, j))
+                    --printDates(matchesList)
+                    break
                 end
             end
         end
     end
+    return matchesList
+end
+
+local function setMatchesDateObj(championships)
+    for i, championship in ipairs(championships) do
+        local championshipMatches = championship.incoming_matches
+        for j, _match in ipairs(championshipMatches) do
+            local dateObj = date(_match.starts_at)
+            _match.starts_at = dateObj:addseconds(getTimezoneOffset(os.time()))
+        end
+        organizeMatchesByDate(championshipMatches)
+    end
+end
+
+local function getSizeName(size)
+    if size <= 1 then
+        return "mini"
+    elseif size == 2 then
+        return "medium"
+    end
+    return "big"
 end
 
 function MatchManager:downloadTeamsLogos(params)
@@ -220,27 +235,27 @@ function MatchManager:downloadTeamsLogos(params)
             if homeUrl then
                 logosList[#logosList + 1] = {
                     url = homeUrl,
-                    fileName = "logos/medium_" .. match.home_team.id .. ".png"
+                    fileName = getLogoFileName(match.home_team.id, 2)
                 }
             end
             local awayUrl = match.guest_team.medium_logo_urls[getImagePrefix()]
             if awayUrl then
                 logosList[#logosList + 1] = {
                     url = awayUrl,
-                    fileName = "logos/medium_" .. match.guest_team.id .. ".png"
+                    fileName = getLogoFileName(match.guest_team.id, 2)
                 }
             end
         end
     elseif type(params.sizes) == "table" then
         for i, size in ipairs(params.sizes) do
-            local homeUrl = MatchManager:getTeamLogoUrl(true, size)
+            local homeUrl = MatchManager:getTeamLogoUrl(true, getSizeName(size))
             if homeUrl then
                 logosList[#logosList + 1] = {
                     url = homeUrl,
                     fileName = MatchManager:getTeamLogoImg(true, size)
                 }
             end
-            local awayUrl = MatchManager:getTeamLogoUrl(false, size)
+            local awayUrl = MatchManager:getTeamLogoUrl(false, getSizeName(size))
             if awayUrl then
                 logosList[#logosList + 1] = {
                     url = awayUrl,
@@ -249,11 +264,13 @@ function MatchManager:downloadTeamsLogos(params)
             end
         end
     end
-    Server:downloadLogos(logosList, params.listener)
+    Server:downloadFilesList(logosList, params.listener)
 end
 
-function MatchManager:requestMatches(listener)
+function MatchManager:requestMatches(onComplete)
+    print("requesting matches...")
     Server.getMatches("http://api.kb.soccer.welovequiz.com/1/championships", function(event)
+        print("matches received")
         if not event.isError then
             --print(event.response)
             local noError, jsonContent = pcall(json.decode, event.response)
@@ -269,9 +286,8 @@ function MatchManager:requestMatches(listener)
                 --end
                 --nextMatchesInfo[#nextMatchesInfo + 1] = {name = "Brasileiro 2013", matches = bras}
                 --nextMatchesInfo[#nextMatchesInfo + 1] = {name = "Brasileiro 2014", matches = bras}
-                organizeMatchesByDate(nextMatchesInfo)
-
-                MatchManager:downloadTeamsLogos({sizes = "medium", matches = nextMatchesInfo[1].matches, listener = listener})
+                setMatchesDateObj(nextMatchesInfo)
+                MatchManager:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextSevenMatches(), listener = onComplete})
             end
             --printTable(nextMatchesInfo)
         end
@@ -281,7 +297,7 @@ end
 function MatchManager:setCurrentMatch(matchId)
     if nextMatchesInfo then
         for i, championshipInfo in ipairs(nextMatchesInfo) do
-            for j, matchInfo in ipairs(championshipInfo.matches) do
+            for j, matchInfo in ipairs(championshipInfo.incoming_matches) do
                 if matchInfo.id == matchId then
                     CurrentMatch.matchInfo = matchInfo
                     ScreenManager:enterMatch(matchId)
@@ -330,10 +346,10 @@ function MatchManager:getTeamLogoUrl(isHome, size)
 end
 
 function MatchManager:getTeamLogoImg(isHome, size)
-    return "logos/" .. size .. "_" .. MatchManager:getTeamId(isHome) .. ".png"
+    return getLogoFileName(MatchManager:getTeamId(isHome), size)
 end
 
-function MatchManager:getMatchesOfTheDay()
+function MatchManager:getChampionshipsList()
     return nextMatchesInfo
     --[[local bras = {}
     for i=1, 3 do
@@ -381,6 +397,32 @@ function MatchManager:getMatchesOfTheDay()
             matches = nextMatchesInfo
         }
     }--]]
+end
+
+function MatchManager:getNextSevenMatches()
+    local nextMatches = {}
+    local currentDate = getCurrentDate()
+    for i, championship in ipairs(nextMatchesInfo) do
+        for i, match in pairs(championship.incoming_matches) do
+            local daysDiff = currentDate:getyearday() - match.starts_at:getyearday()
+            if daysDiff <= 0 then
+                local c = date.diff(currentDate, match.starts_at)
+                local minutesToMatch = c:spanminutes()
+                if minutesToMatch < 110 then
+                    nextMatches[#nextMatches + 1] = match
+                end
+            end
+        end
+    end
+    nextMatches = organizeMatchesByDate(nextMatches)
+    for i = #nextMatches, 1, -1 do
+        if i > 7 then
+            table.remove(nextMatches, i)
+        else
+            break
+        end
+    end
+    return nextMatches
 end
 ---======================---
 --- CURRENT MATCH OBJECT ---

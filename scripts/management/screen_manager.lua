@@ -14,6 +14,7 @@ ScreenManager = {}
 local currentScreen
 local previousScreen
 local answer
+local tutorial
 
 local gameInfo = {
     championshipBadge = "pictures/cbf.png",
@@ -64,8 +65,8 @@ local finalResultInfo = {
 
 local function showScreen(screenName)
     currentScreen = require("scripts.screens." .. screenName)
-    currentScreen:new()
-    currentScreen:showUp()
+    display.getCurrentStage():insert(2, currentScreen:new())
+    currentScreen:showUp(unlockScreen)
 end
 
 function ScreenManager:show(screenName)
@@ -75,16 +76,18 @@ function ScreenManager:show(screenName)
     else
         showScreen(screenName)
     end
+    lockScreen()
 end
 
 function ScreenManager:callPrevious()
     if previousScreen then
         currentScreen:hide(function()
-            previousScreen:new()
-            previousScreen:showUp()
+            display.getCurrentStage():insert(2, previousScreen:new())
+            previousScreen:showUp(unlockScreen)
             currentScreen = previousScreen
             previousScreen = nil
         end)
+        lockScreen()
     end
 end
 
@@ -93,7 +96,10 @@ function ScreenManager:callNext()
 end
 
 local function showMatch()
-    currentScreen:showUp(function() currentScreen:onGame(gameInfo) end)
+    currentScreen:showUp(function()
+        currentScreen:onGame(gameInfo)
+        unlockScreen()
+    end)
 end
 
 local function prepareMatch()
@@ -104,7 +110,7 @@ local function prepareMatch()
     gameInfo.awayTeamScore = MatchManager:getTeamScore(false)
     gameInfo.homeTeamName = string.utf8upper(MatchManager:getTeamName(MatchManager:getTeamId(true)))
     gameInfo.awayTeamName = string.utf8upper(MatchManager:getTeamName(MatchManager:getTeamId(false)))
-    MatchManager:downloadTeamsLogos({sizes = {"big", "medium", "mini"}, listener = showMatch})
+    MatchManager:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
 end
 
 local function getBetTimeoutInMilliseconds(userBetTimeout)
@@ -119,23 +125,32 @@ local function matchServerListener(message)
     _eventInfo.alternatives = message.template.alternatives
 
     _eventInfo.teamName = string.utf8upper(MatchManager:getTeamName(message.team_id))
-    _eventInfo.teamBadge = "logos/big_" .. message.team_id .. ".png"
+    _eventInfo.teamBadge = getLogoFileName(message.team_id, 3)
     _eventInfo.userBetTimeout = getBetTimeoutInMilliseconds(message.user_bet_timeout)
     currentScreen:onEventStart(_eventInfo)
 end
 
 function ScreenManager:enterMatch(channel)
     Server.pubnubSubscribe(channel, matchServerListener)
-    Server.pubnubSubscribe("test", require("scripts.screens.in_game_event").betResultListener)
+    Server.pubnubSubscribe(UserData.info.user_id, require("scripts.screens.in_game_event").betResultListener) --TODO usar id do usuario
     currentScreen:hide(prepareMatch)
+    lockScreen()
 end
 
 function ScreenManager:init()
-    TextureManager.loadMainSheet()
-    local bg = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
-    bg.x = display.contentCenterX
-    bg.y = display.contentCenterY
-    display.getCurrentStage():insert(1, bg)
+    if not tutorial then
+        MatchManager:requestMatches(function()
+            TextureManager.loadMainSheet()
+            local bg = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
+            bg.x = display.contentCenterX
+            bg.y = display.contentCenterY
+            display.getCurrentStage():insert(1, bg)
+
+            ScreenManager:show("initial")
+            LoadingBall:dismissScreen()
+        end)
+    end
+    tutorial = nil
 end
 
 function ScreenManager:startTutorial()
@@ -156,6 +171,7 @@ function ScreenManager:startTutorial()
     }
     require "scripts.screens.tutorial"
     TutorialScreen:new(teamsList)
+    tutorial = true
 end
 
 return ScreenManager

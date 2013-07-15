@@ -15,15 +15,16 @@ local logo
 local playBtn
 local adjustScale
 local matchesGroup
+local isOpeningMatch
 
 local function createLogo()
     logo = TextureManager.newImage("stru_logotipo", initialScreenGroup)
-    logo.x = logo.width*0.5 + 8
+    logo.x = logo.width*0.5
     logo.y = SCREEN_TOP + 130
     logo.isVisible = false
-    function logo:showUp()
+    function logo:showUp(onComplete)
         self.isVisible = true
-        transition.from(self, {time = 500, x = SCREEN_LEFT - self.width, transition = easeOutQuad})
+        transition.from(self, {time = 500, x = SCREEN_LEFT - self.width, transition = easeOutQuad, onComplete = onComplete})
     end
     function logo:hide()
         self.isVisible = true
@@ -67,12 +68,52 @@ local function createFoilLine(x, y, lineWidth)
     return lineGroup
 end
 
-local function createMatchView(match, y)
+local function createTouchHandler(y)
+    local touchHandler = display.newRect(0, 0, 162 + (-display.screenOriginX), 80)
+    touchHandler:setReferencePoint(display.TopCenterReferencePoint)
+    touchHandler.x = -71 + (display.screenOriginX*0.5) + (160 + (-display.screenOriginX))*0.5 - 4 + display.screenOriginX*0.5
+    touchHandler.y = y + 2
+    touchHandler.strokeWidth = 4
+    touchHandler:setStrokeColor(0, 0, 0, 64)
+    local g = graphics.newGradient(
+        { 180,  180,  180, 128 },
+        { 0,  0,  0, 96 },
+        "down" )
+    touchHandler:setFillColor( g )
+    touchHandler.blendMode = "add"
+    touchHandler.alpha = 0.01
+    return touchHandler
+end
+
+local function createMatchView(match, y, currentDate)
     local matchGroup = display.newGroup()
 
-    local time = display.newText(string.utf8upper(match.starts_at:fmt("%a %d %b %Y - %H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
-    time:setReferencePoint(display.TopRightReferencePoint)
-    time.x = 0
+    local time
+    local daysDiff = currentDate:getyearday() - match.starts_at:getyearday()
+    if daysDiff > 0 then
+        time = display.newText("ENCERRADO", 0, 0, "MyriadPro-BoldCond", 16)
+    elseif daysDiff < -1 then
+        time = display.newText(string.utf8upper(match.starts_at:fmt("%a %d %b %Y - %H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
+    elseif daysDiff == 0 then
+        local c = date.diff(currentDate, match.starts_at)
+        --print(c:spanminutes())
+        local minutesToMatch = c:spanminutes()
+        if minutesToMatch > 110 then
+            time = display.newText("ENCERRADO", 0, 0, "MyriadPro-BoldCond", 16)
+        elseif minutesToMatch >= -5 then
+            time = display.newText("JOGUE AGORA", 0, 0, "MyriadPro-BoldCond", 16)
+            local touchHandler = createTouchHandler(y)
+            matchesGroup:insert(touchHandler)
+            matchGroup.touchHandler = touchHandler
+        else
+            time = display.newText("HOJE - " .. string.utf8upper(match.starts_at:fmt("%H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
+        end
+    elseif daysDiff == -1 then
+        time = display.newText("AMANHÃ - " .. string.utf8upper(match.starts_at:fmt("%H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
+    end
+    --print(daysDiff, string.utf8upper(match.starts_at:fmt("%a %d %b %Y - %H:%M")), time.text)
+    time:setReferencePoint(display.TopCenterReferencePoint)
+    time.x = -66
     time.y = 0
 
     local vs = display.newText("VS", 0, 0, "MyriadPro-BoldCond", 16)
@@ -80,11 +121,11 @@ local function createMatchView(match, y)
     vs.x = -59
     vs.y = 48
 
-    local homeTeamBadge = TextureManager.newLogo("logos/medium_" .. match.home_team.id .. ".png", 64)
-    homeTeamBadge.x = -108
+    local homeTeamBadge = TextureManager.newLogo(getLogoFileName(match.home_team.id, 2), 64)
+    homeTeamBadge.x = -110
     homeTeamBadge.y = 50
-    local awayTeamBadge = TextureManager.newLogo("logos/medium_" .. match.guest_team.id .. ".png", 64)
-    awayTeamBadge.x = -27
+    local awayTeamBadge = TextureManager.newLogo(getLogoFileName(match.guest_team.id, 2), 64)
+    awayTeamBadge.x = -25
     awayTeamBadge.y = 50
 
     matchGroup:insert(time)
@@ -108,7 +149,7 @@ local function createMatchesView(x, y)
     end
     _maskFile = _maskFile .. ".png"
 
-    local matches = MatchManager:getMatchesOfTheDay()[1].matches --TODO change championship
+    local matches = MatchManager:getNextSevenMatches()
     --local scrollHeight = #matches*96 + (-display.screenOriginY)
     --scrollHeight = 1*96 + (-display.screenOriginY)
     matchesGroup = widget.newScrollView
@@ -126,17 +167,59 @@ local function createMatchesView(x, y)
             --listener = adjustScale,
         }
 
+    local function onEnterMatch(button, event)
+        if isOpeningMatch then
+            return true
+        end
+        if event.phase == "began" then
+            display.getCurrentStage():setFocus(button)
+            button.isFocus = true
+            button.alpha = 1
+            button.group.x = button.group.x + 1
+            button.group.y = button.group.y + 1
+        elseif event.phase == "moved" then
+            local dy = math.abs( ( event.y - event.yStart ) )
+            -- If our finger has moved more than the desired range
+            if dy > 10 then
+                button.isFocus = nil
+                button.alpha = 0.01
+                button.group.x = button.group.x - 1
+                button.group.y = button.group.y - 1
+                -- Pass the focus back to the scrollView
+                matchesGroup:takeFocus( event )
+            end
+        elseif button.isFocus and event.phase == "ended" then
+            button.alpha = 0.01
+            button.group.x = button.group.x - 1
+            button.group.y = button.group.y - 1
+            display.getCurrentStage():setFocus(nil)
+            MatchManager:setCurrentMatch(button.matchId)
+            isOpeningMatch = true
+            button:removeEventListener("touch", button)
+        end
+        return true
+    end
+
     matchesGroup.lines = {}
     matchesGroup.matches = {}
+    local currentDate = getCurrentDate()
     local yPos = 0
-    for i, match in ipairs(matches) do
+    for i = #matches, 1, -1 do
+        local match = matches[i]
         --if i > 1 then
         --    break
         --end
         matchesGroup.lines[#matchesGroup.lines + 1] = createFoilLine(80 + (-display.screenOriginX), yPos,  160 + (-display.screenOriginX))
         matchesGroup:insert(matchesGroup.lines[#matchesGroup.lines])
-        matchesGroup.matches[#matchesGroup.matches + 1] = createMatchView(match, yPos)
-        matchesGroup:insert(matchesGroup.matches[#matchesGroup.matches])
+        local matchView = createMatchView(match, yPos, currentDate)
+        matchesGroup:insert(matchView)
+        if matchView.touchHandler then
+            matchView.touchHandler.matchId = match.id
+            matchView.touchHandler.group = matchView
+            matchView.touchHandler.touch = onEnterMatch
+            matchView.touchHandler:addEventListener("touch", matchView.touchHandler)
+        end
+        matchesGroup.matches[#matchesGroup.matches + 1] = matchView
         yPos = yPos + 84 --(120*(((yPos)*1.4 + 500)/1000))
     end
 
@@ -180,7 +263,7 @@ local function createMatchesView(x, y)
     return matchesGroup
 end
 
-local function createMatchesFoil()
+local function createMatchesFoil(onComplete)
     matchesFoil = display.newGroup()
     local matchesFoilCenter = TextureManager.newImageRect("images/matches_foil/stru_mainfoil_center.png", 72 + (-display.screenOriginX), 421, matchesFoil) --88 420
     matchesFoilCenter.x = SCREEN_RIGHT - matchesFoilCenter.width*0.5
@@ -204,19 +287,20 @@ local function createMatchesFoil()
             onComplete()
         end})
     end
-    matchesFoil:showUp(function() playBtn:showUp() end)
+    matchesFoil:showUp(function() playBtn:showUp(onComplete) end)
     return matchesFoil
 end
 
-function InitialScreen:showUp()
+function InitialScreen:showUp(onComplete)
     bottomRanking:showUp(function()
         topBar:showUp()
         logo:showUp()
-        initialScreenGroup:insert(3, createMatchesFoil())
+        initialScreenGroup:insert(3, createMatchesFoil(onComplete))
     end)
 end
 
 function InitialScreen:new()
+    isOpeningMatch = false
     initialScreenGroup = display.newGroup()
 
     createLogo()
@@ -224,7 +308,7 @@ function InitialScreen:new()
     playBtn = BtnHomeScreen:new(function() ScreenManager:show("select_match") end)
     initialScreenGroup:insert(playBtn)
 
-    bottomRanking = BottomRanking:new("pictures/pic_8.png", true)
+    bottomRanking = BottomRanking:new(UserData:getUserPicture(), true)
     initialScreenGroup:insert(bottomRanking)
 
     topBar = TopBar:new(true)

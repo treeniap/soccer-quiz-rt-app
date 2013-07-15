@@ -41,11 +41,11 @@ local function createEventFoil(eventName, teamBadge, teamName)
     menuFoilBorder.y = 0
 
     local eventNameTxt = display.newEmbossedText(foilGroup, eventName, 0, 0, "MyriadPro-BoldCond", 24)
-    eventNameTxt.x = 20
+    eventNameTxt.x = 30
     eventNameTxt.y = -150 + (display.screenOriginY*-0.75)
     eventNameTxt:setTextColor(0)
     foilGroup.title = eventNameTxt
-    foilGroup:insert(TextureManager.newHorizontalLine(20, -135 + (display.screenOriginY*-0.75), 180))
+    foilGroup:insert(TextureManager.newHorizontalLine(30, -135 + (display.screenOriginY*-0.75), 180))
 
     local teamBadgeImg = TextureManager.newLogo(teamBadge, 128, foilGroup)
     teamBadgeImg.x = 20
@@ -265,10 +265,10 @@ function InGameEvent.betResultListener(message)
 
     if isRight then
         _resultInfo = resultInfo[currentAnswer]
-        currentAnswer = nil
     else
         _resultInfo = resultInfo[message.answer]
     end
+    currentAnswer = nil
     _resultInfo.earnedCoins = message.coins.earned
     _resultInfo.totalCoins = message.coins.total
     _resultInfo.isRight = isRight
@@ -308,7 +308,9 @@ end
 
 function InGameEvent:hide(onComplete)
     transition.to(self.eventFoil, {time = 300, x = SCREEN_LEFT - self.eventFoil.width, transition = easeInQuad, onComplete = onComplete})
-    transition.to(self.resultBar, {time = 300, x = SCREEN_RIGHT + self.resultBar.width, transition = easeInQuad})
+    if self.resultBar then
+        transition.to(self.resultBar, {time = 300, x = SCREEN_RIGHT + self.resultBar.width, transition = easeInQuad})
+    end
 end
 
 function InGameEvent:create(eventInfo)
@@ -398,12 +400,14 @@ function InGameEvent:create(eventInfo)
 
         for i, vB in ipairs(voteButtons) do
             if vB:getBetCoins() > 0 then
-                Server.postBet(vB.url, "test", vB:getBetCoins())
+                Server.postBet(vB.url, UserData.info.user_id, vB:getBetCoins())
                 currentAnswer = vB.label
             end
             vB:lock(true)
         end
-
+        if not currentAnswer then
+            timer.performWithDelay(2000, ScreenManager.callNext)
+        end
         undoBtn:lock(true)
     end
 

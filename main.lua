@@ -9,12 +9,14 @@ require "params"
 require "scripts.management.screen_manager"
 require "scripts.management.match_manager"
 require "scripts.management.assets_manager"
+require "scripts.management.user_data_manager"
 require "scripts.network.server_communication"
+require "scripts.network.facebook"
 require "util.tween"
 require "util.date"
 
 -- FLURRY
-if system.getInfo("environment") == "simulator" then
+if IS_SIMULATOR then
     analytics = {
         init = function() end,
         logEvent = function() end
@@ -24,16 +26,12 @@ else
     --analytics.init(Params.flurryId)
 end
 
-Server.init()
-
--- if tutorial
---ScreenManager:startTutorial()
-local function initialScreen()
-    ScreenManager:init()
-    ScreenManager:show("initial")
-    LoadingBall:dismissScreen()
+if UserData:checkTutorial() then
+    ScreenManager:startTutorial()
+else
+    Server.init()
+    Facebook:init()
 end
-MatchManager:requestMatches(initialScreen)
 
 local onSystem = function(event)
     if event.type == "applicationSuspend" then

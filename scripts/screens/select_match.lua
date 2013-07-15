@@ -39,7 +39,21 @@ local function displaceCloseChampBtns()
     end
 end
 
-local function createMatchView(match)
+local function createTouchHandler(matchGroup, yPos)
+    local touchHandler = display.newRect(display.screenOriginX + 1, yPos - 3, CONTENT_WIDTH - 2, 74)
+    touchHandler.strokeWidth = 2
+    touchHandler:setStrokeColor(0, 0, 0, 64)
+    local g = graphics.newGradient(
+        { 180,  180,  180, 128 },
+        { 0,  0,  0, 96 },
+        "down" )
+    touchHandler:setFillColor( g )
+    touchHandler.alpha = 0.01
+    matchGroup:insert(touchHandler)
+    return touchHandler
+end
+
+local function createMatchView(match, matchesGroup, yPos)
     local matchGroup = display.newGroup()
 
     local teamsNames = display.newText(matchGroup, string.utf8upper(match.home_team.name .. "   VS   " .. match.guest_team.name), 0, 0, "MyriadPro-BoldCond", 14)
@@ -52,24 +66,50 @@ local function createMatchView(match)
     teamsNames.y = 0
     teamsNames:setTextColor(135)
 
-    local time = display.newText(matchGroup, match.starts_at:fmt("%H:%M"), 0, 0, "MyriadPro-BoldCond", 24)
+    local time
+    local status
+    local currentDate = getCurrentDate()
+    local daysDiff = currentDate:getyearday() - match.starts_at:getyearday()
+    if daysDiff > 0 then
+        time = display.newText(matchGroup, match.home_goals .. " - " .. match.guest_goals, 0, 0, "MyriadPro-BoldCond", 24)
+        status = display.newText(matchGroup, "ENCERRADO", 0, 0, "MyriadPro-BoldCond", 14)
+        status:setTextColor(135)
+    elseif daysDiff < 0 then
+        time = display.newText(matchGroup, match.starts_at:fmt("%H:%M"), 0, 0, "MyriadPro-BoldCond", 24)
+        status = display.newText(matchGroup, "AGUARDANDO", 0, 0, "MyriadPro-BoldCond", 14)
+        status:setTextColor(135)
+    elseif daysDiff == 0 then
+        local c = date.diff(currentDate, match.starts_at)
+        local minutesToMatch = c:spanminutes()
+        if minutesToMatch > 110 then
+            time = display.newText(matchGroup, match.home_goals .. " - " .. match.guest_goals, 0, 0, "MyriadPro-BoldCond", 24)
+            status = display.newText(matchGroup, "ENCERRADO", 0, 0, "MyriadPro-BoldCond", 14)
+            status:setTextColor(135)
+        elseif minutesToMatch >= -5 then
+            time = display.newText(matchGroup, match.home_goals .. " - " .. match.guest_goals, 0, 0, "MyriadPro-BoldCond", 24)
+            status = display.newText(matchGroup, "JOGUE AGORA", 0, 0, "MyriadPro-BoldCond", 16)
+            status:setTextColor(0)
+            matchGroup.touchHandler = createTouchHandler(matchesGroup, yPos)
+        else
+            time = display.newText(matchGroup, match.starts_at:fmt("%H:%M"), 0, 0, "MyriadPro-BoldCond", 24)
+            status = display.newText(matchGroup, "AGUARDANDO", 0, 0, "MyriadPro-BoldCond", 14)
+            status:setTextColor(135)
+        end
+    end
+
     time.x = display.contentCenterX
     time.y = 24
     time:setTextColor(0)
-    local status = display.newText(matchGroup, "AGUARDANDO", 0, 0, "MyriadPro-BoldCond", 14)
     status.x = display.contentCenterX
     status.y = 52
-    status:setTextColor(135)
+
     matchGroup:insert(TextureManager.newHorizontalLine(display.contentCenterX, 62, CONTENT_WIDTH*0.9))
-    local homeTeamBadge = TextureManager.newLogo("logos/medium_" .. match.home_team.id .. ".png", 64, matchGroup)
+    local homeTeamBadge = TextureManager.newLogo(getLogoFileName(match.home_team.id, 2), 64, matchGroup)
     homeTeamBadge.x = 40
     homeTeamBadge.y = 24
-    local awayTeamBadge = TextureManager.newLogo("logos/medium_" .. match.guest_team.id .. ".png", 64, matchGroup)
+    local awayTeamBadge = TextureManager.newLogo(getLogoFileName(match.guest_team.id, 2), 64, matchGroup)
     awayTeamBadge.x = display.contentWidth - 40
     awayTeamBadge.y = 24
-
-    local touchHandler = display.newRect(matchGroup, 8, -8, matchGroup.width, matchGroup.height)
-    touchHandler.alpha = 0.01
 
     return matchGroup
 end
@@ -97,15 +137,24 @@ local function createChampionshipMatchesView(matchesList, topY)
         if event.phase == "began" then
             display.getCurrentStage():setFocus(button)
             button.isFocus = true
+            button.alpha = 1
+            button.group.x = button.group.x + 1
+            button.group.y = button.group.y + 1
         elseif event.phase == "moved" then
             local dy = math.abs( ( event.y - event.yStart ) )
             -- If our finger has moved more than the desired range
             if dy > 10 then
                 button.isFocus = nil
+                button.alpha = 0.01
+                button.group.x = button.group.x - 1
+                button.group.y = button.group.y - 1
                 -- Pass the focus back to the scrollView
                 matchesGroup:takeFocus( event )
             end
         elseif button.isFocus and event.phase == "ended" then
+            button.alpha = 0.01
+            button.group.x = button.group.x - 1
+            button.group.y = button.group.y - 1
             display.getCurrentStage():setFocus(nil)
             MatchManager:setCurrentMatch(button.matchId)
             isOpeningMatch = true
@@ -134,13 +183,16 @@ local function createChampionshipMatchesView(matchesList, topY)
             yPos = yPos + 20
         end
         --print("createMatchView", (i - 1)*73 + (dateSeparatorCount*42))
-        local matchView = createMatchView(match)
+        local matchView = createMatchView(match, matchesGroup, yPos)
         matchView:setReferencePoint(display.TopCenterReferencePoint)
         matchView.x = display.contentCenterX
         matchView.y = yPos
-        matchView.matchId = match.id
-        matchView.touch = onEnterMatch
-        matchView:addEventListener("touch", matchView)
+        if matchView.touchHandler then
+            matchView.touchHandler.matchId = match.id
+            matchView.touchHandler.touch = onEnterMatch
+            matchView.touchHandler.group = matchView
+            matchView.touchHandler:addEventListener("touch", matchView.touchHandler)
+        end
         matchesGroup:insert(matchView)
         yPos = yPos + 73
     end
@@ -202,7 +254,7 @@ local function createBG()
             end)
             return
         end
-        selectMatchGroup:insert(1, createChampionshipMatchesView(MatchManager:getMatchesOfTheDay()[champNum].matches, yOpenPart + 8))
+        selectMatchGroup:insert(1, createChampionshipMatchesView(MatchManager:getChampionshipsList()[champNum].incoming_matches, yOpenPart + 8))
         local distToBottom = SCREEN_BOTTOM - yOpenPart
         partHeight = distToBottom < 262 and distToBottom or (selectMatchGroup[1].height < 262 and selectMatchGroup[1].height + 4 or 262)
         lineTop.y = yOpenPart - 1
@@ -215,6 +267,7 @@ local function createBG()
         transition.to(bgBottom, {time = 200, maskY = CENTER_MASK_Y - (display.contentCenterY) + yOpenPart + partHeight, onComplete = function()
             self.isOpen = true
             self.inTransition = false
+            unlockScreen()
         end})
 
         button:open()
@@ -222,6 +275,7 @@ local function createBG()
         displaceOpenChampBtns(button.y, partHeight)
 
         self.inTransition = true
+        lockScreen()
     end
 
     function SelectMatchScreen:closeBG(onClose)
@@ -232,12 +286,14 @@ local function createBG()
                 timer.performWithDelay(200, onClose)
             else
                 self.inTransition = false
+                unlockScreen()
             end
         end})
         lineTop.y = display.screenOriginY
         lineBottom.y = display.screenOriginY
         displaceCloseChampBtns()
         self.inTransition = true
+        lockScreen()
     end
 
     return bgGroup
@@ -248,7 +304,7 @@ local function createChampionshipsList(championshipList)
     local Y_CHAMPIONSHIP = 50
     for i, championship in ipairs(championshipList) do
         local championshipGroup = display.newGroup()
-        local title = display.newText(championshipGroup, string.utf8upper(championship.name), 0, 0, "MyriadPro-BoldCond", 28)
+        local title = display.newText(string.utf8upper(championship.name), 0, 0, "MyriadPro-BoldCond", 24)
         title.x = title.width*0.5 + 8
         title.y = (i - 1)*Y_CHAMPIONSHIP
         title:setTextColor(0)
@@ -268,8 +324,9 @@ local function createChampionshipsList(championshipList)
         end)
         championshipGroup:insert(arrow)
         arrow.x = SCREEN_RIGHT - arrow.width*0.5
-        arrow.y = (i - 1)*Y_CHAMPIONSHIP
+        arrow.y = (i - 1)*Y_CHAMPIONSHIP - 6
         arrow:lock(true)
+        championshipGroup:insert(title)
         championshipButtons[#championshipButtons + 1] = arrow
         championshipGroup:insert(TextureManager.newHorizontalLine(display.contentCenterX, (i - 1)*Y_CHAMPIONSHIP + title.height*0.5 + 4, CONTENT_WIDTH*0.9))
         championshipGroup.x = 0
@@ -277,7 +334,7 @@ local function createChampionshipsList(championshipList)
 
         local spinnerDefault = LoadingBall:createBall(SCREEN_RIGHT - 20, (i - 1)*Y_CHAMPIONSHIP)
         championshipGroup:insert(spinnerDefault)
-        MatchManager:downloadTeamsLogos({sizes = "medium", matches = championship.matches, listener = function()
+        MatchManager:downloadTeamsLogos({sizes = "medium", matches = championship.incoming_matches, listener = function()
             spinnerDefault:removeSelf()
             arrow:lock(false)
         end})
@@ -287,7 +344,7 @@ local function createChampionshipsList(championshipList)
     return championshipsListGroup
 end
 
-function SelectMatchScreen:showUp()
+function SelectMatchScreen:showUp(onComplete)
     bgGroup.isVisible = true
     transition.from(bgGroup, {time = 500, alpha = 0, onComplete = function()
         championshipsListGroup.isVisible = true
@@ -296,6 +353,7 @@ function SelectMatchScreen:showUp()
             transition.from(championshipsListGroup[i], {delay = 300, time = 300, y = 50*-i - 50, transition = easeInQuart})
         end
         transition.from(selectMatchGroup[selectMatchGroup.numChildren], {time = 300, y = SCREEN_TOP - 50, transition = easeInQuart})
+        timer.performWithDelay(650, onComplete)
     end})
 end
 
@@ -306,7 +364,7 @@ function SelectMatchScreen:new()
     championshipButtons = {}
 
     selectMatchGroup:insert(createBG())
-    selectMatchGroup:insert(createChampionshipsList(MatchManager:getMatchesOfTheDay()))
+    selectMatchGroup:insert(createChampionshipsList(MatchManager:getChampionshipsList()))
     selectMatchGroup:insert(TopBarMenu:new("JOGAR"))
 
     bgGroup.isVisible = false

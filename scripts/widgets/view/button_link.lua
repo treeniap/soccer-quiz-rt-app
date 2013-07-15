@@ -6,9 +6,9 @@
 BtnLink = {}
 
 function BtnLink:createView()
-    self.default = display.newText(self, " ", 0, 0, "MyriadPro-BoldCond", 14)
+    self.default = display.newText(self, " ", 0, 0, "MyriadPro-BoldCond", 20)
     self.default:setTextColor(0)
-    self.over = display.newText(self, " ", 0, 0, "MyriadPro-BoldCond", 14)
+    self.over = display.newText(self, " ", 0, 0, "MyriadPro-BoldCond", 20)
     self.over:setTextColor(0, 0, 255)
     self.over.isVisible = false
 end

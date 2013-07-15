@@ -36,9 +36,9 @@ local function createPlayerView(player, position, isGoldenPlayer)
         photo.x = -0.5
         photo.y = -0.5
     end
-    local score = display.newText(playerGroup, player.score .. " pts", 0, 0, "MyriadPro-BoldCond", 16)
+    local score = display.newText(playerGroup, player.score .. " Pts", 0, 0, "MyriadPro-BoldCond", 16)
     score.x = notch.x + notch.width*0.5 - score.width*0.5
-    score.y = notch.y - notch.height*0.5 - score.height*0.35
+    score.y = notch.y - notch.height*0.5 - score.height*0.35 + 2
     score:setTextColor(0)
 
     if isGoldenPlayer then
@@ -71,9 +71,11 @@ local function createPlayerOneView(playerPhoto, isInitialScreen)
     notch.y = 9
 
     if playerPhoto then
-        local photo = TextureManager.newImageRect(playerPhoto, PHOTO_SIZE, PHOTO_SIZE, playerGroup)
-        photo.x = notch.x - 0.5
-        photo.y = notch.y - 0.5
+        local noError, photo = pcall(TextureManager.newImageRect, playerPhoto, PHOTO_SIZE, PHOTO_SIZE, playerGroup, system.DocumentsDirectory)
+        if noError and photo then
+            photo.x = notch.x - 0.5
+            photo.y = notch.y - 0.5
+        end
     end
 
     if not isInitialScreen then
@@ -93,10 +95,10 @@ local function createPlayerOneView(playerPhoto, isInitialScreen)
         positionTxt:setTextColor(0)
 
         function playerGroup:setPointsAndPosition(pts, pos)
-            score.text = pts .. " pts"
+            score.text = pts .. " Pts"
             score:setReferencePoint(display.CenterRightReferencePoint)
             score.x = notch.x + notch.width*0.5
-            score.y = notch.y - notch.height*0.5 - 8
+            score.y = notch.y - notch.height*0.5 - 6
             positionTxt.text = pos .. "°"
             positionTxt:setReferencePoint(display.CenterReferencePoint)
             positionTxt.x = positionStru.x + 3
