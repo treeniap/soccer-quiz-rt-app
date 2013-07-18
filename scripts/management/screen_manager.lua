@@ -16,18 +16,6 @@ local previousScreen
 local answer
 local tutorial
 
-local gameInfo = {
-    championshipBadge = "pictures/cbf.png",
-    championshipName  = "CAMPEONATO BRASILEIRO 2013",
-    championshipRound = "5ª RODADA",
-    homeTeamScore     = 3,
-    homeTeamName      = "CLUBE ATLÉTICO BRAGANTINO",
-    awayTeamScore     = 3,
-    awayTeamName      = "ASSOCIAÇÃO DESPORTIVA SÃO CAETANO",
-    matchMinutes      = 32,
-    matchTime         = 2,
-}
-
 local challengeInfo = {
     name = "DESAFIO DO PRÉ-JOGO",
     matchTime = {hour = 19, min = 15, sec = 0},
@@ -97,7 +85,7 @@ end
 
 local function showMatch()
     currentScreen:showUp(function()
-        currentScreen:onGame(gameInfo)
+        currentScreen:onGame()
         unlockScreen()
     end)
 end
@@ -105,11 +93,6 @@ end
 local function prepareMatch()
     currentScreen = require("scripts.screens.in_game")
     currentScreen:new()
-
-    gameInfo.homeTeamScore = MatchManager:getTeamScore(true)
-    gameInfo.awayTeamScore = MatchManager:getTeamScore(false)
-    gameInfo.homeTeamName = string.utf8upper(MatchManager:getTeamName(MatchManager:getTeamId(true)))
-    gameInfo.awayTeamName = string.utf8upper(MatchManager:getTeamName(MatchManager:getTeamId(false)))
     MatchManager:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
 end
 
@@ -130,16 +113,27 @@ local function matchServerListener(message)
     currentScreen:onEventStart(_eventInfo)
 end
 
+function ScreenManager.onAppResume()
+    if currentScreen and currentScreen.onAppResume then
+        currentScreen.onAppResume()
+    end
+end
+
 function ScreenManager:enterMatch(channel)
     Server.pubnubSubscribe(channel, matchServerListener)
-    Server.pubnubSubscribe(UserData.info.user_id, require("scripts.screens.in_game_event").betResultListener) --TODO usar id do usuario
+    Server.pubnubSubscribe(UserData.info.user_id, require("scripts.screens.in_game_event").betResultListener)
     currentScreen:hide(prepareMatch)
     lockScreen()
 end
 
+function ScreenManager:exitMatch()
+    Server.pubnubUnsubscribe(MatchManager:getMatchId())
+    ScreenManager:show("initial")
+end
+
 function ScreenManager:init()
     if not tutorial then
-        MatchManager:requestMatches(function()
+        MatchManager:init(function()
             TextureManager.loadMainSheet()
             local bg = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
             bg.x = display.contentCenterX
@@ -156,17 +150,17 @@ end
 function ScreenManager:startTutorial()
     --TODO download logos
     local teamsList = {
-        {name = "Bragantino", badge = "pictures/clubes_bragantino.png"},
-        {name = "Corinthians", badge = "pictures/clubes_corinthians.png"},
-        {name = "Palmeiras", badge = "pictures/clubes_palmeiras.png"},
-        {name = "Portuguesa", badge = "pictures/clubes_portuguesa.png"},
-        {name = "Santos", badge = "pictures/clubes_santos.png"},
-        {name = "São Caetano", badge = "pictures/clubes_scaetano.png"},
-        {name = "São Paulo", badge = "pictures/clubes_spaulo.png"},
-        {name = "Criciuma", badge = "pictures/criciuma_esporte_clube.png"},
-        {name = "Vitória", badge = "pictures/ec_vitoria.png"},
-        {name = "Fluminense", badge = "pictures/fluminense_fc.png"},
-        {name = "Salgueiro", badge = "pictures/salgueiro_atletico_clube.png"},
+        {name = "Botafogo",      badge = "pictures/botafogo_fr.png"},
+        {name = "Corinthians",   badge = "pictures/sc_corinthians_paulista.png"},
+        {name = "Cruzeiro",      badge = "pictures/cruzeiro_ec.png"},
+        {name = "Atlético-MG",   badge = "pictures/ca_mineiro.png"},
+        {name = "Santos",        badge = "pictures/santos_fc.png"},
+        {name = "Coritiba",      badge = "pictures/coritiba_fc.png"},
+        {name = "São Paulo",     badge = "pictures/sao_paulo_fc.png"},
+        {name = "Flamengo",      badge = "pictures/cr_flamengo.png"},
+        {name = "Vasco",         badge = "pictures/cr_vasco_g.png"},
+        {name = "Fluminense",    badge = "pictures/fluminense_fc.png"},
+        {name = "Grêmio",        badge = "pictures/gremio_fbpa.png"},
         {name = "Internacional", badge = "pictures/sc_internacional.png"},
     }
     require "scripts.screens.tutorial"

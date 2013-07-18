@@ -150,9 +150,9 @@ local function createRightSide(totalCoupons, championshipName, position)
     positionNum.y = 124
     positionNum:setTextColor(0)
 
-    local awardImg = TextureManager.newImageRect("pictures/stru_banner_end.png", 165, 194, rightSideGroup)
-    awardImg.x = SCREEN_RIGHT - awardImg.width*0.5 + 20
-    awardImg.y = display.contentCenterY + awardImg.height*0.5 - 48 + (display.screenOriginY*-0.5)
+    --local awardImg = TextureManager.newImageRect("pictures/stru_banner_end.png", 165, 194, rightSideGroup)
+    --awardImg.x = SCREEN_RIGHT - awardImg.width*0.5 + 20
+    --awardImg.y = display.contentCenterY + awardImg.height*0.5 - 48 + (display.screenOriginY*-0.5)
     local barSize = 94
     local bg = TextureManager.newImageRect("images/stru_bar_mid.png", barSize, 40, rightSideGroup)
     bg.x = SCREEN_RIGHT - bg.width*0.5

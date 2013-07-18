@@ -32,9 +32,11 @@ local function createPlayerView(player, position, isGoldenPlayer)
     notch.x = 0
     notch.y = 0
     if player.photo then
-        local photo = TextureManager.newImageRect(player.photo, photoSize, photoSize, playerGroup)
-        photo.x = -0.5
-        photo.y = -0.5
+        local noError, photo = pcall(TextureManager.newImageRect, player.photo, photoSize, photoSize, playerGroup, system.DocumentsDirectory)
+        if noError and photo then
+            photo.x = -0.5
+            photo.y = -0.5
+        end
     end
     local score = display.newText(playerGroup, player.score .. " Pts", 0, 0, "MyriadPro-BoldCond", 16)
     score.x = notch.x + notch.width*0.5 - score.width*0.5

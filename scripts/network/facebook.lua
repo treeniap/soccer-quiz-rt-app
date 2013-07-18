@@ -14,7 +14,7 @@ local userInfo
 local stepsCount
 local REQUEST_TYPE_LOGIN = "login"
 local REQUEST_TYPE_USER_INFO = "me"
-local REQUEST_TYPE_USER_FRIENDS = "me/friends?fields=installed"
+local REQUEST_TYPE_USER_FRIENDS = "me/friends?fields=installed,name"
 local REQUEST_TYPE_USER_PIC = "me/picture"
 
 local function getPictureSize(size)
@@ -96,6 +96,15 @@ local function listener(event)
             request(getUserPictureUrl(response.username, "4x"), REQUEST_TYPE_USER_PIC)
             stepsCount = 3
 
+        elseif requestType == REQUEST_TYPE_USER_FRIENDS then
+            --printTable(response)
+            userInfo.facebook_profile.friends_ids = {}
+            for i, friend in ipairs(response.data) do
+                if friend.installed then
+                    userInfo.facebook_profile.friends_ids[#userInfo.facebook_profile.friends_ids + 1] = friend.id
+                end
+            end
+            UserData:init(userInfo)
         elseif requestType == REQUEST_TYPE_USER_PIC then
             local imageSize = getPictureSize(tonumber(response.data.width))
             userInfo.facebook_profile[getPictureFieldName(imageSize)] = response.data.url
@@ -109,13 +118,13 @@ local function listener(event)
                 }, function()
                     stepsCount = stepsCount - 1
                     if stepsCount <= 0 then
-                        UserData:init(userInfo)
+                        request(REQUEST_TYPE_USER_FRIENDS)
                     end
                 end)
                 stepsCount = stepsCount + 1
             end
             if stepsCount <= 0 then
-                UserData:init(userInfo)
+                request(REQUEST_TYPE_USER_FRIENDS)
             end
         end
     elseif "dialog" == event.type then
@@ -126,15 +135,15 @@ end
 function Facebook:init()
     if IS_SIMULATOR then
         userInfo = {
-            first_name = "Bentrano",
-            last_name = "Beltranes",
+            first_name = "John",
+            last_name = "Letuchysky",
             facebook_profile = {
-                id =  "test123",
+                id =  "100006410700030",
                 username = "",
                 access_token = "",
-                picture_url = "http://pw-games.com/chutepremiado/pic_test@2x.jpg",
-                picture_2x_url = "http://www.pw-games.com/chutepremiado/pic_test@2x.jpg",
-                picture_4x_url = "http://www.pw-games.com/chutepremiado/pic_test@2x.jpg"
+                picture_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c5.5.65.65/s50x50/1001189_1374234269466917_1311634018_t.jpg",
+                picture_2x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c12.12.156.156/s100x100/1001189_1374234269466917_1311634018_a.jpg",
+                picture_4x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c0.0.195.195/1001189_1374234269466917_1311634018_n.jpg"
             }
         }
         Server:downloadFilesList({
@@ -143,6 +152,11 @@ function Facebook:init()
                 fileName = getPictureFileName(userInfo.facebook_profile.id)
             }
         }, function()
+            userInfo.facebook_profile.friends_ids = {}
+            userInfo.facebook_profile.friends_ids[1] = "100006326892112"
+            userInfo.facebook_profile.friends_ids[2] = "100006397561562"
+            userInfo.facebook_profile.friends_ids[3] = "100006387546231"
+            userInfo.facebook_profile.friends_ids[4] = "100006337952512"
             UserData:init(userInfo)
         end)
         return

@@ -325,19 +325,27 @@ function InGameEvent:create(eventInfo)
     local function pressHandler(button)
         button:lock(true)
         for i, btn in ipairs(voteButtons) do
+            if btn:getBetCoins() > 0 then
+                UserData.inventory.coins = UserData.inventory.coins + btn:getBetCoins()
+            end
             btn:resetCoins()
             btn:lock(false)
         end
+        InGameScreen:updateTotalCoins()
         return true
     end
     undoBtn.onRelease = pressHandler
 
     local function releaseHandler(button)
-        button:addCoin()
-        undoBtn:lock(false)
-        for i, btn in ipairs(voteButtons) do
-            if btn ~= button then
-                btn:lock(true)
+        if UserData.inventory.coins > 0 and button:getBetCoins() < 5 then
+            UserData.inventory.coins = UserData.inventory.coins - 1
+            InGameScreen:updateTotalCoins()
+            button:addCoin()
+            undoBtn:lock(false)
+            for i, btn in ipairs(voteButtons) do
+                if btn ~= button then
+                    btn:lock(true)
+                end
             end
         end
         return true

@@ -6,6 +6,14 @@
 InitialScreen = {}
 
 require "scripts.widgets.view.button_home_screen"
+--local twitter = require "util.twitter"
+--
+--twitter:getFollowers({})
+--timer.performWithDelay(2000, function()
+--    twitter:getFollowers({})
+--end)
+--twitter:getTweets()
+--Server:tweets()
 
 local initialScreenGroup
 local bottomRanking
@@ -16,6 +24,8 @@ local playBtn
 local adjustScale
 local matchesGroup
 local isOpeningMatch
+local updateTimer
+local updateMatchesFoil
 
 local function createLogo()
     logo = TextureManager.newImage("stru_logotipo", initialScreenGroup)
@@ -204,6 +214,7 @@ local function createMatchesView(x, y)
     matchesGroup.matches = {}
     local currentDate = getCurrentDate()
     local yPos = 0
+    local nextUpdateTime
     for i = #matches, 1, -1 do
         local match = matches[i]
         --if i > 1 then
@@ -221,6 +232,20 @@ local function createMatchesView(x, y)
         end
         matchesGroup.matches[#matchesGroup.matches + 1] = matchView
         yPos = yPos + 84 --(120*(((yPos)*1.4 + 500)/1000))
+
+        local c = date.diff(currentDate, match.starts_at)
+        local minutesToMatch = -c:spanminutes() - 5
+        if minutesToMatch <= 0 then
+            minutesToMatch = 110 + minutesToMatch
+        end
+        if not nextUpdateTime or nextUpdateTime > minutesToMatch then
+            if minutesToMatch > 0 then
+                nextUpdateTime = minutesToMatch
+            end
+        end
+    end
+    if nextUpdateTime and nextUpdateTime > 0 and nextUpdateTime < 45 then
+        updateTimer = timer.performWithDelay(nextUpdateTime*MINUTE_DURATION, updateMatchesFoil)
     end
 
     matchesGroup.x = x + 3
@@ -229,7 +254,7 @@ local function createMatchesView(x, y)
 
     local lastContY
     function adjustScale()
-        if not initialScreenGroup then
+        if not initialScreenGroup or not matchesGroup then
             return
         end
         if matchesGroup.getContentPosition then
@@ -299,25 +324,54 @@ function InitialScreen:showUp(onComplete)
     end)
 end
 
+function updateMatchesFoil()
+    if updateTimer then
+        timer.cancel(updateTimer)
+        updateTimer = nil
+    end
+    Runtime:removeEventListener("enterFrame", adjustScale)
+    display.getCurrentStage():setFocus(nil)
+    if playBtn then
+        playBtn:hide(function()
+            matchesFoil:hide(function()
+                matchesFoil:removeSelf()
+                initialScreenGroup:insert(3, createMatchesFoil(function() end))
+            end)
+        end)
+    end
+end
+
+function InitialScreen.onAppResume()
+    updateMatchesFoil()
+end
+
 function InitialScreen:new()
     isOpeningMatch = false
     initialScreenGroup = display.newGroup()
 
     createLogo()
 
-    playBtn = BtnHomeScreen:new(function() ScreenManager:show("select_match") end)
+    playBtn = BtnHomeScreen:new(function()
+        MatchManager:resquestMatches()
+        ScreenManager:show("select_match")
+    end)
     initialScreenGroup:insert(playBtn)
 
     bottomRanking = BottomRanking:new(UserData:getUserPicture(), true)
     initialScreenGroup:insert(bottomRanking)
 
     topBar = TopBar:new(true)
+    topBar:updateTotalCoins(UserData.inventory.coins)
     initialScreenGroup:insert(topBar)
 
     return initialScreenGroup
 end
 
 function InitialScreen:hide(onComplete)
+    if updateTimer then
+        timer.cancel(updateTimer)
+        updateTimer = nil
+    end
     playBtn:hide(function()
         logo:hide()
         matchesFoil:hide(function()

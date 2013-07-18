@@ -9,7 +9,7 @@ require "scripts.widgets.view.button_open_questions"
 require "scripts.widgets.view.button_next"
 
 local questionsBarGroup
-local openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn
+local openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn, waitingGroup
 local barTrans
 
 local VER_LINE_1_X = 200 + (-display.screenOriginX)
@@ -132,6 +132,15 @@ local function createQuestionsList(list)
     return questionsListGroup
 end
 
+local function createWaiting()
+    waitingGroup = display.newGroup()
+    local waitingTxt = display.newEmbossedText(waitingGroup, "Aguardando Resultado...", 0, 0, "MyriadPro-BoldCond", 16)
+    waitingTxt:setTextColor(32)
+    --local ball = LoadingBall:createBall(-24, waitingTxt.height*0.5)
+    --waitingGroup:insert(ball)
+    waitingGroup:setReferencePoint(display.CenterReferencePoint)
+end
+
 function QuestionsBar:getUndoBtn()
     return undoBtn
 end
@@ -201,6 +210,12 @@ function QuestionsBar:createView()
     self:insert(twitterBtn)
     --twitterBtn:addEventListener("touch", dragAndDrop)
 
+    createWaiting()
+    waitingGroup.x = display.contentCenterX
+    waitingGroup.y = bar.y + 4
+    waitingGroup.isVisible = false
+    self:insert(waitingGroup)
+    
     self.closedY = SCREEN_BOTTOM - 172
     self.openedY = SCREEN_TOP + 113 - OPENED_SIZE
 end
@@ -247,6 +262,7 @@ function QuestionsBar:onGame()
         chronometer.isVisible = false
         facebookBtn.isVisible = false
         twitterBtn.isVisible = false
+        waitingGroup.isVisible = false
         self:showUp()
     end)
 end
@@ -259,10 +275,27 @@ function QuestionsBar:onEventBet(onTimeUp, time)
         chronometer.isVisible = true
         facebookBtn.isVisible = false
         twitterBtn.isVisible = false
+        waitingGroup.isVisible = false
 
         if onTimeUp then
-            chronometer:start(time, onTimeUp)
+            chronometer:start(time, function()
+                self:onWaitingBetResponse()
+                onTimeUp()
+            end)
         end
+        self:showUp()
+    end)
+end
+
+function QuestionsBar:onWaitingBetResponse()
+    self:hide(function()
+        openCloseBtn.isVisible = false
+        nextBtn.isVisible = false
+        undoBtn.isVisible = false
+        chronometer.isVisible = false
+        facebookBtn.isVisible = false
+        twitterBtn.isVisible = false
+        waitingGroup.isVisible = true
         self:showUp()
     end)
 end
@@ -275,6 +308,7 @@ function QuestionsBar:onEventResult()
         chronometer.isVisible = false
         facebookBtn.isVisible = false
         twitterBtn.isVisible = false
+        waitingGroup.isVisible = false
         self:showUp()
     end)
 end
@@ -288,6 +322,7 @@ function QuestionsBar:onGameOver()
         chronometer.isVisible = false
         facebookBtn.isVisible = true
         twitterBtn.isVisible = true
+        waitingGroup.isVisible = false
         self:showUp()
     end)
 end
@@ -319,8 +354,9 @@ function QuestionsBar:destroy()
     chronometer:removeSelf()
     facebookBtn:removeSelf()
     twitterBtn:removeSelf()
+    waitingGroup:removeSelf()
     questionsBarGroup = nil
-    openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn = nil, nil, nil, nil, nil, nil
+    openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn, waitingGroup = nil, nil, nil, nil, nil, nil, nil
 end
 
 return QuestionsBar

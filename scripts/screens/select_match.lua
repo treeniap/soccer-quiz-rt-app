@@ -14,6 +14,7 @@ local bgGroup
 local championshipsListGroup
 local championshipButtons
 local isOpeningMatch
+local updateTimer
 
 local function closeChampionshipButtons(openingButton)
     for i, button in ipairs(championshipButtons) do
@@ -114,6 +115,17 @@ local function createMatchView(match, matchesGroup, yPos)
     return matchGroup
 end
 
+local function updateMatchesFoil()
+    if updateTimer then
+        timer.cancel(updateTimer)
+        updateTimer = nil
+    end
+    if SelectMatchScreen.openButton then
+        display.getCurrentStage():setFocus(nil)
+        SelectMatchScreen:openBG(SelectMatchScreen.openButton, SelectMatchScreen.openChampNum)
+    end
+end
+
 local function createChampionshipMatchesView(matchesList, topY)
     local widget = require "widget"
     -- Create a ScrollView
@@ -172,12 +184,13 @@ local function createChampionshipMatchesView(matchesList, topY)
         matchesGroup:insert(TextureManager.newHorizontalLine(display.contentCenterX, y + 16, CONTENT_WIDTH*0.9))
     end
 
-    local currentDate
+    local currentStartsAt
     local yPos = 9
-
+    local nextUpdateTime
+    local currentDate = getCurrentDate()
     for i, match in ipairs(matchesList) do
-        if not currentDate or currentDate:getyearday() < match.starts_at:getyearday() then
-            currentDate = match.starts_at
+        if not currentStartsAt or currentStartsAt:getyearday() < match.starts_at:getyearday() then
+            currentStartsAt = match.starts_at
             --print("createDateSeparator", dateSeparatorCount*((i - 1)*64))
             createDateSeparator(match.starts_at, yPos)
             yPos = yPos + 20
@@ -195,6 +208,20 @@ local function createChampionshipMatchesView(matchesList, topY)
         end
         matchesGroup:insert(matchView)
         yPos = yPos + 73
+
+        local c = date.diff(currentDate, match.starts_at)
+        local minutesToMatch = -c:spanminutes() - 5
+        if minutesToMatch <= 0 then
+            minutesToMatch = 110 + minutesToMatch
+        end
+        if not nextUpdateTime or nextUpdateTime > minutesToMatch then
+            if minutesToMatch > 0 then
+                nextUpdateTime = minutesToMatch
+            end
+        end
+    end
+    if nextUpdateTime and nextUpdateTime > 0 and nextUpdateTime < 45 then
+        updateTimer = timer.performWithDelay(nextUpdateTime*MINUTE_DURATION, updateMatchesFoil)
     end
 
     matchesGroup.y = topY - 8
@@ -254,6 +281,8 @@ local function createBG()
             end)
             return
         end
+        self.openButton = button
+        self.openChampNum = champNum
         selectMatchGroup:insert(1, createChampionshipMatchesView(MatchManager:getChampionshipsList()[champNum].incoming_matches, yOpenPart + 8))
         local distToBottom = SCREEN_BOTTOM - yOpenPart
         partHeight = distToBottom < 262 and distToBottom or (selectMatchGroup[1].height < 262 and selectMatchGroup[1].height + 4 or 262)
@@ -279,6 +308,8 @@ local function createBG()
     end
 
     function SelectMatchScreen:closeBG(onClose)
+        self.openButton = nil
+        self.openChampNum = nil
         transition.to(bgBottom, {time = 200, maskY = CENTER_MASK_Y*2 + bgTop.maskY, onComplete = function()
             selectMatchGroup[1]:removeSelf()
             self.isOpen = false
@@ -344,6 +375,10 @@ local function createChampionshipsList(championshipList)
     return championshipsListGroup
 end
 
+function SelectMatchScreen.onAppResume()
+    updateMatchesFoil()
+end
+
 function SelectMatchScreen:showUp(onComplete)
     bgGroup.isVisible = true
     transition.from(bgGroup, {time = 500, alpha = 0, onComplete = function()
@@ -375,6 +410,10 @@ function SelectMatchScreen:new()
 end
 
 function SelectMatchScreen:hide(onComplete)
+    if updateTimer then
+        timer.cancel(updateTimer)
+        updateTimer = nil
+    end
     SelectMatchScreen:closeBG(function()
         for i = 1, championshipsListGroup.numChildren do
             transition.to(championshipsListGroup[i], {time = 300, y = 50*-i - 50, transition = easeInQuart})

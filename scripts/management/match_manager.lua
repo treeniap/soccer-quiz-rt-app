@@ -267,29 +267,19 @@ function MatchManager:downloadTeamsLogos(params)
     Server:downloadFilesList(logosList, params.listener)
 end
 
-function MatchManager:requestMatches(onComplete)
-    print("requesting matches...")
-    Server.getMatches("http://api.kb.soccer.welovequiz.com/1/championships", function(event)
+function MatchManager:init(onComplete)
+    MatchManager:resquestMatches(function()
+        MatchManager:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextSevenMatches(), listener = onComplete})
+    end)
+end
+
+function MatchManager:resquestMatches(onComplete)
+    Server.getMatchesList(function(response, status)
         print("matches received")
-        if not event.isError then
-            --print(event.response)
-            local noError, jsonContent = pcall(json.decode, event.response)
-            --print(noError, jsonContent)
-            if noError and jsonContent then
-                nextMatchesInfo = jsonContent.championships
-                --TODO
-                --local bras = {}
-                --for i=1, 3 do
-                --    for i, v in ipairs(matchesInfoTEST) do
-                --        bras[#bras + 1] = v
-                --    end
-                --end
-                --nextMatchesInfo[#nextMatchesInfo + 1] = {name = "Brasileiro 2013", matches = bras}
-                --nextMatchesInfo[#nextMatchesInfo + 1] = {name = "Brasileiro 2014", matches = bras}
-                setMatchesDateObj(nextMatchesInfo)
-                MatchManager:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextSevenMatches(), listener = onComplete})
-            end
-            --printTable(nextMatchesInfo)
+        nextMatchesInfo = response.championships
+        setMatchesDateObj(nextMatchesInfo)
+        if onComplete then
+            onComplete()
         end
     end)
 end
@@ -300,6 +290,9 @@ function MatchManager:setCurrentMatch(matchId)
             for j, matchInfo in ipairs(championshipInfo.incoming_matches) do
                 if matchInfo.id == matchId then
                     CurrentMatch.matchInfo = matchInfo
+                    CurrentMatch.championshipRound = championshipInfo.current_round
+                    CurrentMatch.championshipName = championshipInfo.name
+                    CurrentMatch.championshipLogoName = championshipInfo.machine_friendly_name
                     ScreenManager:enterMatch(matchId)
                 end
             end
@@ -313,6 +306,89 @@ function MatchManager:setCurrentMatch(matchId)
     else
         print("No Matches Available Right Now")
     end
+end
+
+function MatchManager:getChampionshipInfo()
+    local logoFileName = {
+        brasileiro_serie_a_2013 = "images/cbf.png",
+        libertadores_da_america_2013 = "images/libertadores.png",
+        copa_do_brasil_2013 = "images/cbf.png"
+    }
+    local getRoundName = {
+        brasileiro_serie_a_2013 = function()
+            return CurrentMatch.championshipRound .. "ª RODADA"
+        end,
+        libertadores_da_america_2013 = function()
+            local round = {
+                "RODADA 1",         --1
+                "FASE DE GRUPOS",   --2
+                "FASE DE GRUPOS",   --3
+                "FASE DE GRUPOS",   --4
+                "FASE DE GRUPOS",   --5
+                "FASE DE GRUPOS",   --6
+                "FASE DE GRUPOS",   --7
+                "OITAVAS DE FINAL", --8
+                "QUARTAS DE FINAL", --9
+                "SEMI FINAL",       --10
+                "FINAL"             --11
+            }
+            return round[CurrentMatch.championshipRound] or CurrentMatch.championshipRound
+        end,
+        copa_do_brasil_2013 = function()
+            local round = {
+                "FASE PRELIMINAR",  --1
+                "RODADA 2",         --2
+                "SEGUNDA FASE",     --3
+                "TERCEIRA FASE",    --4
+                "OITAVAS DE FINAL", --5
+                "QUARTAS DE FINAL", --6
+                "SEMI FINAL",       --7
+                "FINAL"             --8
+            }
+            return round[CurrentMatch.championshipRound] or CurrentMatch.championshipRound
+        end
+    }
+    return (getRoundName[CurrentMatch.championshipLogoName] and
+            getRoundName[CurrentMatch.championshipLogoName]() or (CurrentMatch.championshipLogoName or "").. "ª RODADA"),
+    CurrentMatch.championshipName, logoFileName[CurrentMatch.championshipLogoName]
+end
+
+function MatchManager:updateMatch(onComplete)
+    Server.getMatchInfo(CurrentMatch.matchInfo.url, function(response, status)
+        CurrentMatch.matchInfo = response.match
+        local dateObj = date(CurrentMatch.matchInfo.starts_at)
+        CurrentMatch.matchInfo.starts_at = dateObj:addseconds(getTimezoneOffset(os.time()))
+        onComplete()
+    end)
+end
+
+function MatchManager:getMatchTimeStatus()
+    local status
+    local time
+    local _date = CurrentMatch.matchInfo.starts_at
+    local currentDate = getCurrentDate()
+    local c = date.diff(currentDate, _date)
+    local minutesSpent = math.floor(c:spanminutes())
+    --print(minutesSpent)
+    if minutesSpent <= 0 then
+        status = "AQUECIMENTO"
+    elseif CurrentMatch.matchInfo.status == "finished" then --"started", "finished", "scheduled"
+        status = "ENCERRADO"
+    else
+        time = CurrentMatch.matchInfo.elapsed_time
+        if time > 45 then
+            status = "2° TEMPO"
+        else
+            status = "1° TEMPO"
+        end
+    end
+    --print(CurrentMatch.matchInfo.status, CurrentMatch.matchInfo.elapsed_time)
+
+    return status, time
+end
+
+function MatchManager:getMatchId()
+    return CurrentMatch.matchInfo.id
 end
 
 function MatchManager:getTeamName(teamId)
@@ -351,52 +427,6 @@ end
 
 function MatchManager:getChampionshipsList()
     return nextMatchesInfo
-    --[[local bras = {}
-    for i=1, 3 do
-        for i, v in ipairs(nextMatchesInfo) do
-            bras[#bras + 1] = v
-        end
-    end
-    local pau = {}
-    for i, v in ipairs(nextMatchesInfo) do
-        if i < 4 then
-            pau[#pau + 1] = v
-        end
-    end
-    local cop = {}
-    for i, v in ipairs(nextMatchesInfo) do
-        if i > 1  and i < 4 then
-            cop[#cop + 1] = v
-        end
-    end
-    local lib = {}
-    for i, v in ipairs(nextMatchesInfo) do
-        if i < 2 then
-            lib[#lib + 1] = v
-        end
-    end
-    return {
-        {
-            championshipName = "Brasileiro",
-            matches = bras
-        },
-        {
-            championshipName = "Paulista",
-            matches = pau
-        },
-        {
-            championshipName = "Copa do Brasil",
-            matches = cop
-        },
-        {
-            championshipName = "Libertadores",
-            matches = lib
-        },
-        {
-            championshipName = "UEFA Champions League",
-            matches = nextMatchesInfo
-        }
-    }--]]
 end
 
 function MatchManager:getNextSevenMatches()

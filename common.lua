@@ -4,13 +4,14 @@
 == Time: 11:01
 ==============]]--
 
-CONTENT_WIDTH  = display.contentWidth + (display.screenOriginX*-2)
-CONTENT_HEIGHT = display.contentHeight + (display.screenOriginY*-2)
-SCREEN_TOP     = display.screenOriginY + display.topStatusBarContentHeight
-SCREEN_BOTTOM  = display.contentHeight + (-display.screenOriginY)
-SCREEN_LEFT    = display.screenOriginX
-SCREEN_RIGHT   = display.contentWidth + (-display.screenOriginX)
-IS_SIMULATOR   = system.getInfo("environment") == "simulator"
+CONTENT_WIDTH   = display.contentWidth + (display.screenOriginX*-2)
+CONTENT_HEIGHT  = display.contentHeight + (display.screenOriginY*-2)
+SCREEN_TOP      = display.screenOriginY + display.topStatusBarContentHeight
+SCREEN_BOTTOM   = display.contentHeight + (-display.screenOriginY)
+SCREEN_LEFT     = display.screenOriginX
+SCREEN_RIGHT    = display.contentWidth + (-display.screenOriginX)
+IS_SIMULATOR    = system.getInfo("environment") == "simulator"
+MINUTE_DURATION = 60000
 
 -- Check if it's Android
 function isAndroid()
@@ -268,12 +269,37 @@ function unlockScreen()
     end
 end
 
+local month = 7
+local day = 18
+local hour = 21
+local min = 49
+local sec = 0
+--[[
+timer.performWithDelay(MINUTE_DURATION, function()
+    min = min + 1
+    if min > 59 then
+        min = 0
+        hour = hour + 1
+        print(month, day, hour, min)
+        if hour > 23 then
+            hour = 0
+            day = day + 1
+            if day > 31 then
+                day = 1
+                month = month + 1
+            end
+        end
+    end
+end, 0)
+--]]
 function getCurrentDate()
     local _date = os.date("*t")
-    --TODO set date to test
-    _date.day = 17
-    _date.hour = 19
-    _date.min = 45
+    -- TODO set date to test
+    --_date.month = month
+    --_date.day = day
+    --_date.hour = hour
+    --_date.min = min
+    --_date.sec = sec
     local currentDate = date(_date)
     return currentDate
 end

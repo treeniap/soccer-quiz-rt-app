@@ -36,6 +36,7 @@ end
 local onSystem = function(event)
     if event.type == "applicationSuspend" then
     elseif event.type == "applicationResume" then
+        ScreenManager.onAppResume()
     elseif event.type == "applicationExit" then
         if system.getInfo("platformName") == "iPhone OS" then
             --require("engine.quiz_data_user").closeDatabase()
@@ -58,7 +59,7 @@ local function onKeyEvent(event)
                 end
             end
         end
-        native.showAlert("QUIT", "Are you sure you want to quit?", { "Yes", "No" }, onComplete)
+        native.showAlert("QUIT", "Are you sure you want to quit?", {"Yes", "No"}, onComplete)
         return true
     end
 end

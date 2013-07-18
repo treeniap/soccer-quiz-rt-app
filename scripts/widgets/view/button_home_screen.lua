@@ -28,6 +28,7 @@ end
 function BtnHomeScreen:showUp(onComplete)
     timer.performWithDelay(1000, function()
         self.isVisible = true
+        self.yScale = 1
         transition.from(self, {time = 200, yScale = 0.1, onComplete = onComplete})
     end)
 end

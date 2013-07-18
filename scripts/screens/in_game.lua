@@ -28,11 +28,11 @@ function InGameScreen:onPreKickOffQuestions(challengeInfo)
     inGameGroup:insert(1, InGameQuestions:create(challengeInfo))
 end
 
-function InGameScreen:onGame(gameInfo)
+function InGameScreen:onGame()
     display.getCurrentStage():setFocus(nil)
     questionsBar:onGame()
     if not scoreView then
-        scoreView = InGameScore:create(gameInfo)
+        scoreView = InGameScore:create()
         inGameGroup:insert(1, scoreView)
     end
     if eventView then
@@ -71,6 +71,7 @@ function InGameScreen:onEventEnd(resultInfo)
     eventView:showResult(resultInfo, function()
         questionsBar:onEventResult()
         topBar:updateTotalCoins(resultInfo.totalCoins)
+        UserData:setTotalCoins(resultInfo.totalCoins)
     end)
 end
 
@@ -81,6 +82,10 @@ function InGameScreen:onGameOver(finalResultInfo)
     inGameGroup:insert(2, endView)
     questionsBar:lock()
     endView:showUp(function() questionsBar:onGameOver() end)
+end
+
+function InGameScreen:updateTotalCoins()
+    topBar:updateTotalCoins(UserData.inventory.coins)
 end
 
 local questions = {
@@ -96,13 +101,20 @@ local questions = {
 
 function InGameScreen:showUp(onComplete)
     local ranking = {}
-    for i = 1, 13 do
+    for i, friendId in ipairs(UserData.info.facebook_profile.friends_ids) do
         ranking[i] = {}
-        --ranking[i].photo = "pictures/pic_" .. i .. ".png"
+        ranking[i].photo = getPictureFileName(friendId)
         --ranking[i].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
         ranking[i].score = (14 - i)*999
     end
-    ranking[3].isPlayer = true
+
+    local playerPos = #UserData.info.facebook_profile.friends_ids
+    ranking[playerPos] = {}
+    ranking[playerPos].photo = getPictureFileName(UserData.info.facebook_profile.id)
+    --ranking[playerPos].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
+    ranking[playerPos].score = (14 - playerPos)*999
+    ranking[playerPos].isPlayer = true
+
     bottomRanking:showUp(function()
         bottomRanking:updateRankingPositions(ranking)
         topBar:showUp()
@@ -135,12 +147,16 @@ function InGameScreen:new()
     inGameGroup:insert(bottomRanking)
 
     topBar = TopBar:new()
+    topBar:updateTotalCoins(UserData.inventory.coins)
     inGameGroup:insert(topBar)
 
     return inGameGroup
 end
 
 function InGameScreen:destroy()
+    if scoreView.timer then
+        timer.cancel(scoreView.timer)
+    end
     scoreView:removeSelf()
     if eventView then
         eventView:removeSelf()
