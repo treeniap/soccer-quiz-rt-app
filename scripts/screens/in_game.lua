@@ -108,7 +108,7 @@ function InGameScreen:showUp(onComplete)
         ranking[i].score = (14 - i)*999
     end
 
-    local playerPos = #UserData.info.facebook_profile.friends_ids
+    local playerPos = #UserData.info.facebook_profile.friends_ids + 1
     ranking[playerPos] = {}
     ranking[playerPos].photo = getPictureFileName(UserData.info.facebook_profile.id)
     --ranking[playerPos].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"

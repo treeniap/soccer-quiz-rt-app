@@ -6,14 +6,6 @@
 InitialScreen = {}
 
 require "scripts.widgets.view.button_home_screen"
---local twitter = require "util.twitter"
---
---twitter:getFollowers({})
---timer.performWithDelay(2000, function()
---    twitter:getFollowers({})
---end)
---twitter:getTweets()
---Server:tweets()
 
 local initialScreenGroup
 local bottomRanking

@@ -178,6 +178,29 @@ end
 
 getFontLettersSize("MyriadPro-BoldCond")
 
+
+local html_replacements = {
+    ["&lt;"]    = "<",
+    ["&gt;"]    = ">",
+    ["&amp;"]   = "&",
+    ["&cent;"]  = "¢",
+    ["&pound;"] = "£",
+    ["&yen;"]   = "¥",
+    ["&euro;"]  = "€",
+    ["&sect;"]  = "§",
+    ["&copy;"]  = "©",
+    ["&reg;"]   = "®",
+    ["&trade;"] = "™",
+}
+
+-- fix text so that < > and & are escaped
+function fixhtml(s)
+    for k, v in pairs(html_replacements) do
+        s = string.gsub(tostring(s), k, v)
+    end
+    return s
+end
+
 -- return the timezone offset in seconds, as it was on the time given by ts
 -- Eric Feliksik
 local timeZoneOffset
@@ -270,11 +293,11 @@ function unlockScreen()
 end
 
 local month = 7
-local day = 18
-local hour = 21
-local min = 49
+local day = 20
+local hour = 18
+local min = 30
 local sec = 0
---[[
+--[
 timer.performWithDelay(MINUTE_DURATION, function()
     min = min + 1
     if min > 59 then
@@ -295,11 +318,11 @@ end, 0)
 function getCurrentDate()
     local _date = os.date("*t")
     -- TODO set date to test
-    --_date.month = month
-    --_date.day = day
-    --_date.hour = hour
-    --_date.min = min
-    --_date.sec = sec
+    _date.month = month
+    _date.day = day
+    _date.hour = hour
+    _date.min = min
+    _date.sec = sec
     local currentDate = date(_date)
     return currentDate
 end

@@ -23,6 +23,7 @@ settings =
 	{
         plist =
             {
+			    CFBundleDisplayName = "Chute Premiado",
                 CFBundleIconFile = "Icon.png",
                 CFBundleIconFiles =
                 {

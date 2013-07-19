@@ -111,10 +111,81 @@ local function createPlayerOneView(playerPhoto, isInitialScreen)
     return playerGroup
 end
 
+local function createTweetsBar()
+    local screenName = 'SaoPauloFC'
+    local tweetsGroup = display.newGroup()
+    tweetsGroup.x = display.contentCenterX + 43 - (display.screenOriginX*-0.5)
+    tweetsGroup.y = 2
+
+    local tweetMask = graphics.newMask("images/tweets_bar_mask.png")
+    tweetsGroup:setMask(tweetMask)
+
+    local postCallback = function( status, result )
+        local response = require("json").decode( result )
+        for i, v in ipairs(response) do
+            --print("--" .. fixhtml(v.text))
+            --printTable(v)
+            local txt = display.newText("@" .. screenName .. ": " .. fixhtml(v.text), 0, 0, 200 + (-display.screenOriginX), 0, "MyriadPro-BoldCond", 16)
+            txt.x = 0
+            txt.y = (i - 1)*172
+            txt:setTextColor(32)
+            tweetsGroup:insert(txt)
+            --return
+        end
+        tweetsGroup.showing = 1
+        local function rollTweets()
+            tweetsGroup.showing = tweetsGroup.showing + 1
+            if tweetsGroup.showing > tweetsGroup.numChildren then
+                tweetsGroup.showing = 1
+            end
+            if tweetsGroup.showing == tweetsGroup.numChildren then
+                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 250, y = tweetsGroup.y - 86, maskY = tweetsGroup.maskY + 86, transition = easeOutBack, onComplete = function()
+                    tweetsGroup.y = 86
+                    tweetsGroup.maskY = -86
+                    tweetsGroup.trans = transition.to(tweetsGroup, {time = 250, y = tweetsGroup.y - 86, maskY = tweetsGroup.maskY + 86, transition = easeOutBack, onComplete = rollTweets})
+                end})
+            else
+                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 500, y = tweetsGroup.y - 172, maskY = tweetsGroup.maskY + 172, transition = easeOutBack, onComplete = rollTweets})
+            end
+        end
+        rollTweets()
+    end
+
+    local params = {
+        {
+            key = 'screen_name',
+            value = screenName
+        },
+        {
+            key = 'exclude_replies',
+            value = 'true'
+        },
+        {
+            key = 'count',
+            value = "5"
+        },
+        {
+            key = 'include_rts',
+            value = "false"
+        }
+    }
+    local oAuth = require( "util.oAuth" )
+    oAuth.makeRequest( "https://api.twitter.com/1.1/statuses/user_timeline.json", params, "kaO6n7jMhgyNzx9lXhLg",
+        "126425377-qJYON7WKPNGymfhsq2qSjUXICb6B1t9VfpGRq8tl",
+        "OY0PBfVKizWKfUutKjwh1gt3W99YOmlqbYtgqzg81I",
+        "AqSOtqEmlX8lGij0Ci2uynIjjL50uLyRum5lWuEv1o",
+        "GET", postCallback )
+
+    return tweetsGroup
+end
+
 function BottomRanking:showUp(onComplete)
     transition.to(self.bg, {delay = 300, time = 300, x = display.contentCenterX, xScale = 1, onComplete = onComplete})
     transition.to(self.leftBar, {time = 300, x = SCREEN_LEFT + self.leftBar.width*0.5, transition = easeOutCirc})
     transition.to(self.rightBar, {time = 300, x = SCREEN_RIGHT - self.rightBar.width*0.5 + 1, transition = easeOutCirc})
+    if self.tweets then
+        transition.from(self.tweets, {delay = 600, time = 300, alpha = 0})
+    end
 end
 
 function BottomRanking:hide(onComplete)
@@ -124,6 +195,11 @@ function BottomRanking:hide(onComplete)
     if self.ranking then
         transition.to(self.ranking, {delay = 300, time = 300, x = SCREEN_LEFT - self.ranking.width*0.5, xScale = 0.1})
     end
+    if self.tweets then
+        transition.cancel(self.tweets.trans)
+        self.tweets.trans = nil
+        transition.to(self.tweets, {time = 300, alpha = 0})
+    end
 end
 
 function BottomRanking:createView(playerPhoto, isInitialScreen)
@@ -131,6 +207,11 @@ function BottomRanking:createView(playerPhoto, isInitialScreen)
     self.bg.x = SCREEN_LEFT - self.bg.width*0.5
     self.bg.y = 0
     self.bg.xScale = 0.1
+
+    if isInitialScreen then
+        self.tweets = createTweetsBar()
+        self:insert(2, self.tweets)
+    end
 
     self.leftBar = createPlayerOneView(playerPhoto, isInitialScreen)
     self:insert(self.leftBar)
