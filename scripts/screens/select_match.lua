@@ -414,15 +414,21 @@ function SelectMatchScreen:hide(onComplete)
         timer.cancel(updateTimer)
         updateTimer = nil
     end
-    SelectMatchScreen:closeBG(function()
+    local function hiding()
         for i = 1, championshipsListGroup.numChildren do
             transition.to(championshipsListGroup[i], {time = 300, y = 50*-i - 50, transition = easeInQuart})
         end
         transition.to(selectMatchGroup[selectMatchGroup.numChildren], {delay = 300, time = 300, y = SCREEN_TOP - 50, transition = easeInQuart, onComplete = function()
-            onComplete()
             transition.to(bgGroup, {time = 500, alpha = 0, onComplete = SelectMatchScreen.destroy})
+            onComplete()
         end})
-    end)
+    end
+
+    if self.isOpen then
+        self:closeBG(hiding)
+    else
+        hiding()
+    end
 end
 
 function SelectMatchScreen:destroy()

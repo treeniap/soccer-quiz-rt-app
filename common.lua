@@ -18,6 +18,10 @@ function isAndroid()
     return system.getInfo("platformName") == "Android"
 end
 
+function getDeviceName()
+    return isAndroid() and system.getInfo("platformName") or system.getInfo("model")
+end
+
 -- Drag and Drop images and print XY position
 function dragAndDrop(event)
     local t = event.target
@@ -205,13 +209,13 @@ function findLink(s)
     local linkStart, linkPart = string.find(s, "http://")
     if linkStart then
         local linkEnd, linkEnd2 = string.find(s, " ", linkStart)
-        print(s)
+        --print(s)
         if not linkEnd then
             linkEnd = s:len()
         else
             linkEnd = linkEnd - 1
         end
-        print(linkStart, linkEnd, linkEnd2)
+        --print(linkStart, linkEnd, linkEnd2)
         return linkStart, linkEnd
     end
 end
@@ -289,7 +293,8 @@ end
 
 function lockScreen()
     if lockRect then
-        unlockScreen()
+        --unlockScreen()
+        return
     end
     lockRect = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, CONTENT_HEIGHT)
     lockRect.alpha = 0.01
@@ -308,9 +313,9 @@ function unlockScreen()
 end
 
 local month = 7
-local day = 20
-local hour = 18
-local min = 30
+local day = 24
+local hour = 19
+local min = 40
 local sec = 0
 --[
 timer.performWithDelay(MINUTE_DURATION, function()

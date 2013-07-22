@@ -5,6 +5,8 @@
 ==============]]--
 BottomRanking = {}
 
+require "scripts.widgets.view.top_bar_menu"
+
 local function getPlayerPosition(ranking)
     for i, v in ipairs(ranking) do
         if v.isPlayer then
@@ -127,35 +129,10 @@ local function createTweetsBar()
         elseif self.isFocus and (event.phase == "ended" or event.phase == "cancelled") then
             display.getCurrentStage():setFocus(nil)
             if tweetsGroup.links[tweetsGroup.showing] then
-                local function listener( event )
-                    --printTable(event)
-                    if event.errorCode then
-                        -- Error loading page
-                        print( "Error: " .. event.errorCode .. tostring( event.errorMessage ) )
-                        return false
-                    end
-                    return true
-                end
-                local webView = native.newWebView(CONTENT_WIDTH*0.05 + display.screenOriginX, CONTENT_HEIGHT*0.12 + display.screenOriginY, CONTENT_WIDTH*0.9, CONTENT_HEIGHT*0.85)
-                webView:request(tweetsGroup.links[tweetsGroup.showing])
-                webView:addEventListener( "urlRequest", listener )
-                local rect = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, CONTENT_HEIGHT)
-                rect:setFillColor(32, 128)
-                local close = display.newImageRect("images/close.png", 32, 32)
-                close.x = display.contentCenterX
-                close.y = CONTENT_HEIGHT*0.08 + display.screenOriginY
-                rect.touch = function()
-                    webView:removeSelf()
-                    webView = nil
-                    rect:removeSelf()
-                    rect = nil
-                    close:removeSelf()
-                    close = nil
-                    return true
-                end
-                rect:addEventListener("touch", rect)
+                ScreenManager:showWebView(tweetsGroup.links[tweetsGroup.showing])
             end
         end
+        return true
     end
     tweetsGroup.touch = onTweetsTouch
     tweetsGroup:addEventListener("touch", tweetsGroup)
@@ -167,8 +144,8 @@ local function createTweetsBar()
             --print("--" .. fixhtml(v.text))
             --printTable(v)
             local txt = display.newText("@" .. screenName .. ": " .. fixhtml(v.text), 0, 0, 200 + (-display.screenOriginX), 0, "MyriadPro-BoldCond", 16)
-            txt.x = 0
-            txt.y = (i - 1)*172
+            txt.x = (i - 1)*CONTENT_WIDTH
+            txt.y = 0
             txt:setTextColor(32)
             tweetsGroup:insert(txt)
 
@@ -187,13 +164,13 @@ local function createTweetsBar()
                 tweetsGroup.showing = 1
             end
             if tweetsGroup.showing == tweetsGroup.numChildren then
-                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 250, y = tweetsGroup.y - 86, maskY = tweetsGroup.maskY + 86, transition = easeOutBack, onComplete = function()
-                    tweetsGroup.y = 86
-                    tweetsGroup.maskY = -86
-                    tweetsGroup.trans = transition.to(tweetsGroup, {time = 250, y = tweetsGroup.y - 86, maskY = tweetsGroup.maskY + 86, transition = easeOutBack, onComplete = rollTweets})
+                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 200, x = tweetsGroup.x - CONTENT_WIDTH*0.5, maskX = tweetsGroup.maskX + CONTENT_WIDTH*0.5, onComplete = function()
+                    tweetsGroup.x = display.contentCenterX + 43 - (display.screenOriginX*-0.5) + CONTENT_WIDTH*0.5
+                    tweetsGroup.maskX = -CONTENT_WIDTH*0.5
+                    tweetsGroup.trans = transition.to(tweetsGroup, {time = 300, x = tweetsGroup.x - CONTENT_WIDTH*0.5, maskX = tweetsGroup.maskX + CONTENT_WIDTH*0.5, transition = easeOutExpo, onComplete = rollTweets})
                 end})
             else
-                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 500, y = tweetsGroup.y - 172, maskY = tweetsGroup.maskY + 172, transition = easeOutBack, onComplete = rollTweets})
+                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 500, x = tweetsGroup.x - CONTENT_WIDTH, maskX = tweetsGroup.maskX + CONTENT_WIDTH, transition = easeOutExpo, onComplete = rollTweets})
             end
         end
         rollTweets()

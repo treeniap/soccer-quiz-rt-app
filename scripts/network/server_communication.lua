@@ -274,18 +274,6 @@ function Server:checkFriend(fbId, listener, onNoResponse)
     }
 end
 
-function Server:tweets()
-    networkRequest{
-        name = "tweets",
-        url = "https://api.twitter.com/1.1/search/tweets.json?q=%23freebandnames&result_type=mixed&count=4",
-        method = "GET",
-        listener = function(response, status) print("Yeaah!") print(response, status) end,
-        retries_number = RETRIES_NUMBER,
-        on_client_error = function(response) print("Nooooo...") printTable(response) end,
-        on_no_response = function(response, status) print("Nooooo...") print(response, status) end
-    }
-end
-
 ---==============================================================---
 ---////////////////////////// INVENTORY /////////////////////////---
 ---==============================================================---
@@ -315,17 +303,20 @@ function Server:createInventory(userInfo)
 end
 
 function Server:getInventory(userInfo, listener)
+    getInventoryUrl = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/inventories?app_id=" .. APP_ID
     networkRequest{
         name = "getInventory",
-        url = getInventoryUrl or "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/inventories?app_id=" .. APP_ID,
+        url = getInventoryUrl,
         method = "GET",
         listener = function(response, status)
-            getInventoryUrl = response.inventory._links.self.href
+            --getInventoryUrl = response.inventory._links.self.href
             UserData:setInventory(response)
             listener()
         end,
         on_client_error = function()
-            Server:createInventory(userInfo)
+            if userInfo then
+                Server:createInventory(userInfo)
+            end
         end,
         retries_number = RETRIES_NUMBER
     }
@@ -368,13 +359,20 @@ local function getBet()
     }
     return encode(payload)
 end
-function Server.postBet(url, id, coins)
+function Server.postBet(url, id, coins, onClientError)
     local payload = {
         user_id = id,
         coins = coins
     }
-    --print("POST", url)
-    network.request(url, "POST", function(event) --[[printTable(event)]] end, encode(payload))
+    networkRequest{
+        name = "postBet",
+        url = url,
+        method = "POST",
+        listener = function() end,
+        on_client_error = onClientError,
+        retries_number = RETRIES_NUMBER,
+        post_params = encode(payload)
+    }
 end
 
 ---=====================================================---

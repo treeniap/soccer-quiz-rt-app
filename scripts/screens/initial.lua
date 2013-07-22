@@ -356,6 +356,8 @@ function InitialScreen:new()
     topBar:updateTotalCoins(UserData.inventory.coins)
     initialScreenGroup:insert(topBar)
 
+    InitialScreen.group = initialScreenGroup
+
     return initialScreenGroup
 end
 

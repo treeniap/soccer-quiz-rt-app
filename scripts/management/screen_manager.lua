@@ -77,6 +77,7 @@ function ScreenManager:callPrevious()
         end)
         lockScreen()
     end
+    return true
 end
 
 function ScreenManager:callNext()
@@ -111,6 +112,51 @@ local function matchServerListener(message)
     _eventInfo.teamBadge = getLogoFileName(message.team_id, 3)
     _eventInfo.userBetTimeout = getBetTimeoutInMilliseconds(message.user_bet_timeout)
     currentScreen:onEventStart(_eventInfo)
+end
+
+function ScreenManager:showWebView(link)
+    local function listener( event )
+        --printTable(event)
+        if event.errorCode then
+            -- Error loading page
+            print( "Error: " .. event.errorCode .. tostring( event.errorMessage ) )
+            return false
+        end
+        return true
+    end
+    local currentScreenGroup = currentScreen.group
+    local webView = native.newWebView(CONTENT_WIDTH,
+        display.screenOriginY + (MENU_TITLE_BAR_HEIGHT + display.topStatusBarContentHeight) - 2,
+        CONTENT_WIDTH,
+        CONTENT_HEIGHT - (MENU_TITLE_BAR_HEIGHT + display.topStatusBarContentHeight) + 2)
+    webView:request(link)
+    webView:addEventListener("urlRequest", listener)
+    webView:setReferencePoint(display.TopLeftReferencePoint)
+    local topBar
+    topBar = TopBarMenu:new(" ", function()
+        if currentScreenGroup then
+            transition.to(currentScreenGroup, {time = 500, x = currentScreenGroup.x + CONTENT_WIDTH, transition = easeOutExpo, onComplete = unlockScreen})
+        end
+        transition.to(webView, {time = 500, x = CONTENT_WIDTH, transition = easeOutExpo, onComplete = function()
+            webView:removeEventListener("urlRequest", listener)
+            webView:removeSelf()
+            webView = nil
+        end})
+        transition.to(topBar, {time = 500, x = CONTENT_WIDTH, transition = easeOutExpo, onComplete = function()
+            topBar:removeSelf()
+            topBar = nil
+        end})
+        lockScreen()
+
+        return true
+    end)
+    topBar.x = CONTENT_WIDTH
+    if currentScreenGroup then
+        transition.to(currentScreenGroup, {time = 500, x = currentScreenGroup.x - CONTENT_WIDTH, transition = easeOutExpo, onComplete = unlockScreen})
+    end
+    transition.to(webView, {time = 500, x = display.screenOriginX, transition = easeOutExpo})
+    transition.to(topBar, {time = 500, x = display.screenOriginX, transition = easeOutExpo})
+    lockScreen()
 end
 
 function ScreenManager.onAppResume()
