@@ -201,6 +201,21 @@ function fixhtml(s)
     return s
 end
 
+function findLink(s)
+    local linkStart, linkPart = string.find(s, "http://")
+    if linkStart then
+        local linkEnd, linkEnd2 = string.find(s, " ", linkStart)
+        print(s)
+        if not linkEnd then
+            linkEnd = s:len()
+        else
+            linkEnd = linkEnd - 1
+        end
+        print(linkStart, linkEnd, linkEnd2)
+        return linkStart, linkEnd
+    end
+end
+
 -- return the timezone offset in seconds, as it was on the time given by ts
 -- Eric Feliksik
 local timeZoneOffset

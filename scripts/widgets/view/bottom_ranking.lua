@@ -115,13 +115,54 @@ local function createTweetsBar()
     local screenName = 'SaoPauloFC'
     local tweetsGroup = display.newGroup()
     tweetsGroup.x = display.contentCenterX + 43 - (display.screenOriginX*-0.5)
-    tweetsGroup.y = 2
+    tweetsGroup.y = 5
 
     local tweetMask = graphics.newMask("images/tweets_bar_mask.png")
     tweetsGroup:setMask(tweetMask)
 
+    local function onTweetsTouch(self, event)
+        if event.phase == "began" then
+            display.getCurrentStage():setFocus(self)
+            self.isFocus = true
+        elseif self.isFocus and (event.phase == "ended" or event.phase == "cancelled") then
+            display.getCurrentStage():setFocus(nil)
+            if tweetsGroup.links[tweetsGroup.showing] then
+                local function listener( event )
+                    --printTable(event)
+                    if event.errorCode then
+                        -- Error loading page
+                        print( "Error: " .. event.errorCode .. tostring( event.errorMessage ) )
+                        return false
+                    end
+                    return true
+                end
+                local webView = native.newWebView(CONTENT_WIDTH*0.05 + display.screenOriginX, CONTENT_HEIGHT*0.12 + display.screenOriginY, CONTENT_WIDTH*0.9, CONTENT_HEIGHT*0.85)
+                webView:request(tweetsGroup.links[tweetsGroup.showing])
+                webView:addEventListener( "urlRequest", listener )
+                local rect = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, CONTENT_HEIGHT)
+                rect:setFillColor(32, 128)
+                local close = display.newImageRect("images/close.png", 32, 32)
+                close.x = display.contentCenterX
+                close.y = CONTENT_HEIGHT*0.08 + display.screenOriginY
+                rect.touch = function()
+                    webView:removeSelf()
+                    webView = nil
+                    rect:removeSelf()
+                    rect = nil
+                    close:removeSelf()
+                    close = nil
+                    return true
+                end
+                rect:addEventListener("touch", rect)
+            end
+        end
+    end
+    tweetsGroup.touch = onTweetsTouch
+    tweetsGroup:addEventListener("touch", tweetsGroup)
+
     local postCallback = function( status, result )
         local response = require("json").decode( result )
+        tweetsGroup.links = {}
         for i, v in ipairs(response) do
             --print("--" .. fixhtml(v.text))
             --printTable(v)
@@ -130,9 +171,16 @@ local function createTweetsBar()
             txt.y = (i - 1)*172
             txt:setTextColor(32)
             tweetsGroup:insert(txt)
+
+            local linkStart, linkEnd = findLink(v.text)
+            if linkStart and linkEnd then
+                tweetsGroup.links[i] = v.text:sub(linkStart, linkEnd)
+            else
+                tweetsGroup.links[i] = nil
+            end
             --return
         end
-        tweetsGroup.showing = 1
+        tweetsGroup.showing = 0
         local function rollTweets()
             tweetsGroup.showing = tweetsGroup.showing + 1
             if tweetsGroup.showing > tweetsGroup.numChildren then
@@ -166,7 +214,7 @@ local function createTweetsBar()
         },
         {
             key = 'include_rts',
-            value = "false"
+            value = "true"
         }
     }
     local oAuth = require( "util.oAuth" )
