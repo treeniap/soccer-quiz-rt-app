@@ -31,10 +31,11 @@ function UserData:setInventory(response)
     self.attributes.push_notifications_enabled = response.inventory.attributes.push_notifications_enabled
 end
 
-function UserData:init(params)
+function UserData:init(params, friends_ids)
     self.info = params
+    self.info.friendsIds = {}
     --printTable(params)
-    local friendsAmount = #params.facebook_profile.friends_ids
+    local friendsAmount = #friends_ids
 
     local function oneFriendLess()
         friendsAmount = friendsAmount - 1
@@ -61,14 +62,15 @@ function UserData:init(params)
         Server:downloadFilesList({
             {
                 url = url,
-                fileName = getPictureFileName(response.user.facebook_profile.id)
+                fileName = getPictureFileName(response.user.id)
             }
         }, function() end)
 
+        self.info.friendsIds[#self.info.friendsIds + 1] = response.user.id
         oneFriendLess()
     end
 
-    for i, friendId in ipairs(params.facebook_profile.friends_ids) do
+    for i, friendId in ipairs(friends_ids) do
         Server:checkFriend(friendId, listener, oneFriendLess)
     end
 

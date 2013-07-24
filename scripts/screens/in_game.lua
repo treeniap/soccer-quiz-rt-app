@@ -21,6 +21,52 @@ local topBar, questionsBar, bottomRanking
 
 local scoreView, eventView, endView
 
+local function updateBottomRanking()
+    local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
+    Server:getPlayersRank(userAndFriendsIds, MatchManager:getMatchId(), function(response, status)
+        --printTable(response)
+        local ranking
+        if status == 200 then
+            ranking = response.scores
+            --check if all friends and the user are in the rank otherwise add then
+            for i, id in ipairs(userAndFriendsIds) do
+                local isInTheRanking
+                for i, player in ipairs(ranking) do
+                    if player.user_id == id then
+                        isInTheRanking = true
+                    end
+                end
+                if not isInTheRanking then
+                    ranking[#ranking + 1] = {
+                        user_id = id,
+                        score = 0
+                    }
+                end
+            end
+        elseif status == 404 then
+            ranking = {}
+            for i, id in ipairs(userAndFriendsIds) do
+                ranking[#ranking + 1] = {
+                    user_id = id,
+                    score = 0
+                }
+            end
+        else
+            return
+        end
+        for i, player in ipairs(ranking) do
+            if player.user_id == UserData.info.user_id then
+                player.isPlayer = true
+                player.photo = UserData:getUserPicture()
+            else
+                player.photo = getPictureFileName(player.user_id)
+            end
+        end
+
+        bottomRanking:updateRankingPositions(ranking)
+    end)
+end
+
 function InGameScreen:onPreKickOffQuestions(challengeInfo)
     questionsBar.isVisible = false
     bottomRanking.isVisible = false
@@ -72,6 +118,7 @@ function InGameScreen:onEventEnd(resultInfo)
         questionsBar:onEventResult()
         topBar:updateTotalCoins(resultInfo.totalCoins)
         UserData:setTotalCoins(resultInfo.totalCoins)
+        updateBottomRanking()
     end)
 end
 
@@ -100,23 +147,23 @@ local questions = {
 }
 
 function InGameScreen:showUp(onComplete)
-    local ranking = {}
-    for i, friendId in ipairs(UserData.info.facebook_profile.friends_ids) do
-        ranking[i] = {}
-        ranking[i].photo = getPictureFileName(friendId)
-        --ranking[i].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
-        ranking[i].score = (14 - i)*999
-    end
-
-    local playerPos = #UserData.info.facebook_profile.friends_ids + 1
-    ranking[playerPos] = {}
-    ranking[playerPos].photo = getPictureFileName(UserData.info.facebook_profile.id)
-    --ranking[playerPos].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
-    ranking[playerPos].score = (14 - playerPos)*999
-    ranking[playerPos].isPlayer = true
+    --local ranking = {}
+    --for i, friendId in ipairs(UserData.info.facebook_profile.friends_ids) do
+    --    ranking[i] = {}
+    --    ranking[i].photo = getPictureFileName(friendId)
+    --    --ranking[i].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
+    --    ranking[i].score = (14 - i)*999
+    --end
+    --
+    --local playerPos = #UserData.info.facebook_profile.friends_ids + 1
+    --ranking[playerPos] = {}
+    --ranking[playerPos].photo = getPictureFileName(UserData.info.facebook_profile.id)
+    ----ranking[playerPos].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
+    --ranking[playerPos].score = (14 - playerPos)*999
+    --ranking[playerPos].isPlayer = true
 
     bottomRanking:showUp(function()
-        bottomRanking:updateRankingPositions(ranking)
+        updateBottomRanking()
         topBar:showUp()
         onComplete()
     end)

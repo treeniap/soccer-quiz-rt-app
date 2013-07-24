@@ -329,6 +329,42 @@ function Server:updateAttributes(userInfo)
         push_notifications_enabled = userInfo.pushNotification or false,
         favorite_team_id = userInfo.favoriteTeam or ""
     }
+
+    networkRequest{
+        name = "updateAttributes",
+        url = "http://api.inventory.welovequiz.com/v1/users/" .. userInfo.user_id .. "/inventory/attributes",
+        method = "PUT",
+        listener = function(response, status) end,
+        retries_number = RETRIES_NUMBER,
+        post_params = encode(payload)
+    }
+end
+
+---==============================================================---
+---/////////////////////////// RANKING //////////////////////////---
+---==============================================================---
+function Server:getPlayersRank(playersIds, leaderboardId, listener)
+    --local payload = {
+    --    app_id = APP_ID,
+    --    key = leaderboardId,
+    --    users_ids = playersIds
+    --}
+    local url = "http://api.leaderboards.welovequiz.com/v1/temp_leaderboards/scores?"
+    url = url .. "app_id=" .. APP_ID
+    url = url .. "&key=" .. leaderboardId
+    for i, id in ipairs(playersIds) do
+        url = url .. "&users_ids[]=" .. id
+    end
+
+    networkRequest{
+        name = "getPlayersRank",
+        url = url,
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = listener,
+        --post_params = encode(payload)
+    }
 end
 
 ---==============================================================---
@@ -353,12 +389,6 @@ function Server.pubnubUnsubscribe(channel)
     pubnubObj:unsubscribe({channel = channel})
 end
 
-local function getBet()
-    local payload = {
-        facebook = {access_token = _accessToken}
-    }
-    return encode(payload)
-end
 function Server.postBet(url, id, coins, onClientError)
     local payload = {
         user_id = id,

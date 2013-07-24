@@ -98,13 +98,13 @@ local function listener(event)
 
         elseif requestType == REQUEST_TYPE_USER_FRIENDS then
             --printTable(response)
-            userInfo.facebook_profile.friends_ids = {}
+            local friends_ids = {}
             for i, friend in ipairs(response.data) do
                 if friend.installed then
-                    userInfo.facebook_profile.friends_ids[#userInfo.facebook_profile.friends_ids + 1] = friend.id
+                    friends_ids[#friends_ids + 1] = friend.id
                 end
             end
-            UserData:init(userInfo)
+            UserData:init(userInfo, friends_ids)
         elseif requestType == REQUEST_TYPE_USER_PIC then
             local imageSize = getPictureSize(tonumber(response.data.width))
             userInfo.facebook_profile[getPictureFieldName(imageSize)] = response.data.url
@@ -135,29 +135,31 @@ end
 function Facebook:init()
     if IS_SIMULATOR then
         userInfo = {
-            first_name = "John",
-            last_name = "Letuchysky",
+            first_name = "Mark",
+            last_name = "Occhinosen",
             facebook_profile = {
-                id =  "100006410700030",
+                id =  "100006326892112",
                 username = "",
                 access_token = "",
-                picture_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c5.5.65.65/s50x50/1001189_1374234269466917_1311634018_t.jpg",
-                picture_2x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c12.12.156.156/s100x100/1001189_1374234269466917_1311634018_a.jpg",
-                picture_4x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c0.0.195.195/1001189_1374234269466917_1311634018_n.jpg"
+                picture_url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif",
+                picture_2x_url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif",
+                picture_4x_url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif"
             }
         }
+        local imgFix = getImagePrefix()
+        imgFix = imgFix == "default" and "" or (imgFix .. "_")
         Server:downloadFilesList({
             {
-                url = userInfo.facebook_profile.picture_url,
+                url = userInfo.facebook_profile["picture_"..imgFix.."url"],
                 fileName = getPictureFileName(userInfo.facebook_profile.id)
             }
         }, function()
-            userInfo.facebook_profile.friends_ids = {}
-            userInfo.facebook_profile.friends_ids[1] = "100006326892112"
-            userInfo.facebook_profile.friends_ids[2] = "100006397561562"
-            userInfo.facebook_profile.friends_ids[3] = "100006387546231"
-            userInfo.facebook_profile.friends_ids[4] = "100006337952512"
-            UserData:init(userInfo)
+            local friends_ids = {}
+            friends_ids[1] = "100006410700030"
+            friends_ids[2] = "100006397561562"
+            friends_ids[3] = "100006387546231"
+            friends_ids[4] = "100006337952512"
+            UserData:init(userInfo, friends_ids)
         end)
         return
     end

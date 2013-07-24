@@ -254,6 +254,13 @@ function BottomRanking:createView(playerPhoto, isInitialScreen)
 end
 
 function BottomRanking:updateRankingPositions(ranking)
+    if self.rectTouchHandler then
+        self.rectTouchHandler:removeEventListener("touch", self.rectTouchHandler)
+    end
+    if self.ranking then
+        self.ranking:removeSelf()
+    end
+
     local playerPosition = getPlayerPosition(ranking)
     local player = ranking[playerPosition]
     self.leftBar:setPointsAndPosition(player.score, playerPosition)
