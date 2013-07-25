@@ -353,7 +353,7 @@ function InitialScreen:new()
     end)
     initialScreenGroup:insert(playBtn)
     rankingBtn = BtnHomeScreen:new(display.contentCenterY + 47, "RANKING", false, function()
-        --ScreenManager:show("select_match")
+        ScreenManager:show("ranking")
     end)
     initialScreenGroup:insert(rankingBtn)
 

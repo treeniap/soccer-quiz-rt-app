@@ -220,7 +220,7 @@ function BottomRanking:hide(onComplete)
     if self.ranking then
         transition.to(self.ranking, {delay = 300, time = 300, x = SCREEN_LEFT - self.ranking.width*0.5, xScale = 0.1})
     end
-    if self.tweets then
+    if self.tweets and self.tweets.trans then
         transition.cancel(self.tweets.trans)
         self.tweets.trans = nil
         transition.to(self.tweets, {time = 300, alpha = 0})

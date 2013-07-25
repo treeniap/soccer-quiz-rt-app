@@ -19,12 +19,12 @@ local REQUEST_TYPE_USER_PIC = "me/picture"
 
 local function getPictureSize(size)
     if type(size) == "number" then
-        if size == 100 then
+        if size <= 50 then
+            return "default"
+        elseif size <= 100 then
             return "2x"
-        elseif size == 200 then
-            return "4x"
         end
-        return "default"
+        return "4x"
     elseif type(size) == "string" then
         if size == "2x" then
             return 100
@@ -141,9 +141,9 @@ function Facebook:init()
                 id =  "100006326892112",
                 username = "",
                 access_token = "",
-                picture_url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif",
-                picture_2x_url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif",
-                picture_4x_url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif"
+                picture_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c5.5.65.65/s50x50/1010847_1386971971523686_431739469_t.jpg",
+                picture_2x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c13.12.155.155/s100x100/1010847_1386971971523686_431739469_a.jpg",
+                picture_4x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.0.192.192/1010847_1386971971523686_431739469_n.jpg"
             }
         }
         local imgFix = getImagePrefix()

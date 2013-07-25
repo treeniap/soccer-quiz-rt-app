@@ -35,45 +35,39 @@ function UserData:init(params, friends_ids)
     self.info = params
     self.info.friendsIds = {}
     --printTable(params)
-    local friendsAmount = #friends_ids
 
-    local function oneFriendLess()
-        friendsAmount = friendsAmount - 1
-        if friendsAmount <= 0 then
-            Server:checkUser(self.info)
-        end
+    local function checkUser()
+        Server:checkUser(self.info)
     end
 
+    local imageSize = getImagePrefix()
+    if imageSize == "default" then
+        imageSize = ""
+    else
+        imageSize = imageSize .. "_"
+    end
     local function listener(response, status)
         --printTable(response)
-        local imageSize = getImagePrefix()
-        if imageSize == "default" then
-            imageSize = ""
-        else
-            imageSize = imageSize .. "_"
+        local downloadList = {}
+        for i, user in ipairs(response.users) do
+            local url
+            if user.facebook_profile["picture_" .. imageSize .. "url"] then
+                url = user.facebook_profile["picture_" .. imageSize .. "url"]
+            else
+                url = user.facebook_profile["picture_url"]
+            end
+            downloadList[#downloadList + 1] = {
+                    url = url,
+                    fileName = getPictureFileName(user.id)
+                }
+            self.info.friendsIds[#self.info.friendsIds + 1] = user.id
         end
-        local url
-        if response.user.facebook_profile["picture_" .. imageSize .. "url"] then
-            url = response.user.facebook_profile["picture_" .. imageSize .. "url"]
-        else
-            url = response.user.facebook_profile["picture_url"]
-        end
+        Server:downloadFilesList(downloadList, function() end)
 
-        Server:downloadFilesList({
-            {
-                url = url,
-                fileName = getPictureFileName(response.user.id)
-            }
-        }, function() end)
-
-        self.info.friendsIds[#self.info.friendsIds + 1] = response.user.id
-        oneFriendLess()
+        checkUser()
     end
 
-    for i, friendId in ipairs(friends_ids) do
-        Server:checkFriend(friendId, listener, oneFriendLess)
-    end
-
+    Server:getUsers(friends_ids, true, listener, checkUser)
 end
 
 function UserData:checkTutorial()

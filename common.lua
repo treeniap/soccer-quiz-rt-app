@@ -313,11 +313,11 @@ function unlockScreen()
 end
 
 local month = 7
-local day = 24
-local hour = 19
+local day = 27
+local hour = 18
 local min = 40
 local sec = 0
---[
+--[[
 timer.performWithDelay(MINUTE_DURATION, function()
     min = min + 1
     if min > 59 then
@@ -338,11 +338,11 @@ end, 0)
 function getCurrentDate()
     local _date = os.date("*t")
     -- TODO set date to test
-    _date.month = month
-    _date.day = day
-    _date.hour = hour
-    _date.min = min
-    _date.sec = sec
+    --_date.month = month
+    --_date.day = day
+    --_date.hour = hour
+    --_date.min = min
+    --_date.sec = sec
     local currentDate = date(_date)
     return currentDate
 end

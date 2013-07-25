@@ -274,6 +274,26 @@ function Server:checkFriend(fbId, listener, onNoResponse)
     }
 end
 
+function Server:getUsers(ids, facebook, listener, onNoResponse)
+    local idStr = facebook and "fb_ids[]=" or "ids[]="
+    local url = "http://api.users.welovequiz.com/v1/users?"
+    for i, id in ipairs(ids) do
+        if i > 1 then
+            url = url .. "&"
+        end
+        url = url .. idStr .. id
+    end
+
+    networkRequest{
+        name = "getUsers",
+        url = url,
+        method = "GET",
+        listener = listener,
+        retries_number = RETRIES_NUMBER,
+        on_no_response = onNoResponse
+    }
+end
+
 ---==============================================================---
 ---////////////////////////// INVENTORY /////////////////////////---
 ---==============================================================---
@@ -349,9 +369,11 @@ function Server:getPlayersRank(playersIds, leaderboardId, listener)
     --    key = leaderboardId,
     --    users_ids = playersIds
     --}
-    local url = "http://api.leaderboards.welovequiz.com/v1/temp_leaderboards/scores?"
+    local leaderboardStr = leaderboardId and "temp_leaderboards" or "leaderboards"
+    local leaderboardKey = leaderboardId and leaderboardId or "global"
+    local url = "http://api.leaderboards.welovequiz.com/v1/" .. leaderboardStr .. "/scores?"
     url = url .. "app_id=" .. APP_ID
-    url = url .. "&key=" .. leaderboardId
+    url = url .. "&key=" .. leaderboardKey
     for i, id in ipairs(playersIds) do
         url = url .. "&users_ids[]=" .. id
     end
@@ -364,6 +386,23 @@ function Server:getPlayersRank(playersIds, leaderboardId, listener)
         listener = listener,
         on_client_error = listener,
         --post_params = encode(payload)
+    }
+end
+
+function Server:getTopRanking(leaderboardId, listener)
+    local leaderboardStr = leaderboardId and "temp_leaderboards" or "leaderboards"
+    local leaderboardKey = leaderboardId and leaderboardId or "global"
+    local url = "http://api.leaderboards.welovequiz.com/v1/" .. leaderboardStr .. "/scores?"
+    url = url .. "app_id=" .. APP_ID
+    url = url .. "&key=" .. leaderboardKey
+
+    networkRequest{
+        name = "getTopRanking",
+        url = url,
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = listener,
     }
 end
 

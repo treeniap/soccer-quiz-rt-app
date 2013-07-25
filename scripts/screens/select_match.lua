@@ -127,7 +127,6 @@ local function updateMatchesFoil()
 end
 
 local function createChampionshipMatchesView(matchesList, topY)
-    local widget = require "widget"
     -- Create a ScrollView
     local scrollSize = #matchesList < 3 and #matchesList*73 or 258
     local distToBottom = SCREEN_BOTTOM - topY
