@@ -5,7 +5,7 @@
 ==============]]--
 Params = {}
 
-if isAndroid() then
+if IS_ANDROID then
     Params.flurryId = "" -- Android Flurry Id
 elseif("iPad" == system.getInfo("model")) then
     Params.flurryId = "" -- iPad Flurry Id

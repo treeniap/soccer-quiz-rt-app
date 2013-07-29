@@ -19,7 +19,7 @@ local http = require("socket.http")
 local ltn12 = require("ltn12")
 local crypto = require("crypto")
 local mime = require("mime")
---local MultipartFormData = require ("util.multipartForm")
+local MultipartFormData = require ("util.multipartForm")
 
 -----------------------------------------------------------------------------------------
 -- GET REQUEST TOKEN (step 1)

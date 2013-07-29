@@ -196,14 +196,47 @@ function QuestionsBar:createView()
     self:insert(chronometer)
     --chronometer:addEventListener("touch", dragAndDrop)
 
-    facebookBtn = BtnFacebook:new(function() return true end)
+    facebookBtn = BtnFacebook:new(function(button, event)
+        if not button.hasPosted and MatchManager.finalResultInfo.matchPoints ~= " " then
+            Facebook:post("Meus palpites no jogo " .. MatchManager:getTeamName(nil, true) .. " x " ..
+                    MatchManager:getTeamName(nil, false) .. " valeram " .. MatchManager.finalResultInfo.matchPoints ..
+                    " pontos. Estou mais perto de ganhar minha camisa de futebol oficial no prêmio desta semana!", true)
+            button.hasPosted = true
+        end
+        return true
+    end)
     facebookBtn.x = 31
     facebookBtn.y = bar.y - 19
     facebookBtn.isVisible = false
     self:insert(facebookBtn)
     --facebookBtn:addEventListener("touch", dragAndDrop)
 
-    twitterBtn = BtnTwitter:new(function() return true end)
+    twitterBtn = BtnTwitter:new(function(button, event)
+        if not button.hasPosted and MatchManager.finalResultInfo.matchPoints ~= " " then
+            local twitter
+            local function post()
+                twitter:post("Ganhei " .. MatchManager.finalResultInfo.matchPoints ..
+                        " pontos no jogo " .. MatchManager:getTeamName(nil, true) .. " x " ..
+                        MatchManager:getTeamName(nil, false) .. ". Estou perto de ganhar minha camisa oficial no prêmio da semana! #ChutePremiado")
+            end
+            local listener = function( event )
+                --printTable(event)
+                if event.phase == "authorised" then
+                    post()
+                else
+                    native.showAlert("Twitter", "Pontuação postada.", {"Ok"})
+                end
+            end
+            twitter = require("scripts.network.GGTwitter"):new("kaO6n7jMhgyNzx9lXhLg", "OY0PBfVKizWKfUutKjwh1gt3W99YOmlqbYtgqzg81I", listener)
+            if twitter:isAuthorised() then
+                post()
+            else
+                twitter:authorise()
+            end
+            button.hasPosted = true
+        end
+        return true
+    end)
     twitterBtn.x = 98
     twitterBtn.y = bar.y - 16
     twitterBtn.isVisible = false

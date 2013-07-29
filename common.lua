@@ -11,15 +11,11 @@ SCREEN_BOTTOM   = display.contentHeight + (-display.screenOriginY)
 SCREEN_LEFT     = display.screenOriginX
 SCREEN_RIGHT    = display.contentWidth + (-display.screenOriginX)
 IS_SIMULATOR    = system.getInfo("environment") == "simulator"
+IS_ANDROID      = system.getInfo("platformName") == "Android"
 MINUTE_DURATION = 60000
 
--- Check if it's Android
-function isAndroid()
-    return system.getInfo("platformName") == "Android"
-end
-
 function getDeviceName()
-    return isAndroid() and system.getInfo("platformName") or system.getInfo("model")
+    return IS_ANDROID and system.getInfo("platformName") or system.getInfo("model")
 end
 
 -- Drag and Drop images and print XY position
@@ -312,12 +308,11 @@ function unlockScreen()
     end
 end
 
+--[
 local month = 7
-local day = 27
-local hour = 18
+local day = 31
+local hour = 19
 local min = 40
-local sec = 0
---[[
 timer.performWithDelay(MINUTE_DURATION, function()
     min = min + 1
     if min > 59 then
@@ -338,11 +333,10 @@ end, 0)
 function getCurrentDate()
     local _date = os.date("*t")
     -- TODO set date to test
-    --_date.month = month
-    --_date.day = day
-    --_date.hour = hour
-    --_date.min = min
-    --_date.sec = sec
+    _date.month = month
+    _date.day = day
+    _date.hour = hour
+    _date.min = min
     local currentDate = date(_date)
     return currentDate
 end

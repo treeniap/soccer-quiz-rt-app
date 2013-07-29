@@ -40,17 +40,6 @@ local eventsInfo = {
 }
 --resultInfo.type, resultInfo.betCoins, resultInfo.valueMult, resultInfo.friend
 
-local finalResultInfo = {
-    rightGuesses       = {number = 8, points = 7000},
-    challengesOvercome = {number = 3, points = 100},
-    giftsGiven         = {number = 6, points = 200},
-    friendsDefeated    = {number = 9, points = 282},
-    couponsEarned      = 100,
-    totalCoupons       = 1100,
-    championshipName   = "PAULISTA",
-    position           = "12345º"
-}
-
 local function showScreen(screenName)
     currentScreen = require("scripts.screens." .. screenName)
     display.getCurrentStage():insert(2, currentScreen:new())
@@ -81,7 +70,9 @@ function ScreenManager:callPrevious()
 end
 
 function ScreenManager:callNext()
-    currentScreen:onGame()
+    if not currentScreen:callNext() then
+        ScreenManager:exitMatch()
+    end
 end
 
 local function showMatch()
@@ -105,6 +96,11 @@ end
 
 local function matchServerListener(message)
     --printTable(message)
+    if message.state and message.state == "cancelled" then
+        timer.performWithDelay(2000, ScreenManager.callNext)
+        InGameScreen:updateTotalCoins()
+        return
+    end
     local _eventInfo = eventsInfo[message.template.key]
     _eventInfo.alternatives = message.template.alternatives
 

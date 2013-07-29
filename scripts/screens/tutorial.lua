@@ -148,7 +148,7 @@ local function createScreen3(loadImage)
         bg = "tuto_bt_fb",
         text = "CADASTRE-SE",
         topText = true,
-        bottomText = true
+        bottomText = false
     })
     button:setReferencePoint(display.CenterReferencePoint)
     button.x = display.contentCenterX
@@ -220,7 +220,7 @@ end
 
 local function createTeam(name, badgeFileName)
     local teamGroup = display.newGroup()
-    print(badgeFileName)
+    --print(badgeFileName)
     local badge = TextureManager.newImageRect(badgeFileName, 64, 64, teamGroup) --TODO change to DocumentsDirectory
     badge.x = 0
     badge.y = 0

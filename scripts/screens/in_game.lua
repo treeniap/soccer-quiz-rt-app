@@ -131,6 +131,15 @@ function InGameScreen:onGameOver(finalResultInfo)
     endView:showUp(function() questionsBar:onGameOver() end)
 end
 
+function InGameScreen:callNext()
+    if endView then
+        return false
+    else
+        self:onGame()
+    end
+    return true
+end
+
 function InGameScreen:updateTotalCoins()
     topBar:updateTotalCoins(UserData.inventory.coins)
 end
@@ -173,13 +182,19 @@ end
 
 function InGameScreen:hide(onComplete)
     questionsBar:hide()
-    scoreView:hide(function()
+    local function onHiding()
         topBar:hide()
         bottomRanking:hide(function()
             InGameScreen:destroy()
             onComplete()
         end)
-    end)
+    end
+
+    if endView then
+        endView:hide(onHiding)
+    else
+        scoreView:hide(onHiding)
+    end
 end
 
 function InGameScreen:new()

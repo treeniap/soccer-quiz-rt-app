@@ -190,6 +190,43 @@ local matchesInfoTEST = {
     },
 }
 
+local function onMatchOver()
+    timer.performWithDelay(1, function()
+        local finalResultInfo = {}
+
+        local function getPlayerGlobalRanking()
+            Server:getPlayerRanking(nil,
+                function(response, status)
+                    finalResultInfo.globalPoints = response.user_ranking.score
+                    finalResultInfo.globalPosition = response.user_ranking.ranking
+                    MatchManager.finalResultInfo = finalResultInfo
+                    InGameScreen:onGameOver(finalResultInfo)
+                end,
+                function(response)
+                    printTable(response)
+                    finalResultInfo = {
+                        matchPoints    = " ",
+                        globalPoints   = " ",
+                        globalPosition = " "
+                    }
+                    MatchManager.finalResultInfo = finalResultInfo
+                    InGameScreen:onGameOver(finalResultInfo)
+                end)
+        end
+
+        Server:getPlayerRanking(MatchManager:getMatchId(),
+            function(response, status)
+                finalResultInfo.matchPoints = response.user_ranking.score
+                getPlayerGlobalRanking()
+            end,
+            function(response)
+                printTable(response)
+                finalResultInfo.matchPoints = " "
+                getPlayerGlobalRanking()
+            end)
+    end)
+end
+
 local function organizeMatchesByDate(matchesList)
     for j, _match in ipairs(matchesList) do
         if j > 1 then
@@ -267,6 +304,36 @@ function MatchManager:downloadTeamsLogos(params)
     Server:downloadFilesList(logosList, params.listener)
 end
 
+local function postEnteredMatchOnFB(matchId)
+    if MatchManager.enteredMatches then
+        for i, id in ipairs(MatchManager.enteredMatches) do
+            if id == matchId then
+                return
+            end
+        end
+    else
+        MatchManager.enteredMatches = {}
+    end
+    MatchManager.enteredMatches[#MatchManager.enteredMatches + 1] = matchId
+    local status = MatchManager:getMatchTimeStatus()
+    if status == "AQUECIMENTO" then
+        status = "Vai começar "
+    else
+        status = "Começou "
+    end
+    local round, championship = MatchManager:getChampionshipInfo()
+    local pelStr = " pelo "
+    if string.find(string.utf8upper(championship), "COPA") or
+            string.find(string.utf8upper(championship), "LIBERTADORES") or
+            string.find(string.utf8upper(championship), "SULAMERICANA") then
+        pelStr = " pela "
+    end
+
+    Facebook:post(status .. CurrentMatch:getHomeTeamName() .. " x " ..
+            CurrentMatch:getAwayTeamName() .. pelStr .. championship ..
+            "! Dê seu palpite nos lances perigosos e concorra a uma camisa de futebol oficial toda semana.")
+end
+
 function MatchManager:init(onComplete)
     MatchManager:resquestMatches(function()
         MatchManager:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextSevenMatches(), listener = onComplete})
@@ -294,15 +361,12 @@ function MatchManager:setCurrentMatch(matchId)
                     CurrentMatch.championshipName = championshipInfo.name
                     CurrentMatch.championshipLogoName = championshipInfo.machine_friendly_name
                     ScreenManager:enterMatch(matchId)
+                    --TODO teste: finaliza partida
+                    --timer.performWithDelay(4000, onMatchOver)
+                    postEnteredMatchOnFB(matchId)
                 end
             end
         end
-        --printTable(CurrentMatch.matchInfo)
-        --printTable(CurrentMatch.matchInfo.guest_team.medium_logo_urls)
-        --print("logos", #CurrentMatch.matchInfo.guest_team.medium_logo_urls, CurrentMatch.matchInfo.guest_team.medium_logo_urls)
-        --for k, v in pairs(CurrentMatch.matchInfo.guest_team.medium_logo_urls) do
-        --    print(k, v)
-        --end
     else
         print("No Matches Available Right Now")
     end
@@ -374,10 +438,14 @@ function MatchManager:getMatchTimeStatus()
         status = "AQUECIMENTO"
     elseif CurrentMatch.matchInfo.status == "finished" then --"started", "finished", "scheduled"
         status = "ENCERRADO"
+        onMatchOver()
     else
         time = CurrentMatch.matchInfo.elapsed_time
-        if time > 45 then
+        if minutesSpent > 60 and time > 0 then
             status = "2° TEMPO"
+        elseif minutesSpent > 45 and time == 0 then
+            time = nil
+            status = "INTERVALO"
         else
             status = "1° TEMPO"
         end
@@ -391,10 +459,14 @@ function MatchManager:getMatchId()
     return CurrentMatch.matchInfo.id
 end
 
-function MatchManager:getTeamName(teamId)
+function MatchManager:getTeamName(teamId, isHome)
     if CurrentMatch:isHomeTeamId(teamId) then
         return CurrentMatch:getHomeTeamName()
     elseif CurrentMatch:isAwayTeamId(teamId) then
+        return CurrentMatch:getAwayTeamName()
+    elseif isHome then
+        return CurrentMatch:getHomeTeamName()
+    else
         return CurrentMatch:getAwayTeamName()
     end
     error("Team Id: " .. teamId .. " is from another match")

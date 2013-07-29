@@ -170,10 +170,8 @@ local function slideGroup(handler, event)
                     local object = group[i]
                     if object ~= handler and
                             math.abs(object.x + group.x - event.x) < object.width*0.5 then
-                        for j = 1, object.numChildren do
-                            if object[j].text then
-                                print(object[j].text)
-                            end
+                        if object.onRelease then
+                            object.onRelease()
                         end
                     end
                 end

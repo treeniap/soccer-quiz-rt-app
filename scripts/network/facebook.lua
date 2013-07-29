@@ -16,6 +16,7 @@ local REQUEST_TYPE_LOGIN = "login"
 local REQUEST_TYPE_USER_INFO = "me"
 local REQUEST_TYPE_USER_FRIENDS = "me/friends?fields=installed,name"
 local REQUEST_TYPE_USER_PIC = "me/picture"
+local REQUEST_TYPE_POST = "post"
 
 local function getPictureSize(size)
     if type(size) == "number" then
@@ -74,7 +75,7 @@ local function listener(event)
             request(REQUEST_TYPE_USER_INFO)
             -- Fetch access token for use in Facebook's API
             access_token = event.token
-            print("login access_token:", access_token)
+            --print("login access_token:", access_token)
         end
     elseif "request" == event.type then
         -- event.response is a JSON object from the FB server
@@ -105,6 +106,8 @@ local function listener(event)
                 end
             end
             UserData:init(userInfo, friends_ids)
+        elseif requestType == REQUEST_TYPE_POST then
+            native.showAlert("Facebook", "Pontuação postada.", {"Ok"})
         elseif requestType == REQUEST_TYPE_USER_PIC then
             local imageSize = getPictureSize(tonumber(response.data.width))
             userInfo.facebook_profile[getPictureFieldName(imageSize)] = response.data.url
@@ -128,22 +131,52 @@ local function listener(event)
             end
         end
     elseif "dialog" == event.type then
-        print("dialog", event.response)
+        --printTable(event)
     end
+end
+
+function Facebook:post(message, alert)
+    --print(message)
+    Server:getAppLinks(function(response)
+        if alert then
+            requestType = REQUEST_TYPE_POST
+        end
+        local actions
+        local link = "http://welovequiz.com"
+        if response and response.url then
+            actions = json.Encode(
+                { name = "App Store",
+                    link = response.url } )
+            link = response.url
+        end
+        local attachment = {
+            name = "Chute Premiado",
+            link = link,
+            description = message,
+            picture = "http://pw-games.com/chutepremiado/fb-icon.jpg",
+            actions = actions,
+        }
+        facebook.request("me/feed", "POST", attachment)
+    end)
+end
+
+function Facebook:invite(message)
+    --print(message)
+    facebook.showDialog("apprequests", {message = message})
 end
 
 function Facebook:init()
     if IS_SIMULATOR then
         userInfo = {
-            first_name = "Mark",
-            last_name = "Occhinosen",
+            first_name = "John",
+            last_name = "Smithwitz",
             facebook_profile = {
-                id =  "100006326892112",
+                id =  "100006337952512",
                 username = "",
                 access_token = "",
-                picture_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c5.5.65.65/s50x50/1010847_1386971971523686_431739469_t.jpg",
-                picture_2x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c13.12.155.155/s100x100/1010847_1386971971523686_431739469_a.jpg",
-                picture_4x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.0.192.192/1010847_1386971971523686_431739469_n.jpg"
+                picture_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c5.5.65.65/s50x50/1006257_1375577609330158_216697327_t.jpg",
+                picture_2x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c9.9.113.113/s100x100/1006257_1375577609330158_216697327_s.jpg",
+                picture_4x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/1006257_1375577609330158_216697327_n.jpg"
             }
         }
         local imgFix = getImagePrefix()
@@ -158,7 +191,7 @@ function Facebook:init()
             friends_ids[1] = "100006410700030"
             friends_ids[2] = "100006397561562"
             friends_ids[3] = "100006387546231"
-            friends_ids[4] = "100006337952512"
+            friends_ids[4] = "100006326892112"
             UserData:init(userInfo, friends_ids)
         end)
         return

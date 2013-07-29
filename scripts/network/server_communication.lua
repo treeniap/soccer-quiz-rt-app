@@ -406,6 +406,40 @@ function Server:getTopRanking(leaderboardId, listener)
     }
 end
 
+function Server:getPlayerRanking(leaderboardId, listener, errorListener)
+    local leaderboardStr = leaderboardId and "temp_leaderboards" or "leaderboards"
+    local leaderboardKey = leaderboardId and leaderboardId or "global"
+    local url = "http://api.leaderboards.welovequiz.com/v1/" .. leaderboardStr .. "/user_ranking?"
+    url = url .. "app_id=" .. APP_ID
+    url = url .. "&key=" .. leaderboardKey
+    url = url .. "&for=" .. UserData.info.user_id
+
+    networkRequest{
+        name = "getPlayerRanking",
+        url = url,
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = errorListener,
+        on_no_response = errorListener,
+    }
+end
+
+---==============================================================---
+---////////////////////////// FACEBOOK //////////////////////////---
+---==============================================================---
+function Server:getAppLinks(listener)
+    networkRequest{
+        name = "getAppLinks",
+        url = "http://pw-games.com/chutepremiado/facebook_links.json",
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = listener,
+        on_no_response = listener,
+    }
+end
+
 ---==============================================================---
 ---/////////////////////////// PUBNUB ///////////////////////////---
 ---==============================================================---

@@ -269,7 +269,7 @@ function InGameEvent.betResultListener(message)
         _resultInfo = resultInfo[message.answer]
     end
     currentAnswer = nil
-    _resultInfo.earnedCoins = message.coins.earned
+    _resultInfo.earnedCoins = message.coins.prize
     _resultInfo.totalCoins = message.coins.total
     _resultInfo.isRight = isRight
     InGameScreen:onEventEnd(_resultInfo)

@@ -23,14 +23,14 @@ local function createResultLine(resultsGroup, txtString, imgName, txtPoints, yPo
     local IMGS_X = 116
     local PTS_X = 175
 
-    local txt = display.newText(resultsGroup, txtString, 0, yPos, "MyriadPro-BoldCond", 12)
-    txt:setTextColor(135)
+    local txt = display.newText(resultsGroup, txtString, 0, yPos, "MyriadPro-BoldCond", 16)
+    txt:setTextColor(0)
     txt.isVisible = false
     stats[#stats + 1] = txt
-    local img = TextureManager.newImage(imgName, resultsGroup)
-    img.x = IMGS_X
-    img.y = yPos + img.height*0.5
-    local pts = display.newText(resultsGroup, txtPoints, 0, yPos, "MyriadPro-BoldCond", 12)
+    --local img = TextureManager.newImage(imgName, resultsGroup)
+    --img.x = IMGS_X
+    --img.y = yPos + img.height*0.5
+    local pts = display.newText(resultsGroup, txtPoints, 0, yPos, "MyriadPro-BoldCond", 16)
     pts:setTextColor(0)
     pts:setReferencePoint(display.CenterRightReferencePoint)
     pts.x = PTS_X
@@ -38,39 +38,58 @@ local function createResultLine(resultsGroup, txtString, imgName, txtPoints, yPo
     scores[#scores + 1] = pts
 
     if not noLine then
-        resultsGroup:insert(TextureManager.newHorizontalLine(92, yPos + 22, 200))
+        txt:setTextColor(135)
+        pts:setTextColor(135)
+        resultsGroup:insert(TextureManager.newHorizontalLine(92, yPos + 24, 200))
     end
 end
 
 local function createFinalResults(finalResultInfo)
     local resultsGroup = display.newGroup()
 
-    local blackLine, whiteLine = TextureManager.newVerticalLine(130, 55, 120)
+    local blackLine, whiteLine = TextureManager.newVerticalLine(130, 42, 100)
     resultsGroup:insert(blackLine)
 
     local lineY = 0
+    --createResultLine(resultsGroup,
+    --    finalResultInfo.rightGuesses.number .. " PALPITES CERTOS",
+    --    "stru_icon01_encerramento",
+    --    finalResultInfo.rightGuesses.points .. "pts",
+    --    lineY)
+    --lineY = lineY + 30
+    --createResultLine(resultsGroup,
+    --    finalResultInfo.challengesOvercome.number .. " DESAFIOS VENCIDOS",
+    --    "stru_icon02_encerramento",
+    --    finalResultInfo.challengesOvercome.points .. "pts",
+    --    lineY)
+    --lineY = lineY + 30
+    --createResultLine(resultsGroup,
+    --    finalResultInfo.giftsGiven.number .. " PRESENTES DADOS",
+    --    "stru_icon03_encerramento",
+    --    finalResultInfo.giftsGiven.points .. "pts",
+    --    lineY)
+    --lineY = lineY + 30
+    --createResultLine(resultsGroup,
+    --    finalResultInfo.friendsDefeated.number .. " AMIGOS DERROTADOS",
+    --    "stru_icon04_encerramento",
+    --    finalResultInfo.friendsDefeated.points .. "pts",
+    --    lineY, true)
     createResultLine(resultsGroup,
-        finalResultInfo.rightGuesses.number .. " PALPITES CERTOS",
-        "stru_icon01_encerramento",
-        finalResultInfo.rightGuesses.points .. "pts",
+        "PONTOS NA PARTIDA",
+        nil,--"stru_icon02_encerramento",
+        finalResultInfo.matchPoints .. "pts",
         lineY)
-    lineY = lineY + 30
+    lineY = lineY + 34
     createResultLine(resultsGroup,
-        finalResultInfo.challengesOvercome.number .. " DESAFIOS VENCIDOS",
-        "stru_icon02_encerramento",
-        finalResultInfo.challengesOvercome.points .. "pts",
+        "TOTAL DE PONTOS",
+        nil,--"stru_icon02_encerramento",
+        finalResultInfo.globalPoints .. "pts",
         lineY)
-    lineY = lineY + 30
+    lineY = lineY + 34
     createResultLine(resultsGroup,
-        finalResultInfo.giftsGiven.number .. " PRESENTES DADOS",
-        "stru_icon03_encerramento",
-        finalResultInfo.giftsGiven.points .. "pts",
-        lineY)
-    lineY = lineY + 30
-    createResultLine(resultsGroup,
-        finalResultInfo.friendsDefeated.number .. " AMIGOS DERROTADOS",
-        "stru_icon04_encerramento",
-        finalResultInfo.friendsDefeated.points .. "pts",
+        "POSIÇÃO NO RANKING",
+        nil,--"stru_icon02_encerramento",
+        finalResultInfo.globalPosition .. "º",
         lineY, true)
 
     resultsGroup:insert(whiteLine)
@@ -105,28 +124,32 @@ local function createFinalFoil(finalResultInfo)
     foilGroup:insert(TextureManager.newHorizontalLine(20, -135 + (display.screenOriginY*-0.75), 180))
 
     foilGroup:insert(createFinalResults(finalResultInfo))
-    foilGroup:insert(TextureManager.newHorizontalLine(20, 10 + (display.screenOriginY*-0.75), 160))
+    --foilGroup:insert(TextureManager.newHorizontalLine(20, 10 + (display.screenOriginY*-0.75), 160))
 
-    local pontuacaoTxt = display.newText(foilGroup, "PONTUAÇÃO TOTAL", 0, 0, "MyriadPro-BoldCond", 12)
-    pontuacaoTxt.x = 20
-    pontuacaoTxt.y = 24 + (display.screenOriginY*-0.75)
-    pontuacaoTxt:setTextColor(0)
+    --local pontuacaoTxt = display.newText(foilGroup, "PONTUAÇÃO TOTAL", 0, 0, "MyriadPro-BoldCond", 12)
+    --pontuacaoTxt.x = 20
+    --pontuacaoTxt.y = 24 + (display.screenOriginY*-0.75)
+    --pontuacaoTxt:setTextColor(0)
 
-    finalScore = display.newText(foilGroup, "0pts", 0, 0, "MyriadPro-BoldCond", 20)
-    finalScore.x = 20
-    finalScore.y = 44 + (display.screenOriginY*-0.75)
-    finalScore:setTextColor(0)
+    --finalScore = display.newText(foilGroup, "0pts", 0, 0, "MyriadPro-BoldCond", 20)
+    --finalScore.x = 20
+    --finalScore.y = 44 + (display.screenOriginY*-0.75)
+    --finalScore:setTextColor(0)
 
-    local cuponsTxt = display.newText(foilGroup, "CUPONS GANHOS", 0, 0, "MyriadPro-BoldCond", 12)
-    cuponsTxt.x = 20
-    cuponsTxt.y = 24 + (display.screenOriginY*-0.75)
-    cuponsTxt:setTextColor(0)
-    cuponsTxt.isVisible = false
-    local cuponsTxt = display.newText(foilGroup, finalResultInfo.couponsEarned .. " cupons", 0, 0, "MyriadPro-BoldCond", 20)
-    cuponsTxt.x = 20
-    cuponsTxt.y = 44 + (display.screenOriginY*-0.75)
-    cuponsTxt:setTextColor(0)
-    cuponsTxt.isVisible = false
+    --local cuponsTxt = display.newText(foilGroup, "CUPONS GANHOS", 0, 0, "MyriadPro-BoldCond", 12)
+    --cuponsTxt.x = 20
+    --cuponsTxt.y = 24 + (display.screenOriginY*-0.75)
+    --cuponsTxt:setTextColor(0)
+    --cuponsTxt.isVisible = false
+    --local cuponsTxt = display.newText(foilGroup, finalResultInfo.couponsEarned .. " cupons", 0, 0, "MyriadPro-BoldCond", 20)
+    --cuponsTxt.x = 20
+    --cuponsTxt.y = 44 + (display.screenOriginY*-0.75)
+    --cuponsTxt:setTextColor(0)
+    --cuponsTxt.isVisible = false
+
+    local whistle = TextureManager.newImage("stru_whistle", foilGroup)
+    whistle.x = 20
+    whistle.y = 24 + (display.screenOriginY*-0.75)
 
     foilGroup:setReferencePoint(display.CenterLeftReferencePoint)
     foilGroup.x = SCREEN_LEFT
@@ -181,26 +204,26 @@ local function createRightSide(totalCoupons, championshipName, position)
 end
 
 local function showScore(onComplete, rightSideView)
-    local pts = 0
+    --local pts = 0
     local count = 0
     for i, v in ipairs(stats) do
-        transition.to(v, {delay = (i - 1)*2000, time = 1000, x = v.x, transition = easeOutBack, onComplete = function()
+        transition.to(v, {delay = (i - 1)*2000, time = 1000, x = v.x, transition = easeOutExpo, onComplete = function()
             scores[i].isVisible = true
             transition.from(scores[i], {time = 500, x = scores[i].x - 48, xScale = 0.2, yScale = 0.2, transition = easeOutBack, onComplete = function()
-                local ptsNum = scores[i].text
-                ptsNum = tonumber(ptsNum:sub(1, ptsNum:len() - 3))
-                pts = pts + ptsNum
-                finalScore.text = pts .. "pts"
-                finalScore:setReferencePoint(display.CenterReferencePoint)
-                finalScore.x = 20
+                --local ptsNum = scores[i].text
+                --ptsNum = tonumber(ptsNum:sub(1, ptsNum:len() - 3))
+                --pts = pts + ptsNum
+                --finalScore.text = pts .. "pts"
+                --finalScore:setReferencePoint(display.CenterReferencePoint)
+                --finalScore.x = 20
                 count = count + 1
-                if count >= 4 then
-                    rightSideView.isVisible = true
-                    transition.from(rightSideView, {delay = 2000, time = 700, x = SCREEN_RIGHT + rightSideView.width, transition = easeOutExpo, onComplete = onComplete})
+                if count >= 3 then
+                    --rightSideView.isVisible = true
+                    --transition.from(rightSideView, {delay = 2000, time = 700, x = SCREEN_RIGHT + rightSideView.width, transition = easeOutExpo, onComplete = onComplete})
+                    onComplete()
                 end
-                --TODO check
-                stats, scores = nil, nil
-                finalScore = nil
+                --stats, scores = nil, nil
+                --finalScore = nil
             end})
         end})
         v.x = -100 + display.screenOriginX
@@ -210,9 +233,15 @@ end
 
 function InGameEnd:showUp(onComplete)
     self.isVisible = true
-    self.rightSideView.isVisible = false
+    --self.rightSideView.isVisible = false
 
     transition.from(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = function() showScore(onComplete, self.rightSideView) end})
+end
+
+function InGameEnd:hide(onComplete)
+    --self.rightSideView.isVisible = false
+
+    transition.to(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = onComplete})
 end
 
 function InGameEnd:create(finalResultInfo)
@@ -224,9 +253,9 @@ function InGameEnd:create(finalResultInfo)
     stats, scores = {}, {}
 
     endGroup.leftSideView = createFinalFoil(finalResultInfo)
-    endGroup.rightSideView = createRightSide(finalResultInfo.totalCoupons, finalResultInfo.championshipName, finalResultInfo.position)
+    --endGroup.rightSideView = createRightSide(finalResultInfo.totalCoupons, finalResultInfo.championshipName, finalResultInfo.position)
     endGroup:insert(endGroup.leftSideView)
-    endGroup:insert(endGroup.rightSideView)
+    --endGroup:insert(endGroup.rightSideView)
 
     endGroup.isVisible = false
 

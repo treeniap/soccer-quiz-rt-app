@@ -41,8 +41,9 @@ local function createPlayerView(player, position, isGoldenPlayer)
         end
     end
     local score = display.newText(playerGroup, player.score .. " Pts", 0, 0, "MyriadPro-BoldCond", 16)
-    score.x = notch.x + notch.width*0.5 - score.width*0.5
-    score.y = notch.y - notch.height*0.5 - score.height*0.35 + 2
+    score:setReferencePoint(display.BottomRightReferencePoint)
+    score.x = notch.x + notch.width*0.5
+    score.y = notch.y - notch.height*0.5 + 4
     score:setTextColor(0)
 
     if isGoldenPlayer then
@@ -58,6 +59,39 @@ local function createPlayerView(player, position, isGoldenPlayer)
         teamBadge.x = notch.x + notch.width*0.5 - teamBadge.width*0.5
         teamBadge.y = notch.y + notch.height*0.5 - teamBadge.height*0.5
     end
+    return playerGroup
+end
+
+local function createInviteFriends()
+    local photoSize = 57
+    local badgeSize = 16
+    local playerGroup = display.newGroup()
+
+    local notch = TextureManager.newImage("stru_notchsilver", playerGroup)
+    notch.x = 0
+    notch.y = 0
+    local photo = TextureManager.newSpriteRect("stru_buttoninvite", photoSize, photoSize, playerGroup)
+    photo.x = -0.5
+    photo.y = -0.5
+
+    local inviteTxt = display.newText(playerGroup, "CONVIDE AMIGOS", 0, 0, "MyriadPro-BoldCond", 10)
+    inviteTxt:setReferencePoint(display.BottomRightReferencePoint)
+    inviteTxt.x = notch.x + notch.width*0.5 + 1
+    inviteTxt.y = notch.y - notch.height*0.5 - 1
+    inviteTxt:setTextColor(0)
+
+    playerGroup.onRelease = function()
+        local status = MatchManager:getMatchTimeStatus()
+        if status == "AQUECIMENTO" then
+            status = "Vai começar "
+        else
+            status = "Começou "
+        end
+        Facebook:invite(status .. MatchManager:getTeamName(nil, true) .. " x " ..
+                MatchManager:getTeamName(nil, false) ..
+                ", venha jogar comigo!")
+    end
+
     return playerGroup
 end
 
@@ -275,15 +309,23 @@ function BottomRanking:updateRankingPositions(ranking)
         playerView.x = (i - 1)*74
         playerView.y = 2
     end
+
+    local inviteBtn = createInviteFriends()
+    playersRankingGroup:insert(inviteBtn)
+    inviteBtn.x = #ranking*74
+    inviteBtn.y = 2
+
     self:insert(2, playersRankingGroup)
     self.ranking = playersRankingGroup
-    local rectTouchHandler = display.newRect(playersRankingGroup, 0, 0, playersRankingGroup.width, playersRankingGroup.height)
-    rectTouchHandler.x = rectTouchHandler.width*0.5 - 32
-    rectTouchHandler.y = 0
-    rectTouchHandler.alpha = 0.01
-    rectTouchHandler.group = playersRankingGroup
-    TouchHandler.setSlideListener(rectTouchHandler, 458)
-    self.rectTouchHandler = rectTouchHandler
+    if playersRankingGroup.numChildren > 3 then
+        local rectTouchHandler = display.newRect(playersRankingGroup, 0, 0, playersRankingGroup.width, playersRankingGroup.height)
+        rectTouchHandler.x = rectTouchHandler.width*0.5 - 32
+        rectTouchHandler.y = 0
+        rectTouchHandler.alpha = 0.01
+        rectTouchHandler.group = playersRankingGroup
+        TouchHandler.setSlideListener(rectTouchHandler, 458)
+        self.rectTouchHandler = rectTouchHandler
+    end
 end
 
 function BottomRanking:new(playerPhoto, isInitialScreen)
