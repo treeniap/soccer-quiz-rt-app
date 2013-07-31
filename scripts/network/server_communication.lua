@@ -17,7 +17,7 @@ local networkStatus = STATUS_REACHABLE
 local networkStatusChangeListeners
 
 ---URLS
-local getInventoryUrl
+local getUserInventoryUrl
 
 --
 -- INITIALIZE PUBNUB STATE
@@ -87,7 +87,9 @@ end
 function Server:downloadFilesList(filesList, listener)
     local downloadCount = #filesList
     if downloadCount <= 0 then
-        listener()
+        if listener then
+            listener()
+        end
         return
     end
     local function logoDownloadListener(event)
@@ -100,7 +102,9 @@ function Server:downloadFilesList(filesList, listener)
             end
             downloadCount = downloadCount - 1
             if downloadCount <= 0 then
-                listener()
+                if listener then
+                    listener()
+                end
             end
             --print("downloadCount", #logosList, downloadCount)
         end
@@ -159,6 +163,7 @@ function serverResponseHandler(_request)
         local status = event.status
         --Server Error
         if event.isError or status >= 500  or status == -1 then
+            printTable(event)
             onError(_request, status)
             return
         end
@@ -221,6 +226,16 @@ function Server.getMatchInfo(url, listener)
     }
 end
 
+function Server.getTeamsList(listener)
+    networkRequest{
+        name = "getTeamsList",
+        url = "http://api.kb.soccer.welovequiz.com/1/teams",
+        method = "GET",
+        listener = listener,
+        retries_number = RETRIES_NUMBER
+    }
+end
+
 ---============================================================---
 ---/////////////////////////// USER ///////////////////////////---
 ---============================================================---
@@ -231,7 +246,7 @@ function Server:checkUser(userInfo)
         method = "GET",
         listener = function(response, status)
             UserData:setUserId(response.user.id)
-            Server:getInventory(userInfo, ScreenManager.init)
+            Server:getUserInventory(userInfo, ScreenManager.init)
         end,
         on_client_error = function()
             Server:createUser(userInfo)
@@ -245,7 +260,17 @@ end
 
 function Server:createUser(userInfo)
     local payload = {}
-    payload.user = userInfo
+    payload.user = {
+        first_name = userInfo.first_name,
+        last_name = userInfo.first_name,
+        facebook_profile = {
+            id = userInfo.facebook_profile.id,
+            access_token = userInfo.facebook_profile.access_token,
+            picture_url = userInfo.facebook_profile.picture_url,
+            picture_2x_url = userInfo.facebook_profile.picture_2x_url,
+            picture_4x_url = userInfo.facebook_profile.picture_4x_url,
+        }
+    }
 
     networkRequest{
         name = "createUser",
@@ -302,8 +327,8 @@ function Server:createInventory(userInfo)
     payload.app_id = APP_ID
     payload.inventory = {
         attributes = {
-            push_notifications_enabled = userInfo.pushNotification or false, -- TODO get push enabled
-            favorite_team_id = userInfo.favoriteTeam or "" -- TODO get favorite team
+            push_notifications_enabled = false,
+            favorite_team_id = ""
         }
     }
 
@@ -312,7 +337,7 @@ function Server:createInventory(userInfo)
         url = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/inventories",
         method = "POST",
         listener = function(response, status)
-            Server:getInventory(userInfo, ScreenManager.init)
+            Server:getUserInventory(userInfo, ScreenManager.init)
         end,
         retries_number = 30,
         on_no_response = function()
@@ -322,14 +347,14 @@ function Server:createInventory(userInfo)
     }
 end
 
-function Server:getInventory(userInfo, listener)
-    getInventoryUrl = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/inventories?app_id=" .. APP_ID
+function Server:getUserInventory(userInfo, listener)
+    getUserInventoryUrl = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/inventories?app_id=" .. APP_ID
     networkRequest{
-        name = "getInventory",
-        url = getInventoryUrl,
+        name = "getUserInventory",
+        url = getUserInventoryUrl,
         method = "GET",
         listener = function(response, status)
-            --getInventoryUrl = response.inventory._links.self.href
+            --getUserInventoryUrl = response.inventory._links.self.href
             UserData:setInventory(response)
             listener()
         end,
@@ -342,21 +367,38 @@ function Server:getInventory(userInfo, listener)
     }
 end
 
-function Server:updateAttributes(userInfo)
+function Server:getInventory(userId, listener)
+    getUserInventoryUrl = "http://api.inventory.welovequiz.com/v1/users/" .. userId .. "/inventories?app_id=" .. APP_ID
+    networkRequest{
+        name = "getInventory" .. userId,
+        url = getUserInventoryUrl,
+        method = "GET",
+        listener = function(response, status)
+            listener(response)
+        end,
+        retries_number = RETRIES_NUMBER
+    }
+end
+
+function Server:updateAttributes(userAttributes, userId)
     local payload = {}
     payload.app_id = APP_ID
     payload.attributes = {
-        push_notifications_enabled = userInfo.pushNotification or false,
-        favorite_team_id = userInfo.favoriteTeam or ""
+        push_notifications_enabled = userAttributes.push_notifications_enabled or false,
+        favorite_team_id = userAttributes.favorite_team_id or ""
     }
 
     networkRequest{
         name = "updateAttributes",
-        url = "http://api.inventory.welovequiz.com/v1/users/" .. userInfo.user_id .. "/inventory/attributes",
+        url = "http://api.inventory.welovequiz.com/v1/users/" .. userId .. "/inventories/attributes",
         method = "PUT",
-        listener = function(response, status) end,
+        listener = function(response, status) --[[print("listener") printTable(response)]] end,
+        on_client_error = function(response, status) --[[print("on_client_error") printTable(response)]] end,
         retries_number = RETRIES_NUMBER,
-        post_params = encode(payload)
+        post_params = encode(payload),
+        on_no_response = function()
+            native.showAlert("Erro no servidor", "Por favor, tente mais tarde.", { "Ok" }, function() Server:updateAttributes(userAttributes, userId) end)
+        end
     }
 end
 
@@ -432,6 +474,21 @@ function Server:getAppLinks(listener)
     networkRequest{
         name = "getAppLinks",
         url = "http://pw-games.com/chutepremiado/facebook_links.json",
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = listener,
+        on_no_response = listener,
+    }
+end
+
+---==============================================================---
+---//////////////////////// USEFUL LINKS ////////////////////////---
+---==============================================================---
+function Server:getUsefulLinks(listener)
+    networkRequest{
+        name = "getUsefulLinks",
+        url = "http://pw-games.com/chutepremiado/useful_links.json",
         method = "GET",
         retries_number = RETRIES_NUMBER,
         listener = listener,

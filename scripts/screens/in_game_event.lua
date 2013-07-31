@@ -409,7 +409,7 @@ function InGameEvent:create(eventInfo)
         for i, vB in ipairs(voteButtons) do
             if vB:getBetCoins() > 0 then
                 Server.postBet(vB.url, UserData.info.user_id, vB:getBetCoins(), function(event)
-                    Server:getInventory(nil, function()
+                    Server:getUserInventory(nil, function()
                         InGameScreen:updateTotalCoins()
                         --native.showAlert("ERRO", "Possíveis causas:\n- O lance pode ter sido cancelado.\n- Você não possui uma boa conexão com a internet.\n- Suas configurações de data e hora estão erradas.", {"Ok"}, ScreenManager.callNext)
                         native.showAlert("ERRO", "Houve um erro de comunicação com nosso servidor. Verifique se o horário de seu " .. getDeviceName() .. " está sendo ajustado automaticamente e/ou se sua internet está rápida e estável.", {"Ok"}, ScreenManager.callNext)

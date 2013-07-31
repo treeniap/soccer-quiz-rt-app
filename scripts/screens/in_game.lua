@@ -20,6 +20,7 @@ local inGameGroup
 local topBar, questionsBar, bottomRanking
 
 local scoreView, eventView, endView
+local friendsIdBadgesNames
 
 local function updateBottomRanking()
     local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
@@ -54,12 +55,24 @@ local function updateBottomRanking()
         else
             return
         end
+        if not friendsIdBadgesNames then
+            friendsIdBadgesNames = {}
+        end
         for i, player in ipairs(ranking) do
             if player.user_id == UserData.info.user_id then
                 player.isPlayer = true
                 player.photo = UserData:getUserPicture()
+                player.teamBadge = getLogoFileName(UserData.attributes.favorite_team_id, 1)
             else
                 player.photo = getPictureFileName(player.user_id)
+                if friendsIdBadgesNames[player.user_id] then
+                    player.teamBadge = friendsIdBadgesNames[player.user_id]
+                else
+                    Server:getInventory(player.user_id, function(response)
+                        friendsIdBadgesNames[player.user_id] = getLogoFileName(response.inventory.attributes.favorite_team_id, 1)
+                        player.teamBadge = friendsIdBadgesNames[player.user_id]
+                    end)
+                end
             end
         end
 
@@ -192,6 +205,8 @@ function InGameScreen:hide(onComplete)
 
     if endView then
         endView:hide(onHiding)
+    elseif eventView then
+        eventView:hide(onHiding)
     else
         scoreView:hide(onHiding)
     end

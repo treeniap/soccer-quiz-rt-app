@@ -102,30 +102,33 @@ local function createOptions()
     local meutimeTxt = display.newText(optionsGroup, "MEU TIME", lineX, lineY, "MyriadPro-BoldCond", 18)
     meutimeTxt:setTextColor(0)
     -- MEU TIME on/off switch
+    local function onSwitchNotificationPress(event)
+        UserData:updateAttributes(event.target.isOn, UserData.attributes.favorite_team_id)
+    end
     local myTeamOnOffSwitch = widget.newSwitch
         {
             left = 120,
             top = lineY - 8,
-            initialSwitchState = true,
-            onPress = onSwitchPress,
-            onRelease = onSwitchPress,
+            initialSwitchState = UserData.attributes.push_notifications_enabled,
+            onPress = onSwitchNotificationPress,
+            onRelease = onSwitchNotificationPress,
         }
     optionsGroup:insert(myTeamOnOffSwitch)
 
     -- TODOS OS TIMES
     lineY = lineY + 36
-    local todosostimesTxt = display.newText(optionsGroup, "TODOS OS TIMES", lineX, lineY, "MyriadPro-BoldCond", 18)
-    todosostimesTxt:setTextColor(0)
-    -- TODOS OS TIMES on/off switch
-    local allTeamsOnOffSwitch = widget.newSwitch
-        {
-            left = 120,
-            top = lineY - 8,
-            initialSwitchState = true,
-            onPress = onSwitchPress,
-            onRelease = onSwitchPress,
-        }
-    optionsGroup:insert(allTeamsOnOffSwitch)
+    --local todosostimesTxt = display.newText(optionsGroup, "TODOS OS TIMES", lineX, lineY, "MyriadPro-BoldCond", 18)
+    --todosostimesTxt:setTextColor(0)
+    ---- TODOS OS TIMES on/off switch
+    --local allTeamsOnOffSwitch = widget.newSwitch
+    --    {
+    --        left = 120,
+    --        top = lineY - 8,
+    --        initialSwitchState = true,
+    --        onPress = onSwitchPress,
+    --        onRelease = onSwitchPress,
+    --    }
+    --optionsGroup:insert(allTeamsOnOffSwitch)
 
     -- LINKS UTEIS TITLE
     lineY = lineY + 44 + (display.screenOriginY*-0.5)
@@ -133,30 +136,20 @@ local function createOptions()
     linksuteisTitleTxt:setTextColor(192)
     linksuteisTitleTxt:setEmbossColor(color)
     optionsGroup:insert(TextureManager.newHorizontalLine(104, lineY + 18, 220 + display.screenOriginX*-2))
-    -- FANPAGE
-    lineY = lineY + 28
-    local fanpageLink = BtnLink:new("FANPAGE NO FACEBOOK", lineX, lineY, function() end)
-    optionsGroup:insert(fanpageLink)
-    -- OUTROS JOGOS
-    lineY = lineY + 28
-    local jogosLink = BtnLink:new("JOGOS DA WE LOVE QUIZ", lineX, lineY, function() end)
-    optionsGroup:insert(jogosLink)
-    -- POLITICA
-    lineY = lineY + 28
-    local politicaLink = BtnLink:new("POLÍTICA DE PRIVACIDADE", lineX, lineY, function() end)
-    optionsGroup:insert(politicaLink)
-    -- TERMOS
-    lineY = lineY + 28
-    local termosLink = BtnLink:new("TERMOS DE USO", lineX, lineY, function() end)
-    optionsGroup:insert(termosLink)
-    -- REGULAMENTO
-    lineY = lineY + 28
-    local regulamentoLink = BtnLink:new("REGULAMENTO", lineX, lineY, function() end)
-    optionsGroup:insert(regulamentoLink)
-    -- CREDITOS
-    lineY = lineY + 28
-    local creditosLink = BtnLink:new("CRÉDITOS", lineX, lineY, function() end)
-    optionsGroup:insert(creditosLink)
+
+    local function onLinksReceived(response, status)
+        --printTable(response)
+        if status == 200 then
+            for i, link in ipairs(response) do
+                lineY = lineY + 28
+                local fanpageLink = BtnLink:new(link.label, lineX, lineY, function() system.openURL(link.url) end)
+                optionsGroup:insert(fanpageLink)
+            end
+        else
+            Server:getUsefulLinks(onLinksReceived)
+        end
+    end
+    Server:getUsefulLinks(onLinksReceived)
 
     return optionsGroup
 end

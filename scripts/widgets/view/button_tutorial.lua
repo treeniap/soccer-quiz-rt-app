@@ -57,7 +57,19 @@ local function createView(button, tutorialSheetImage, tutorialSheetInfo, params)
         icon.y = -4
     end
 
+    button.off = display.newImage(button, tutorialSheetImage, tutorialSheetInfo:getFrameIndex(params.bg))
+    button.off:setFillColor(128, 192)
+    button.off.blendMode = "multiply"
+    button.off.x = 0
+    button.off.y = 0
+    button.off.isVisible = false
+
     return button
+end
+
+function BtnTutorial:lock(isLock)
+    self.off.isVisible = isLock
+    self.isLocked = isLock
 end
 
 function BtnTutorial:new(onRelease, tutorialSheetImage, tutorialSheetInfo, params)

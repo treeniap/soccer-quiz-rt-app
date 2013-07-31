@@ -88,12 +88,6 @@ local function prepareMatch()
     MatchManager:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
 end
 
-local function getBetTimeoutInMilliseconds(userBetTimeout)
-    --TODO usar lua date
-    local timeoutInSec = dateTimeStringToSeconds(userBetTimeout) + getTimezoneOffset(os.time())
-    return timeoutInSec
-end
-
 local function matchServerListener(message)
     --printTable(message)
     if message.state and message.state == "cancelled" then
@@ -106,7 +100,8 @@ local function matchServerListener(message)
 
     _eventInfo.teamName = string.utf8upper(MatchManager:getTeamName(message.team_id))
     _eventInfo.teamBadge = getLogoFileName(message.team_id, 3)
-    _eventInfo.userBetTimeout = getBetTimeoutInMilliseconds(message.user_bet_timeout)
+    _eventInfo.userBetTimeout = date(message.user_bet_timeout)
+    _eventInfo.userBetTimeout = _eventInfo.userBetTimeout:addseconds(getTimezoneOffset(os.time()))
     currentScreen:onEventStart(_eventInfo)
 end
 
@@ -190,24 +185,11 @@ function ScreenManager:init()
 end
 
 function ScreenManager:startTutorial()
-    --TODO download logos
-    local teamsList = {
-        {name = "Botafogo",      badge = "pictures/botafogo_fr.png"},
-        {name = "Corinthians",   badge = "pictures/sc_corinthians_paulista.png"},
-        {name = "Cruzeiro",      badge = "pictures/cruzeiro_ec.png"},
-        {name = "Atlético-MG",   badge = "pictures/ca_mineiro.png"},
-        {name = "Santos",        badge = "pictures/santos_fc.png"},
-        {name = "Coritiba",      badge = "pictures/coritiba_fc.png"},
-        {name = "São Paulo",     badge = "pictures/sao_paulo_fc.png"},
-        {name = "Flamengo",      badge = "pictures/cr_flamengo.png"},
-        {name = "Vasco",         badge = "pictures/cr_vasco_g.png"},
-        {name = "Fluminense",    badge = "pictures/fluminense_fc.png"},
-        {name = "Grêmio",        badge = "pictures/gremio_fbpa.png"},
-        {name = "Internacional", badge = "pictures/sc_internacional.png"},
-    }
-    require "scripts.screens.tutorial"
-    TutorialScreen:new(teamsList)
-    tutorial = true
+    MatchManager:loadTeamsList(function()
+        require "scripts.screens.tutorial"
+        TutorialScreen:new()
+        tutorial = true
+    end)
 end
 
 return ScreenManager

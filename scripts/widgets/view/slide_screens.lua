@@ -50,9 +50,12 @@ function SlideScreens.new(screenSet, tutorialSheetImage, tutorialSheetInfo)
     local startPos, prevPos
     local dragDistance
     local tween
-    function touchListener (self, touch)
+    function touchListener(self, touch)
         local phase = touch.phase
         --print("slides", phase)
+        if screenSet[imgNum].isLocked then
+            return true
+        end
         if ( phase == "began" ) then
             -- Subsequent touch events will target button even if they are outside the contentBounds of button
             display.getCurrentStage():setFocus( self )
@@ -60,24 +63,25 @@ function SlideScreens.new(screenSet, tutorialSheetImage, tutorialSheetInfo)
 
             startPos = touch.x
             prevPos = touch.x
-        elseif( self.isFocus ) then
+        elseif ( self.isFocus ) then
             if ( phase == "moved" ) then
                 if tween then transition.cancel(tween) end
 
                 --print(imgNum)
 
                 local delta = touch.x - prevPos
+                delta = delta*.25
                 prevPos = touch.x
 
                 screenSet[imgNum].x = screenSet[imgNum].x + delta
 
-                if (screenSet[imgNum-1]) then
-                    screenSet[imgNum-1].x = screenSet[imgNum-1].x + delta
-                end
-
-                if (screenSet[imgNum+1]) then
-                    screenSet[imgNum+1].x = screenSet[imgNum+1].x + delta
-                end
+                --if (screenSet[imgNum-1]) then
+                --    screenSet[imgNum-1].x = screenSet[imgNum-1].x + delta
+                --end
+                --
+                --if (screenSet[imgNum+1]) then
+                --    screenSet[imgNum+1].x = screenSet[imgNum+1].x + delta
+                --end
 
             elseif (phase == "ended" or phase == "cancelled") then
 
@@ -122,26 +126,49 @@ function SlideScreens.new(screenSet, tutorialSheetImage, tutorialSheetInfo)
         prevTween = tween
     end
 
+    local width, height = 360, 480
+    if CONTENT_HEIGHT > 480 then -- iPhone 5 and Android
+        width, height = 428, 570
+    end
+    local function changeScreens(previousScreen, nextScreen)
+        if previousScreen.image then
+            previousScreen.image:removeSelf()
+            previousScreen.image = nil
+        end
+        previousScreen.isVisible = false
+        if nextScreen.imgName then
+            nextScreen.image = TextureManager.newImageRect(nextScreen.imgName, width, height)
+            nextScreen.image.x = display.contentCenterX
+            nextScreen.image.y = display.contentCenterY
+            nextScreen:insert(1, nextScreen.image)
+        end
+        nextScreen.isVisible = true
+    end
+
     function nextImage()
-        tween = transition.to( screenSet[imgNum], {time=400, x=screenW*-1.5, transition=easing.outExpo } )
-        tween = transition.to( screenSet[imgNum+1], {time=400, x=0, transition=easing.outExpo } )
-        g:insert(g.numChildren, screenSet[imgNum+1])
-        imgNum = imgNum + 1
-        initImage(imgNum)
+        tween = transition.to( screenSet[imgNum], {time=200, x=screenW*-1.5, transition=easing.outExpo, onComplete = function()
+            changeScreens(screenSet[imgNum], screenSet[imgNum+1])
+            tween = transition.to( screenSet[imgNum+1], {time=200, x=0, transition=easing.outExpo } )
+            g:insert(g.numChildren, screenSet[imgNum+1])
+            imgNum = imgNum + 1
+            initImage(imgNum)
+        end } )
     end
 
     function prevImage()
-        tween = transition.to( screenSet[imgNum], {time=400, x=screenW*1.5, transition=easing.outExpo } )
-        tween = transition.to( screenSet[imgNum-1], {time=400, x=0, transition=easing.outExpo } )
-        g:insert(g.numChildren, screenSet[imgNum-1])
-        imgNum = imgNum - 1
-        initImage(imgNum)
+        tween = transition.to( screenSet[imgNum], {time=200, x=screenW*1.5, transition=easing.outExpo, onComplete = function()
+            changeScreens(screenSet[imgNum], screenSet[imgNum-1])
+            tween = transition.to( screenSet[imgNum-1], {time=200, x=0, transition=easing.outExpo } )
+            g:insert(g.numChildren, screenSet[imgNum-1])
+            imgNum = imgNum - 1
+            initImage(imgNum)
+        end } )
     end
 
     function cancelMove()
-        tween = transition.to( screenSet[imgNum], {time=400, x=0, transition=easing.outExpo } )
-        tween = transition.to( screenSet[imgNum-1], {time=400, x=screenW*-1.5, transition=easing.outExpo } )
-        tween = transition.to( screenSet[imgNum+1], {time=400, x=screenW*1.5, transition=easing.outExpo } )
+        tween = transition.to( screenSet[imgNum], {time=200, x=0, transition=easing.outExpo } )
+        --tween = transition.to( screenSet[imgNum-1], {time=400, x=screenW*-1.5, transition=easing.outExpo } )
+        --tween = transition.to( screenSet[imgNum+1], {time=400, x=screenW*1.5, transition=easing.outExpo } )
         g:insert(g.numChildren, screenSet[imgNum])
     end
 

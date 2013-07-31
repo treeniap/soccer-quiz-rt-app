@@ -12,11 +12,13 @@ local access_token
 local requestType
 local userInfo
 local stepsCount
+local loginListener
 local REQUEST_TYPE_LOGIN = "login"
 local REQUEST_TYPE_USER_INFO = "me"
 local REQUEST_TYPE_USER_FRIENDS = "me/friends?fields=installed,name"
 local REQUEST_TYPE_USER_PIC = "me/picture"
-local REQUEST_TYPE_POST = "post"
+local REQUEST_TYPE_POST_MATCH = "postmatch"
+local REQUEST_TYPE_POST_SCORE = "postscore"
 
 local function getPictureSize(size)
     if type(size) == "number" then
@@ -57,10 +59,15 @@ end
 local function listener(event)
     if event.isError then
         print(event.response)
+        if requestType == REQUEST_TYPE_POST_MATCH or requestType == REQUEST_TYPE_POST_SCORE then
+            return
+        end
         local function onComplete(event)
             if "clicked" == event.action then
                 if requestType == REQUEST_TYPE_LOGIN then
-                    facebook.login(appId, listener, {"publish_stream"})
+                    if not loginListener then
+                        facebook.login(appId, listener, {"publish_stream"})
+                    end
                 else
                     request(requestType)
                 end
@@ -71,11 +78,15 @@ local function listener(event)
     end
     if "session" == event.type then
         -- upon successful login, request list of friends of the signed in user
-        if "login" == event.phase then
+        if "loginFailed" == event.phase then
+        elseif "login" == event.phase and event.token then
             request(REQUEST_TYPE_USER_INFO)
             -- Fetch access token for use in Facebook's API
             access_token = event.token
             --print("login access_token:", access_token)
+            if loginListener then
+                loginListener()
+            end
         end
     elseif "request" == event.type then
         -- event.response is a JSON object from the FB server
@@ -106,7 +117,7 @@ local function listener(event)
                 end
             end
             UserData:init(userInfo, friends_ids)
-        elseif requestType == REQUEST_TYPE_POST then
+        elseif requestType == REQUEST_TYPE_POST_SCORE then
             native.showAlert("Facebook", "Pontuação postada.", {"Ok"})
         elseif requestType == REQUEST_TYPE_USER_PIC then
             local imageSize = getPictureSize(tonumber(response.data.width))
@@ -135,11 +146,13 @@ local function listener(event)
     end
 end
 
-function Facebook:post(message, alert)
+function Facebook:post(message, score)
     --print(message)
     Server:getAppLinks(function(response)
-        if alert then
-            requestType = REQUEST_TYPE_POST
+        if score then
+            requestType = REQUEST_TYPE_POST_SCORE
+        else
+            requestType = REQUEST_TYPE_POST_MATCH
         end
         local actions
         local link = "http://welovequiz.com"
@@ -165,8 +178,11 @@ function Facebook:invite(message)
     facebook.showDialog("apprequests", {message = message})
 end
 
-function Facebook:init()
+function Facebook:init(_listener)
     if IS_SIMULATOR then
+        if _listener then
+            _listener()
+        end
         userInfo = {
             first_name = "John",
             last_name = "Smithwitz",
@@ -188,14 +204,16 @@ function Facebook:init()
             }
         }, function()
             local friends_ids = {}
-            friends_ids[1] = "100006410700030"
-            friends_ids[2] = "100006397561562"
-            friends_ids[3] = "100006387546231"
-            friends_ids[4] = "100006326892112"
+            friends_ids[1] = "100006326892112"
+            friends_ids[2] = "100006410700030"
+            friends_ids[3] = "100006397561562"
+            friends_ids[4] = "100006387546231"
+            friends_ids[5] = "100006460237951"
             UserData:init(userInfo, friends_ids)
         end)
         return
     end
+    loginListener = _listener
     requestType = REQUEST_TYPE_LOGIN
     facebook.login(appId, listener, {"publish_stream"})
 end

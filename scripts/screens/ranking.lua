@@ -75,17 +75,28 @@ local function createPlayerView(player, playersGroup, yPos, rankingPosition)
     playerPositionTxt:setReferencePoint(display.CenterLeftReferencePoint)
     playerPositionTxt.x = 16
     playerPositionTxt.y = 0
-    if player.isPlayer then
-        playerPositionTxt:setTextColor(255)
-    else
-        playerPositionTxt:setTextColor(128)
-    end
 
     local noError, photo = pcall(TextureManager.newImageRect, player.photo, 46, 46, playerGroup, system.DocumentsDirectory)
     if noError and photo then
         photo.x = 64
         photo.y = 0
     end
+
+    local function createBadge()
+        if not playerGroup or not playerGroup.insert then
+            return
+        end
+        if not player.teamBadge then
+            timer.performWithDelay(500, createBadge)
+        elseif player.teamBadge ~= "none" then
+            local noError, badge = pcall(TextureManager.newImageRect, player.teamBadge, 24, 24, playerGroup, system.DocumentsDirectory)
+            if noError and badge then
+                badge.x = 80
+                badge.y = 16
+            end
+        end
+    end
+    createBadge()
 
     local playerName = display.newText(playerGroup, string.utf8upper(createNameText(player.first_name .. " " .. player.last_name)), 0, 0, "MyriadPro-BoldCond", 18)
     playerName:setReferencePoint(display.CenterLeftReferencePoint)
@@ -96,13 +107,21 @@ local function createPlayerView(player, playersGroup, yPos, rankingPosition)
     --end
     playerName.x = 96
     playerName.y = 0
-    playerName:setTextColor(32)
 
     local playerScore = display.newText(playerGroup, player.score .. " Pts", 0, 0, "MyriadPro-BoldCond", 18)
     playerScore:setReferencePoint(display.CenterRightReferencePoint)
     playerScore.x = CONTENT_WIDTH - 8
     playerScore.y = 0
-    playerScore:setTextColor(32)
+
+    if player.isPlayer then
+        playerPositionTxt:setTextColor(255)
+        playerName:setTextColor(255)
+        playerScore:setTextColor(255)
+    else
+        playerPositionTxt:setTextColor(128)
+        playerName:setTextColor(32)
+        playerScore:setTextColor(32)
+    end
 
     playerGroup:insert(TextureManager.newHorizontalLine(display.contentCenterX + (-display.screenOriginX) + 8, 32, CONTENT_WIDTH*0.9))
 
@@ -275,16 +294,19 @@ local function getPlayersInTheRanking(button, ranking)
                     ranking[i].first_name = user.first_name
                     ranking[i].last_name = user.last_name
                     ranking[i].photo = getPictureFileName(user.id)
-                    ranking[i].isPlayer = (user.id == UserData.info.user_id)
+                    local isPlayer = (user.id == UserData.info.user_id)
+                    ranking[i].isPlayer = isPlayer
+                    if isPlayer then
+                        ranking[i].teamBadge = getLogoFileName(UserData.attributes.favorite_team_id, 1)
+                    else
+                        Server:getInventory(user.id, function(response)
+                            ranking[i].teamBadge = getLogoFileName(response.inventory.attributes.favorite_team_id, 1)
+                        end)
+                    end
                 end
             end
         end
         Server:downloadFilesList(downloadList, function()
-        --TODO baixar escudos dos times dos ranqueados
-        --MatchManager:downloadTeamsLogos({sizes = "medium", matches = ranking.incoming_matches, listener = function()
-        --end})
-        --bottomRanking:updateRankingPositions(ranking)
-        --printTable(ranking)
             button.ranking = ranking
             button.spinnerDefault:removeSelf()
             button:lock(false)

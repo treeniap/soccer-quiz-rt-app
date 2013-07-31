@@ -13,7 +13,7 @@ local function printTextMem(sheetName)
         sheetName = sheetName .. " "
     end
     -- TMU = Texture Memory Usage
-    --print(sheetName, string.format("TMU = %.1f MB", spriteMemoryUsed), string.format("totalTMU = %.1f MB", lastTotalMemoryUsed))
+    print(sheetName, string.format("TMU = %.1f MB", spriteMemoryUsed), string.format("totalTMU = %.1f MB", lastTotalMemoryUsed))
 end
 
 printTextMem(" ")

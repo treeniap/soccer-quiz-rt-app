@@ -9,6 +9,7 @@ MatchManager = {}
 local json = require "json"
 
 local CurrentMatch
+local Teams
 
 local nextMatchesInfo
 
@@ -283,6 +284,16 @@ function MatchManager:downloadTeamsLogos(params)
                 }
             end
         end
+    elseif params.sizes == "mini" then
+        for i, team in ipairs(Teams.list) do
+            local url = team.mini_logo_url
+            if url then
+                logosList[#logosList + 1] = {
+                    url = url,
+                    fileName = getLogoFileName(team.id, 1)
+                }
+            end
+        end
     elseif type(params.sizes) == "table" then
         for i, size in ipairs(params.sizes) do
             local homeUrl = MatchManager:getTeamLogoUrl(true, getSizeName(size))
@@ -335,8 +346,11 @@ local function postEnteredMatchOnFB(matchId)
 end
 
 function MatchManager:init(onComplete)
-    MatchManager:resquestMatches(function()
-        MatchManager:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextSevenMatches(), listener = onComplete})
+    MatchManager:loadTeamsList(function()
+        MatchManager:downloadTeamsLogos({sizes = "mini"})
+        MatchManager:resquestMatches(function()
+            MatchManager:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextSevenMatches(), listener = onComplete})
+        end)
     end)
 end
 
@@ -526,6 +540,25 @@ function MatchManager:getNextSevenMatches()
     end
     return nextMatches
 end
+
+function MatchManager:loadTeamsList(listener)
+    Teams:load(listener)
+end
+
+function MatchManager:getTeamsList()
+    return Teams.list
+end
+
+function MatchManager:getUserTeamTwitter()
+    if not UserData.attributes.favorite_team_id then
+        return
+    end
+    local team = Teams:getTeamById(UserData.attributes.favorite_team_id)
+    if team then
+        return team.twitter
+    end
+end
+
 ---======================---
 --- CURRENT MATCH OBJECT ---
 ---======================---
@@ -569,6 +602,97 @@ end
 
 function CurrentMatch:getAwayTeamLogoUrl(size)
     return self.matchInfo.guest_team[size .. "_logo_urls"][getImagePrefix()]
+end
+
+---===================---
+--- TEAMS LIST OBJECT ---
+---===================---
+Teams = {}
+
+function Teams:load(listener)
+    if self.list then
+        if listener then
+            listener()
+        end
+        return
+    end
+
+    Server.getTeamsList(function(response)
+        --printTable(response)
+        local badgesList = {
+            ["519c26c35ae16dbe35000019"] = "badges/sao_paulo_fc.png",
+            ["519c26c35ae16dbe3500000b"] = "badges/sc_corinthians_paulista.png",
+            ["519c26c35ae16dbe35000025"] = "badges/ca_mineiro.png",
+            ["519c26c35ae16dbe35000003"] = "badges/ec_vitoria.png",
+            ["519c26c35ae16dbe35000011"] = "badges/cr_flamengo.png",
+            ["519c26c35ae16dbe35000013"] = "badges/gremio_fbpa.png",
+            ["519c26c35ae16dbe35000015"] = "badges/c_nautico_c.png",
+            ["519c26c35ae16dbe35000017"] = "badges/aa_ponte_preta.png",
+            ["519c26c35ae16dbe3500001d"] = "badges/ec_bahia.png",
+            ["519c26c35ae16dbe35000023"] = "badges/coritiba_fc.png",
+            ["519c26c35ae16dbe3500001f"] = "badges/cruzeiro_ec.png",
+            ["519c26c35ae16dbe35000021"] = "badges/goias_ec.png",
+            ["519c26c35ae16dbe35000029"] = "badges/ca_paranaense.png",
+            ["519c26c35ae16dbe35000007"] = "badges/cr_vasco_g.png",
+            ["51f15d2f4ea16d2299000001"] = "badges/se_palmeiras.png",
+            ["519c26c35ae16dbe35000005"] = "badges/sc_internacional.png",
+            ["519c26c35ae16dbe3500000d"] = "badges/botafogo_fr.png",
+            ["519c26c35ae16dbe3500000f"] = "badges/santos_fc.png",
+            ["519c26c35ae16dbe3500001b"] = "badges/criciuma_esporte_clube.png",
+            ["519c26c35ae16dbe35000027"] = "badges/fluminense_fc.png",
+            ["519c26c35ae16dbe35000009"] = "badges/portuguesa_desportos.png",
+        }
+        local teamsList = {}
+        for i, team in ipairs(response.teams) do
+            teamsList[team.name] = {
+                id = team.id,
+                badge = badgesList[team.id],
+                mini_logo_url = team.mini_logo_urls[getImagePrefix()],
+                medium_logo_url = team.medium_logo_urls[getImagePrefix()],
+                big_logo_url = team.big_logo_urls[getImagePrefix()],
+                twitter = team.twitter_id
+            }
+        end
+
+        local t = {}
+        function pairsByKeys (t, f)
+            local a = {}
+            for n in pairs(t) do table.insert(a, n) end
+            table.sort(a, f)
+            local i = 0      -- iterator variable
+            local iter = function ()   -- iterator function
+                i = i + 1
+                if a[i] == nil then return nil
+                else return a[i], t[a[i]]
+                end
+            end
+            return iter
+        end
+        for title, value in pairsByKeys(teamsList) do
+            table.insert(t, {
+                name = title,
+                id = value.id,
+                badge = value.badge,
+                mini_logo_url = value.mini_logo_url,
+                medium_logo_url = value.medium_logo_url,
+                big_logo_url = value.big_logo_url,
+                twitter = value.twitter
+            })
+        end
+        self.list = t
+
+        if listener then
+            listener()
+        end
+    end)
+end
+
+function Teams:getTeamById(id)
+    for i, team in pairs(self.list) do
+        if team.id == id then
+            return team
+        end
+    end
 end
 
 return MatchManager

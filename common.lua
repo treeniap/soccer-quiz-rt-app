@@ -229,18 +229,6 @@ function getTimezoneOffset(ts)
     return timeZoneOffset
 end
 
-function dateTimeStringToSeconds(dateTime)
-    local dateTimeTable = {
-        year  = dateTime:sub(1, 4),
-        month = dateTime:sub(6, 7),
-        day   = dateTime:sub(9, 10),
-        hour  = dateTime:sub(12, 13),
-        min   = dateTime:sub(15, 16),
-        sec   = dateTime:sub(18, 19),
-    }
-    return os.time(dateTimeTable)
-end
-
 local lfs = require "lfs"
 function hasFile(fileName, dir)
     local noError, result = pcall(function()
@@ -267,6 +255,9 @@ function getImagePrefix()
 end
 
 function getLogoFileName(teamId, size)
+    if teamId == "" or teamId == " " then
+        return "none"
+    end
     if size <= 1 then
         size = "mini"
     elseif size == 2 then

@@ -31,6 +31,16 @@ function UserData:setInventory(response)
     self.attributes.push_notifications_enabled = response.inventory.attributes.push_notifications_enabled
 end
 
+function UserData:updateAttributes(pushNotificationEnabled, favoriteTeamId)
+    if self.attributes then
+        self.attributes.favorite_team_id = favoriteTeamId
+        self.attributes.push_notifications_enabled = pushNotificationEnabled
+        Server:updateAttributes(self.attributes, self.info.user_id)
+        return true
+    end
+    return false
+end
+
 function UserData:init(params, friends_ids)
     self.info = params
     self.info.friendsIds = {}

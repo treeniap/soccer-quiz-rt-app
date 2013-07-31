@@ -9,8 +9,10 @@ require "scripts.widgets.view.button_tutorial"
 
 local slideView
 local tutorialSheetInfo, tutorialSheetImage
+local pushNotificationOn
+local favoriteTeamId
 
-local function createScreen1(loadImage)
+local function createScreen1()
     local screenGroup = display.newGroup()
 
     screenGroup.imgName = "images/tutorial/tuto_01.jpg"
@@ -18,12 +20,11 @@ local function createScreen1(loadImage)
     if CONTENT_HEIGHT > 480 then -- iPhone 5 and Android
         width, height = 428, 570
     end
-    if loadImage then
-        screenGroup.image = TextureManager.newImageRect(screenGroup.imgName, width, height)
-        screenGroup.image.x = display.contentCenterX
-        screenGroup.image.y = display.contentCenterY
-        screenGroup:insert(1, screenGroup.image)
-    end
+
+    screenGroup.image = TextureManager.newImageRect(screenGroup.imgName, width, height)
+    screenGroup.image.x = display.contentCenterX
+    screenGroup.image.y = display.contentCenterY
+    screenGroup:insert(1, screenGroup.image)
 
     local TEXT_SIZE = 22
     local TEXT_Y = 84
@@ -61,12 +62,6 @@ local function createScreen2(loadImage)
     if CONTENT_HEIGHT > 480 then -- iPhone 5 and Android
         width, height = 428, 570
     end
-    if loadImage then
-        screenGroup.image = TextureManager.newImageRect(screenGroup.imgName, width, height)
-        screenGroup.image.x = display.contentCenterX
-        screenGroup.image.y = display.contentCenterY
-        screenGroup:insert(1, screenGroup.image)
-    end
 
     local TEXT_SIZE = 22
     local TEXT_Y = 142
@@ -102,6 +97,7 @@ local function createScreen2(loadImage)
     textGroup:setReferencePoint(display.CenterReferencePoint)
     textGroup.x = display.contentCenterX
     screenGroup:insert(textGroup)
+    screenGroup.isVisible = false
 
     return screenGroup
 end
@@ -113,12 +109,6 @@ local function createScreen3(loadImage)
     local width, height = 360, 480
     if CONTENT_HEIGHT > 480 then -- iPhone 5 and Android
         width, height = 428, 570
-    end
-    if loadImage then
-        screenGroup.image = TextureManager.newImageRect(screenGroup.imgName, width, height)
-        screenGroup.image.x = display.contentCenterX
-        screenGroup.image.y = display.contentCenterY
-        screenGroup:insert(1, screenGroup.image)
     end
 
     local TEXT_SIZE = 22
@@ -144,7 +134,13 @@ local function createScreen3(loadImage)
     text.x = display.contentCenterX
     text.y = TEXT_Y + 11
 
-    local button = BtnTutorial:new(function() end, tutorialSheetImage, tutorialSheetInfo, {
+    screenGroup.isLocked = true
+    local button = BtnTutorial:new(function()
+        Facebook:init(function()
+            screenGroup.isLocked = false
+            Server.init()
+        end)
+    end, tutorialSheetImage, tutorialSheetInfo, {
         bg = "tuto_bt_fb",
         text = "CADASTRE-SE",
         topText = true,
@@ -154,6 +150,7 @@ local function createScreen3(loadImage)
     button.x = display.contentCenterX
     button.y = SCREEN_BOTTOM - 72
     screenGroup:insert(button)
+    screenGroup.isVisible = false
 
     return screenGroup
 end
@@ -165,12 +162,6 @@ local function createScreen4(loadImage)
     local width, height = 360, 480
     if CONTENT_HEIGHT > 480 then -- iPhone 5 and Android
         width, height = 428, 570
-    end
-    if loadImage then
-        screenGroup.image = TextureManager.newImageRect(screenGroup.imgName, width, height)
-        screenGroup.image.x = display.contentCenterX
-        screenGroup.image.y = display.contentCenterY
-        screenGroup:insert(1, screenGroup.image)
     end
 
     local TEXT_SIZE = 22
@@ -203,7 +194,10 @@ local function createScreen4(loadImage)
     text.x = display.contentCenterX
     text.y = TEXT_Y + 22
 
-    local button = BtnTutorial:new(function() end, tutorialSheetImage, tutorialSheetInfo, {
+    local button = BtnTutorial:new(function()
+        pushNotificationOn = true
+        native.showAlert("", "Notificações habilitadas.", {"Ok"})
+    end, tutorialSheetImage, tutorialSheetInfo, {
         bg = "tuto_bt_gold",
         text = "ALERTA DE PARTIDA",
         topText = true,
@@ -214,27 +208,39 @@ local function createScreen4(loadImage)
     button.x = display.contentCenterX
     button.y = SCREEN_BOTTOM - 72
     screenGroup:insert(button)
+    screenGroup.isVisible = false
 
     return screenGroup
 end
 
-local function createTeam(name, badgeFileName)
+local function createTeam(team)
     local teamGroup = display.newGroup()
     --print(badgeFileName)
-    local badge = TextureManager.newImageRect(badgeFileName, 64, 64, teamGroup) --TODO change to DocumentsDirectory
+    local btn = display.newRoundedRect(teamGroup, 0, 0, 88, 84, 16)
+    btn.strokeWidth = 4
+    btn:setFillColor(128, 32)
+    btn:setStrokeColor(64, 128)
+    btn.x = 0
+    btn.y = 10
+    btn.alpha = 0.01
+    teamGroup:insert(btn)
+    teamGroup.btn = btn
+    local badge = TextureManager.newImageRect(team.badge, 64, 64, teamGroup)
     badge.x = 0
     badge.y = 0
-    local nameTxt = display.newText(teamGroup, string.utf8upper(name), 0, 0, "MyriadPro-BoldCond", 14)
+    local nameTxt = display.newText(teamGroup, string.utf8upper(team.name), 0, 0, "MyriadPro-BoldCond", 14)
     nameTxt.x = 0
     nameTxt.y = badge.height*0.5 + 14
     nameTxt:setTextColor(0)
     teamGroup:setReferencePoint(display.TopCenterReferencePoint)
+    teamGroup.id = team.id
     return teamGroup
 end
 
-local function createScreen5(teamsList)
+local function createScreen5()
     local screenGroup = display.newGroup()
 
+    local startButton
     local width, height = 360, 480
     if CONTENT_HEIGHT > 480 then -- iPhone 5 and Android
         width, height = 428, 570
@@ -253,11 +259,42 @@ local function createScreen5(teamsList)
             hideBackground = true,
             horizontalScrollDisabled = true
         }
-    for i, team in ipairs(teamsList) do
-        local teamBtn = createTeam(team.name, team.badge)
-        teamBtn.x = i%3 == 1 and 54 or i%3 == 2 and 168 or i%3 == 0 and 282
+    local teamsBtns = {}
+
+    local function chooseTeam(button, event)
+        if event.phase == "began" then
+            display.getCurrentStage():setFocus(button)
+            button.isFocus = true
+            for i, btn in ipairs(teamsBtns) do
+                btn.btn.alpha = 0.01
+            end
+            button.btn.alpha = 1
+        elseif event.phase == "moved" then
+            local dy = math.abs( ( event.y - event.yStart ) )
+            -- If our finger has moved more than the desired range
+            if dy > 10 then
+                button.isFocus = nil
+                button.btn.alpha = 0.01
+                -- Pass the focus back to the scrollView
+                teamsGroup:takeFocus( event )
+            end
+        elseif button.isFocus and event.phase == "ended" then
+            display.getCurrentStage():setFocus(nil)
+            startButton:lock(false)
+            favoriteTeamId = button.id
+        end
+        return true
+    end
+
+    for i, team in ipairs(MatchManager:getTeamsList()) do
+        local teamBtn = createTeam(team)
+        teamBtn.x = i%3 == 1 and (60 + display.screenOriginX*0.25) or i%3 == 2 and 160 or i%3 == 0 and (260 - display.screenOriginX*0.25)
+        teamBtn.x =  teamBtn.x + (display.screenOriginX*-.5)
         teamBtn.y = math.floor((i - 1)/3)*86
+        teamBtn.touch = chooseTeam
+        teamBtn:addEventListener("touch", teamBtn)
         teamsGroup:insert(teamBtn)
+        teamsBtns[#teamsBtns + 1] = teamBtn
     end
     teamsGroup:setReferencePoint(display.TopCenterReferencePoint)
     teamsGroup.x = display.contentCenterX
@@ -308,34 +345,44 @@ local function createScreen5(teamsList)
     text.x = display.contentCenterX
     text.y = TEXT_Y + 22
 
-    local button = BtnTutorial:new(function()
-        TutorialScreen:hide(function()
-            ScreenManager:init()
-        end)
+    local starting
+    local function onStartApp(button)
+        if UserData:updateAttributes(pushNotificationOn, favoriteTeamId) then
+            TutorialScreen:hide(function()
+                ScreenManager:init()
+            end)
+        elseif not starting or not button then
+            starting = true
+            timer.performWithDelay(100, onStartApp)
+        end
         return true
-    end, tutorialSheetImage, tutorialSheetInfo, {
+    end
+
+    startButton = BtnTutorial:new(onStartApp, tutorialSheetImage, tutorialSheetInfo, {
         bg = "tuto_bt_gold",
         text = "ENTRAR EM CAMPO",
         topText = false,
         bottomText = false,
         icon = "tuto_icon03"
     })
-    button:setReferencePoint(display.CenterReferencePoint)
-    button.x = display.contentCenterX
-    button.y = SCREEN_BOTTOM - 72 - (display.screenOriginY*-0.5)
-    screenGroup:insert(button)
+    startButton:setReferencePoint(display.CenterReferencePoint)
+    startButton.x = display.contentCenterX
+    startButton.y = SCREEN_BOTTOM - 72 - (display.screenOriginY*-0.5)
+    startButton:lock(true)
+    screenGroup:insert(startButton)
+    screenGroup.isVisible = false
 
     return screenGroup
 end
 
-function TutorialScreen:new(teamsList)
+function TutorialScreen:new()
     tutorialSheetInfo, tutorialSheetImage = TextureManager.loadTutorialSheet()
     local screens = {
-        createScreen1(true),
-        createScreen2(true),
-        createScreen3(true),
-        createScreen4(true),
-        createScreen5(teamsList),
+        createScreen1(),
+        createScreen2(),
+        createScreen3(),
+        createScreen4(),
+        createScreen5(),
     }
 
     local slideScreens = require("scripts.widgets.view.slide_screens")

@@ -17,7 +17,7 @@ end
 
 local function createPlayerView(player, position, isGoldenPlayer)
     local photoSize = isGoldenPlayer and 67 or 57
-    local badgeSize = 16
+    local badgeSize = 24
     local playerGroup = display.newGroup()
     --playerGroup:setReferencePoint(display.CenterReferencePoint)
     local notch
@@ -33,6 +33,7 @@ local function createPlayerView(player, position, isGoldenPlayer)
     end
     notch.x = 0
     notch.y = 0
+
     if player.photo then
         local noError, photo = pcall(TextureManager.newImageRect, player.photo, photoSize, photoSize, playerGroup, system.DocumentsDirectory)
         if noError and photo then
@@ -40,6 +41,7 @@ local function createPlayerView(player, position, isGoldenPlayer)
             photo.y = -0.5
         end
     end
+
     local score = display.newText(playerGroup, player.score .. " Pts", 0, 0, "MyriadPro-BoldCond", 16)
     score:setReferencePoint(display.BottomRightReferencePoint)
     score.x = notch.x + notch.width*0.5
@@ -54,10 +56,22 @@ local function createPlayerView(player, position, isGoldenPlayer)
         positionTxt.x = positionStru.x + 3
         positionTxt.y = positionStru.y + 3
         positionTxt:setTextColor(0)
-    elseif player.team_badge then
-        local teamBadge = TextureManager.newImageRect(player.team_badge, badgeSize, badgeSize, playerGroup)
-        teamBadge.x = notch.x + notch.width*0.5 - teamBadge.width*0.5
-        teamBadge.y = notch.y + notch.height*0.5 - teamBadge.height*0.5
+    else
+        local function createBadge()
+            if not playerGroup or not playerGroup.insert then
+                return
+            end
+            if not player.teamBadge then
+                timer.performWithDelay(500, createBadge)
+            elseif player.teamBadge ~= "none" then
+                local noError, badge = pcall(TextureManager.newImageRect, player.teamBadge, badgeSize, badgeSize, playerGroup, system.DocumentsDirectory)
+                if noError and badge then
+                    badge.x = notch.x + notch.width*0.5 - badgeSize*0.5
+                    badge.y = notch.y + notch.height*0.5 - badgeSize*0.5
+                end
+            end
+        end
+        createBadge()
     end
     return playerGroup
 end
@@ -148,7 +162,10 @@ local function createPlayerOneView(playerPhoto, isInitialScreen)
 end
 
 local function createTweetsBar()
-    local screenName = 'SaoPauloFC'
+    local screenName = MatchManager:getUserTeamTwitter()
+    if not screenName then
+        return
+    end
     local tweetsGroup = display.newGroup()
     tweetsGroup.x = display.contentCenterX + 43 - (display.screenOriginX*-0.5)
     tweetsGroup.y = 5
@@ -177,7 +194,7 @@ local function createTweetsBar()
         for i, v in ipairs(response) do
             --print("--" .. fixhtml(v.text))
             --printTable(v)
-            local txt = display.newText("@" .. screenName .. ": " .. fixhtml(v.text), 0, 0, 200 + (-display.screenOriginX), 0, "MyriadPro-BoldCond", 16)
+            local txt = display.newText("@" .. screenName .. ": " .. fixhtml(v.text), 0, 0, 200 + (-display.screenOriginX), 0, "MyriadPro-BoldCond", 14)
             txt.x = (i - 1)*CONTENT_WIDTH
             txt.y = 0
             txt:setTextColor(32)
@@ -269,7 +286,9 @@ function BottomRanking:createView(playerPhoto, isInitialScreen)
 
     if isInitialScreen then
         self.tweets = createTweetsBar()
-        self:insert(2, self.tweets)
+        if self.tweets then
+            self:insert(2, self.tweets)
+        end
     end
 
     self.leftBar = createPlayerOneView(playerPhoto, isInitialScreen)
