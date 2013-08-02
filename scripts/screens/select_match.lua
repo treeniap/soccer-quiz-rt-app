@@ -151,25 +151,28 @@ local function createChampionshipMatchesView(matchesList, topY)
             button.alpha = 1
             button.group.x = button.group.x + 1
             button.group.y = button.group.y + 1
-        elseif event.phase == "moved" then
-            local dy = math.abs( ( event.y - event.yStart ) )
-            -- If our finger has moved more than the desired range
-            if dy > 10 then
-                button.isFocus = nil
+            AudioManager.playAudio("btn")
+        elseif button.isFocus then
+            if event.phase == "moved" then
+                local dy = math.abs( ( event.y - event.yStart ) )
+                -- If our finger has moved more than the desired range
+                if dy > 10 then
+                    button.isFocus = nil
+                    button.alpha = 0.01
+                    button.group.x = button.group.x - 1
+                    button.group.y = button.group.y - 1
+                    -- Pass the focus back to the scrollView
+                    matchesGroup:takeFocus( event )
+                end
+            elseif event.phase == "ended" then
                 button.alpha = 0.01
                 button.group.x = button.group.x - 1
                 button.group.y = button.group.y - 1
-                -- Pass the focus back to the scrollView
-                matchesGroup:takeFocus( event )
+                display.getCurrentStage():setFocus(nil)
+                MatchManager:setCurrentMatch(button.matchId)
+                isOpeningMatch = true
+                button:removeEventListener("touch", button)
             end
-        elseif button.isFocus and event.phase == "ended" then
-            button.alpha = 0.01
-            button.group.x = button.group.x - 1
-            button.group.y = button.group.y - 1
-            display.getCurrentStage():setFocus(nil)
-            MatchManager:setCurrentMatch(button.matchId)
-            isOpeningMatch = true
-            button:removeEventListener("touch", button)
         end
         return true
     end
@@ -386,7 +389,11 @@ function SelectMatchScreen:showUp(onComplete)
         for i = 1, championshipsListGroup.numChildren do
             transition.from(championshipsListGroup[i], {delay = 300, time = 300, y = 50*-i - 50, transition = easeInQuart})
         end
+        if championshipsListGroup.numChildren > 0 then
+            AudioManager.playAudio("openCloseMenu", 500)
+        end
         transition.from(selectMatchGroup[selectMatchGroup.numChildren], {time = 300, y = SCREEN_TOP - 50, transition = easeInQuart})
+        AudioManager.playAudio("showTopBar")
         timer.performWithDelay(650, onComplete)
     end})
 end

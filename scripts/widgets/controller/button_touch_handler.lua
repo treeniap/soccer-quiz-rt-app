@@ -29,7 +29,9 @@ function TouchHandler.pressReleaseHandler(button, event)
         -- Subsequent touch events will target button even if they are outside the stageBounds of button
         display.getCurrentStage():setFocus(button)
         button.isFocus = true
-
+        if not button.noAudio then
+            AudioManager.playAudio("btn")
+        end
     elseif button.isFocus then
         local bounds = button.stageBounds
         local x, y = event.x, event.y
@@ -84,6 +86,7 @@ function TouchHandler.pressPushHandler(button, event)
         display.getCurrentStage():setFocus(button)
         button.isFocus = true
 
+        AudioManager.playAudio("btn")
     elseif button.isFocus then
 
         if "moved" == phase then

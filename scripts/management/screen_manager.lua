@@ -105,6 +105,12 @@ local function matchServerListener(message)
     currentScreen:onEventStart(_eventInfo)
 end
 
+function ScreenManager:updateTotalCoin()
+    if currentScreen and currentScreen.updateTotalCoins then
+        currentScreen:updateTotalCoins()
+    end
+end
+
 function ScreenManager:showWebView(link)
     local function listener( event )
         --printTable(event)

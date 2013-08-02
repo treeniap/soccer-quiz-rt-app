@@ -39,6 +39,9 @@ function BtnHomeScreen:showUp(onComplete)
         self.isVisible = true
         self.yScale = 1
         transition.from(self, {time = 200, yScale = 0.1, onComplete = onComplete})
+        if onComplete then
+            AudioManager.playAudio("showPlayBtn")
+        end
     end)
 end
 
@@ -54,6 +57,7 @@ end
 function BtnHomeScreen:new(y, title, gold, onRelease)
     BtnHomeScreen.gold = gold
     BtnHomeScreen.title = title
+    BtnHomeScreen.noAudio = true
     local homeScreenBtnGroup = PressRelease:new(BtnHomeScreen, onRelease)
     homeScreenBtnGroup.x = SCREEN_LEFT + homeScreenBtnGroup.width*0.5 - 2
     homeScreenBtnGroup.y = y

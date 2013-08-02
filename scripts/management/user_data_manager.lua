@@ -25,6 +25,8 @@ function UserData:setInventory(response)
             self.inventory.coins = item.amount
         end
     end
+    --print("inventory--------------")
+    --print(self.inventory.coins)
 
     self.attributes = {}
     self.attributes.favorite_team_id = response.inventory.attributes.favorite_team_id
@@ -80,19 +82,45 @@ function UserData:init(params, friends_ids)
     Server:getUsers(friends_ids, true, listener, checkUser)
 end
 
+function UserData:switchSound(isOn)
+    self.soundOn = isOn
+    self:save()
+    AudioManager.setVolume(isOn)
+end
+
 function UserData:checkTutorial()
     local path = system.pathForFile("user.txt", system.DocumentsDirectory)
-
     local file = io.open(path, "r")
-
     if file then
         io.close(file)
-        return false
+        for line in io.lines(path) do
+
+            if(line:sub(1, 6) == "sound=") then
+                self.soundOn = (tonumber(line:sub(7)) == 1)
+                AudioManager.setVolume(self.soundOn)
+            elseif(line:sub(1, 9) == "tutorial=") then
+                -- = tonumber(line:sub(10))
+            end
+        end
+        return true
     end
-    local file = io.open(path, "w")
+    AudioManager.setVolume(true)
+    return false
+end
+
+function UserData:setTutorialCompleted()
+    self.soundOn = true
+    self:save()
+end
+
+function UserData:save()
+    local path = system.pathForFile("user.txt", system.DocumentsDirectory)
+    local file = io.open(path, "w+")
+
     file:write("tutorial=1")
+    file:write("\nsound=" .. (self.soundOn and 1 or 0))
+
     io.close(file)
-    return true
 end
 
 return UserData

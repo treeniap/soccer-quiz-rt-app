@@ -177,6 +177,9 @@ local function createTweetsBar()
         if event.phase == "began" then
             display.getCurrentStage():setFocus(self)
             self.isFocus = true
+            if tweetsGroup.links[tweetsGroup.showing] then
+                AudioManager.playAudio("onOffBtn")
+            end
         elseif self.isFocus and (event.phase == "ended" or event.phase == "cancelled") then
             display.getCurrentStage():setFocus(nil)
             if tweetsGroup.links[tweetsGroup.showing] then
@@ -211,6 +214,9 @@ local function createTweetsBar()
         tweetsGroup.showing = 0
         local function rollTweets()
             tweetsGroup.showing = tweetsGroup.showing + 1
+            if not tweetsGroup.numChildren then
+                return
+            end
             if tweetsGroup.showing > tweetsGroup.numChildren then
                 tweetsGroup.showing = 1
             end
@@ -257,8 +263,10 @@ end
 
 function BottomRanking:showUp(onComplete)
     transition.to(self.bg, {delay = 300, time = 300, x = display.contentCenterX, xScale = 1, onComplete = onComplete})
+    AudioManager.playAudio("showBottomRanking", 500)
     transition.to(self.leftBar, {time = 300, x = SCREEN_LEFT + self.leftBar.width*0.5, transition = easeOutCirc})
     transition.to(self.rightBar, {time = 300, x = SCREEN_RIGHT - self.rightBar.width*0.5 + 1, transition = easeOutCirc})
+    AudioManager.playAudio("showBottomRL")
     if self.tweets then
         transition.from(self.tweets, {delay = 600, time = 300, alpha = 0})
     end

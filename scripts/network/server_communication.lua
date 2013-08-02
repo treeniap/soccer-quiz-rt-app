@@ -402,6 +402,30 @@ function Server:updateAttributes(userAttributes, userId)
     }
 end
 
+function Server:onPurchase(productId, receipt, listener)
+    if not UserData or not UserData.info or not UserData.info.user_id then
+        timer.performWithDelay(500, function() Server:onPurchase(productId, receipt, listener) end)
+        return
+    end
+    local payload = {}
+    payload.app_id = APP_ID
+    payload.product_store_id = productId
+    payload.receipt = receipt
+
+    networkRequest{
+        name = "onPurchase",
+        url = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/purchases",
+        method = "POST",
+        listener = listener,
+        on_client_error = function(response, status) print("on_client_error") printTable(response) end,
+        retries_number = 5,
+        post_params = encode(payload),
+        on_no_response = function(response)
+            print("on_no_response") printTable(response)
+        end
+    }
+end
+
 ---==============================================================---
 ---/////////////////////////// RANKING //////////////////////////---
 ---==============================================================---

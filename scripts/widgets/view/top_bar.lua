@@ -28,7 +28,9 @@ function TopBar:createView(isMenu)
     bg.y = 0
 
     --- More coins
-    local moreCoinsBtn = BtnMoreCoins:new(function() end)
+    local moreCoinsBtn = BtnMoreCoins:new(function()
+        StoreManager.buyThis("com.ffgfriends.chutepremiado.pacotedemoedas")
+    end)
     moreCoinsBtn.x = 300
     moreCoinsBtn.y = -3
     self:insert(moreCoinsBtn)
@@ -81,6 +83,7 @@ function TopBar:showUp(onComplete)
         if onComplete then
             onComplete()
         end
+        AudioManager.playAudio("showSideMenuBtn", 900)
     end})
 end
 

@@ -41,6 +41,8 @@ function Chronometer:start(endTime, onFinish)
     local count = 0
     local lastTime = system.getTimer()
     local cycleTimeElapsed = 0
+    local audioHandler = AudioManager.playAudio("chronometer", nil, -1)
+    AudioManager.playStopBetAnswerWait()
     local function updateChronometer(event)
         local currentTime = system.getTimer()
         cycleTimeElapsed = cycleTimeElapsed + (currentTime - lastTime)
@@ -52,6 +54,7 @@ function Chronometer:start(endTime, onFinish)
             if count == BAR_SIZE then
                 onFinish()
                 Runtime:removeEventListener("enterFrame", updateChronometer)
+                AudioManager.stopAudio(audioHandler)
                 return
             end
         end

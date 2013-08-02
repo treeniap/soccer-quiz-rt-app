@@ -28,6 +28,7 @@ local function createLogo()
     function logo:showUp(onComplete)
         self.isVisible = true
         transition.from(self, {time = 500, x = SCREEN_LEFT - self.width, transition = easeOutQuad, onComplete = onComplete})
+        AudioManager.playAudio("showLogo")
     end
     function logo:hide()
         self.isVisible = true
@@ -166,7 +167,7 @@ local function createMatchesView(x, y)
             hideBackground = true,
             horizontalScrollDisabled = true,
             verticalScrollDisabled = #matches < 4,
-            friction = 0.7,
+            friction = 0.8,
             --listener = adjustScale,
         }
 
@@ -180,25 +181,29 @@ local function createMatchesView(x, y)
             button.alpha = 1
             button.group.x = button.group.x + 1
             button.group.y = button.group.y + 1
-        elseif event.phase == "moved" then
-            local dy = math.abs( ( event.y - event.yStart ) )
-            -- If our finger has moved more than the desired range
-            if dy > 10 then
-                button.isFocus = nil
+            AudioManager.playAudio("btn")
+        elseif button.isFocus then
+            if event.phase == "moved" then
+                local dy = math.abs( ( event.y - event.yStart ) )
+                -- If our finger has moved more than the desired range
+                if dy > 10 then
+                    button.isFocus = nil
+                    button.alpha = 0.01
+                    button.group.x = button.group.x - 1
+                    button.group.y = button.group.y - 1
+                    -- Pass the focus back to the scrollView
+                    matchesGroup:takeFocus( event )
+                end
+            elseif event.phase == "ended" then
                 button.alpha = 0.01
                 button.group.x = button.group.x - 1
                 button.group.y = button.group.y - 1
-                -- Pass the focus back to the scrollView
-                matchesGroup:takeFocus( event )
+                display.getCurrentStage():setFocus(nil)
+                MatchManager:setCurrentMatch(button.matchId)
+                isOpeningMatch = true
+                button:removeEventListener("touch", button)
+                AudioManager.playAudio("hideInitialScreen")
             end
-        elseif button.isFocus and event.phase == "ended" then
-            button.alpha = 0.01
-            button.group.x = button.group.x - 1
-            button.group.y = button.group.y - 1
-            display.getCurrentStage():setFocus(nil)
-            MatchManager:setCurrentMatch(button.matchId)
-            isOpeningMatch = true
-            button:removeEventListener("touch", button)
         end
         return true
     end
@@ -245,7 +250,8 @@ local function createMatchesView(x, y)
     matchesGroup.y = y
     matchesGroup.maskX = 14 + display.screenOriginX*0.5 + display.screenOriginY*0.1
 
-    local lastContY
+    local lastContY = 0
+    local lastSFXPlayY = 0
     function adjustScale()
         if not initialScreenGroup or not matchesGroup then
             return
@@ -253,7 +259,6 @@ local function createMatchesView(x, y)
         if matchesGroup.getContentPosition then
             local contX, contY = matchesGroup:getContentPosition()
             if lastContY ~= contY then
-                lastContY = contY
                 --local yPos = 0
                 --print(contY)
                 for i, _obj in ipairs(matchesGroup.matches) do
@@ -273,6 +278,18 @@ local function createMatchesView(x, y)
                     --yPos = yPos + (120*(((_obj.y + contY)*1.4 + 500)/1000))
                     --print(_obj.y, _obj.baseY)
                 end
+                local SFXY = (contY - 120) % 84
+                if lastContY > contY then
+                    if SFXY >= lastSFXPlayY then
+                        AudioManager.playAudio("matchesFoil")
+                    end
+                else
+                    if SFXY <= lastSFXPlayY then
+                        AudioManager.playAudio("matchesFoil")
+                    end
+                end
+                lastSFXPlayY = SFXY
+                lastContY = contY
             end
         end
     end
@@ -298,6 +315,7 @@ local function createMatchesFoil(onComplete)
             matchesGroup:scrollTo("bottom", {time = 1000})
             onComplete()
         end})
+        AudioManager.playAudio("showNextMatches", 300)
     end
     function matchesFoil:hide(onComplete)
         transition.to(self, {time = 300, x = SCREEN_RIGHT + self.width, transition = easeInQuad, onComplete = function()
@@ -305,7 +323,10 @@ local function createMatchesFoil(onComplete)
             onComplete()
         end})
     end
-    matchesFoil:showUp(function() playBtn:showUp(onComplete) rankingBtn:showUp() end)
+    matchesFoil:showUp(function()
+        playBtn:showUp(onComplete)
+        rankingBtn:showUp()
+    end)
     return matchesFoil
 end
 
@@ -337,8 +358,14 @@ function updateMatchesFoil()
     end
 end
 
+function InitialScreen:updateTotalCoins()
+    topBar:updateTotalCoins(UserData.inventory.coins)
+end
+
 function InitialScreen.onAppResume()
-    updateMatchesFoil()
+    if matchesFoil then
+        updateMatchesFoil()
+    end
 end
 
 function InitialScreen:new()
@@ -350,10 +377,12 @@ function InitialScreen:new()
     playBtn = BtnHomeScreen:new(display.contentCenterY, "JOGAR", true, function()
         MatchManager:resquestMatches()
         ScreenManager:show("select_match")
+        AudioManager.playAudio("hideInitialScreen")
     end)
     initialScreenGroup:insert(playBtn)
     rankingBtn = BtnHomeScreen:new(display.contentCenterY + 47, "RANKING", false, function()
         ScreenManager:show("ranking")
+        AudioManager.playAudio("hideInitialScreen")
     end)
     initialScreenGroup:insert(rankingBtn)
 

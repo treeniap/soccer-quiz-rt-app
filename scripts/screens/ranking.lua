@@ -428,7 +428,9 @@ function RankingScreen:showUp(onComplete)
         for i = 1, rankingsListGroup.numChildren do
             transition.from(rankingsListGroup[i], {delay = 300, time = 300, y = 50*-i - 50, transition = easeInQuart})
         end
+        AudioManager.playAudio("openCloseMenu", 500)
         transition.from(rankingScreenGroup[rankingScreenGroup.numChildren], {time = 300, y = SCREEN_TOP - 50, transition = easeInQuart})
+        AudioManager.playAudio("showTopBar")
         timer.performWithDelay(650, onComplete)
     end})
 end

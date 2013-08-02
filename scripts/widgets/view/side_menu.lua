@@ -50,8 +50,9 @@ local function createOptions()
     -- Handle press events for the switches
     local function onSwitchPress( event )
         local switch = event.target
-
         --print( switch.id, "is on?:", switch.isOn )
+        AudioManager.playAudio("onOffBtn")
+        UserData:switchSound(switch.isOn)
     end
 
     -- AUDIO TITLE
@@ -69,7 +70,7 @@ local function createOptions()
         {
             left = 120,
             top = lineY - 8,
-            initialSwitchState = true,
+            initialSwitchState = UserData.soundOn,
             onPress = onSwitchPress,
             onRelease = onSwitchPress,
         }
@@ -77,18 +78,18 @@ local function createOptions()
 
     -- MUSICA
     lineY = lineY + 36
-    local musicaTxt = display.newText(optionsGroup, "MÚSICA", lineX, lineY, "MyriadPro-BoldCond", 18)
-    musicaTxt:setTextColor(0)
-    -- MUSICA on/off switch
-    local musicOnOffSwitch = widget.newSwitch
-        {
-            left = 120,
-            top = lineY - 8,
-            initialSwitchState = true,
-            onPress = onSwitchPress,
-            onRelease = onSwitchPress,
-        }
-    optionsGroup:insert(musicOnOffSwitch)
+    --local musicaTxt = display.newText(optionsGroup, "MÚSICA", lineX, lineY, "MyriadPro-BoldCond", 18)
+    --musicaTxt:setTextColor(0)
+    ---- MUSICA on/off switch
+    --local musicOnOffSwitch = widget.newSwitch
+    --    {
+    --        left = 120,
+    --        top = lineY - 8,
+    --        initialSwitchState = true,
+    --        onPress = onSwitchPress,
+    --        onRelease = onSwitchPress,
+    --    }
+    --optionsGroup:insert(musicOnOffSwitch)
 
     -- NOTIFICACOES TITLE
     lineY = lineY + 44 + (display.screenOriginY*-0.5)
@@ -104,6 +105,7 @@ local function createOptions()
     -- MEU TIME on/off switch
     local function onSwitchNotificationPress(event)
         UserData:updateAttributes(event.target.isOn, UserData.attributes.favorite_team_id)
+        AudioManager.playAudio("onOffBtn")
     end
     local myTeamOnOffSwitch = widget.newSwitch
         {
@@ -176,8 +178,9 @@ local function createMenuOptions()
     -- Handle press events for the switches
     local function onSwitchPress( event )
         local switch = event.target
-
         --print( switch.id, "is on?:", switch.isOn )
+        AudioManager.playAudio("onOffBtn")
+        UserData:switchSound(switch.isOn)
     end
 
     -- AUDIO TITLE
@@ -195,7 +198,7 @@ local function createMenuOptions()
         {
             left = 120,
             top = lineY - 8,
-            initialSwitchState = true,
+            initialSwitchState = UserData.soundOn,
             onPress = onSwitchPress,
             onRelease = onSwitchPress,
         }

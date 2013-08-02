@@ -10,6 +10,8 @@ require "scripts.management.screen_manager"
 require "scripts.management.match_manager"
 require "scripts.management.assets_manager"
 require "scripts.management.user_data_manager"
+require "scripts.management.audio_manager"
+require "scripts.management.store_manager"
 require "scripts.network.server_communication"
 require "scripts.network.facebook"
 require "util.tween"
@@ -26,11 +28,13 @@ else
     --analytics.init(Params.flurryId)
 end
 
+StoreManager.initStore()
+AudioManager.init()
 if UserData:checkTutorial() then
-    ScreenManager:startTutorial()
-else
     Server.init()
     Facebook:init()
+else
+    ScreenManager:startTutorial()
 end
 
 local onSystem = function(event)

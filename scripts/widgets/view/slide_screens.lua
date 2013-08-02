@@ -131,24 +131,29 @@ function SlideScreens.new(screenSet, tutorialSheetImage, tutorialSheetInfo)
         width, height = 428, 570
     end
     local function changeScreens(previousScreen, nextScreen)
-        if previousScreen.image then
-            previousScreen.image:removeSelf()
-            previousScreen.image = nil
+        if previousScreen then
+            if previousScreen.image then
+                previousScreen.image:removeSelf()
+                previousScreen.image = nil
+            end
+            previousScreen.isVisible = false
         end
-        previousScreen.isVisible = false
-        if nextScreen.imgName then
-            nextScreen.image = TextureManager.newImageRect(nextScreen.imgName, width, height)
-            nextScreen.image.x = display.contentCenterX
-            nextScreen.image.y = display.contentCenterY
-            nextScreen:insert(1, nextScreen.image)
+        if nextScreen then
+            if nextScreen.imgName then
+                nextScreen.image = TextureManager.newImageRect(nextScreen.imgName, width, height)
+                nextScreen.image.x = display.contentCenterX
+                nextScreen.image.y = display.contentCenterY
+                nextScreen:insert(1, nextScreen.image)
+            end
+            nextScreen.isVisible = true
         end
-        nextScreen.isVisible = true
     end
 
     function nextImage()
-        tween = transition.to( screenSet[imgNum], {time=200, x=screenW*-1.5, transition=easing.outExpo, onComplete = function()
-            changeScreens(screenSet[imgNum], screenSet[imgNum+1])
-            tween = transition.to( screenSet[imgNum+1], {time=200, x=0, transition=easing.outExpo } )
+        changeScreens(nil, screenSet[imgNum+1])
+        tween = transition.to( screenSet[imgNum], {time=200, x=screenW*-1.5, transition=easing.outExpo} )
+        tween = transition.to( screenSet[imgNum+1], {time=200, x=0, transition=easing.outExpo, onComplete = function()
+            changeScreens(screenSet[imgNum], nil)
             g:insert(g.numChildren, screenSet[imgNum+1])
             imgNum = imgNum + 1
             initImage(imgNum)
@@ -156,9 +161,10 @@ function SlideScreens.new(screenSet, tutorialSheetImage, tutorialSheetInfo)
     end
 
     function prevImage()
-        tween = transition.to( screenSet[imgNum], {time=200, x=screenW*1.5, transition=easing.outExpo, onComplete = function()
-            changeScreens(screenSet[imgNum], screenSet[imgNum-1])
-            tween = transition.to( screenSet[imgNum-1], {time=200, x=0, transition=easing.outExpo } )
+        changeScreens(nil, screenSet[imgNum-1])
+        tween = transition.to( screenSet[imgNum], {time=200, x=screenW*1.5, transition=easing.outExpo } )
+        tween = transition.to( screenSet[imgNum-1], {time=200, x=0, transition=easing.outExpo, onComplete = function()
+            changeScreens(screenSet[imgNum], nil)
             g:insert(g.numChildren, screenSet[imgNum-1])
             imgNum = imgNum - 1
             initImage(imgNum)
@@ -199,10 +205,15 @@ function SlideScreens.new(screenSet, tutorialSheetImage, tutorialSheetInfo)
                 screenSet[i].x = screenW*1.5
             else
                 screenSet[i].x = screenW*.5
+                g:insert(g.numChildren, screenSet[i])
             end
         end
         imgNum = num
         initImage(imgNum)
+    end
+
+    function g:goToNextImage()
+        nextImage()
     end
 
     function g:hide(onComplete)

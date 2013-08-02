@@ -281,6 +281,7 @@ function InGameEvent:showUp(onComplete)
     transition.to(self.eventFoil, {time = MOVE_TIME, x = SCREEN_LEFT, transition = easeOutQuad})
     transition.to(self.whistle, {time = MOVE_TIME, x = SCREEN_RIGHT - 50, transition = easeOutQuad, onComplete = function()
         transition.to(self.eventFoil, {delay = SHOW_DURATION, time = MOVE_TIME, x = SCREEN_LEFT - self.eventFoil.width, transition = easeInQuad})
+        AudioManager.playAudio("showLogo", SHOW_DURATION)
         transition.to(self.whistle, {delay = SHOW_DURATION, time = MOVE_TIME, x = SCREEN_RIGHT + 64, transition = easeInQuad})
         for i, btn in ipairs(self.voteButtons) do
             btn.isVisible = true
@@ -288,6 +289,7 @@ function InGameEvent:showUp(onComplete)
         end
         timer.performWithDelay(SHOW_DURATION, onComplete)
     end})
+    AudioManager.playAudio("showEvent")
 end
 
 function InGameEvent:showResult(resultInfo, onComplete)
@@ -298,12 +300,15 @@ function InGameEvent:showResult(resultInfo, onComplete)
     transition.to(self.eventFoil, {time = 300, x = SCREEN_LEFT, transition = easeOutQuad})
     if resultInfo.isRight then
         self.resultBar = createRightBet(resultInfo.earnedCoins)
+        AudioManager.playAudio("betRight")
     else
         self.resultBar = createWrongBet()
+        AudioManager.playAudio("betWrong")
     end
     transition.to(self.resultBar, {time = 300, x = SCREEN_RIGHT + 20, transition = easeOutQuad})
     self:insert(self.resultBar)
     onComplete()
+    AudioManager.playStopBetAnswerWait()
 end
 
 function InGameEvent:hide(onComplete)
@@ -423,6 +428,7 @@ function InGameEvent:create(eventInfo)
             timer.performWithDelay(2000, ScreenManager.callNext)
         end
         undoBtn:lock(true)
+        AudioManager.playAudio("betTimeout")
     end
 
     eventGroup.voteButtons = voteButtons

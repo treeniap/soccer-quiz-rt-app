@@ -299,10 +299,10 @@ function unlockScreen()
     end
 end
 
---[
-local month = 7
-local day = 31
-local hour = 19
+---[[
+local month = 8
+local day = 3
+local hour = 18
 local min = 40
 timer.performWithDelay(MINUTE_DURATION, function()
     min = min + 1

@@ -139,6 +139,7 @@ local function createScreen3(loadImage)
         Facebook:init(function()
             screenGroup.isLocked = false
             Server.init()
+            slideView:goToNextImage()
         end)
     end, tutorialSheetImage, tutorialSheetInfo, {
         bg = "tuto_bt_fb",
@@ -348,6 +349,7 @@ local function createScreen5()
     local starting
     local function onStartApp(button)
         if UserData:updateAttributes(pushNotificationOn, favoriteTeamId) then
+            UserData:setTutorialCompleted()
             TutorialScreen:hide(function()
                 ScreenManager:init()
             end)

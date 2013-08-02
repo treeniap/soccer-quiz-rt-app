@@ -100,6 +100,8 @@ function InGameScreen:onGame()
             oldEventView:removeSelf()
             oldEventView = nil
         end)
+        AudioManager.playAudio("showLogo")
+
         eventView = nil
     end
     scoreView:showUp()
