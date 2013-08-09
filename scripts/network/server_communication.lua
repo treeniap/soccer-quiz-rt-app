@@ -526,7 +526,7 @@ end
 function Server:getAppStatus(listener)
     networkRequest{
         name = "getAppStatus",
-        url = "http://d1a6cxe4fj6xw1.cloudfront.net/app_status.json", --TODO
+        url = "http://d1a6cxe4fj6xw1.cloudfront.net/app_status.json",
         method = "GET",
         retries_number = RETRIES_NUMBER,
         listener = listener,
