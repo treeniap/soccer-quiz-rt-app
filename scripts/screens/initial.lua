@@ -19,6 +19,7 @@ local matchesGroup
 local isOpeningMatch
 local updateTimer
 local updateMatchesFoil
+local isUpdatingMatchesFoil
 
 local function createLogo()
     logo = TextureManager.newImage("stru_logotipo", initialScreenGroup)
@@ -331,14 +332,24 @@ local function createMatchesFoil(onComplete)
 end
 
 function InitialScreen:showUp(onComplete)
+    isUpdatingMatchesFoil = true
     bottomRanking:showUp(function()
         topBar:showUp()
         logo:showUp()
-        initialScreenGroup:insert(4, createMatchesFoil(onComplete))
+        initialScreenGroup:insert(4, createMatchesFoil(function()
+            isUpdatingMatchesFoil = false
+            if onComplete then
+                onComplete()
+            end
+        end))
     end)
 end
 
 function updateMatchesFoil()
+    if isUpdatingMatchesFoil then
+        return
+    end
+    isUpdatingMatchesFoil = true
     if updateTimer then
         timer.cancel(updateTimer)
         updateTimer = nil
@@ -349,7 +360,7 @@ function updateMatchesFoil()
         playBtn:hide(function()
             matchesFoil:hide(function()
                 matchesFoil:removeSelf()
-                initialScreenGroup:insert(4, createMatchesFoil(function() end))
+                initialScreenGroup:insert(4, createMatchesFoil(function() isUpdatingMatchesFoil = false end))
             end)
         end)
     end
@@ -370,6 +381,7 @@ end
 
 function InitialScreen:new()
     isOpeningMatch = false
+    isUpdatingMatchesFoil = false
     initialScreenGroup = display.newGroup()
 
     createLogo()

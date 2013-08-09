@@ -7,10 +7,14 @@ Params = {}
 
 if IS_ANDROID then
     Params.flurryId = "" -- Android Flurry Id
-elseif("iPad" == system.getInfo("model")) then
-    Params.flurryId = "" -- iPad Flurry Id
 else
-    Params.flurryId = "" -- iPhone Flurry Id
+    Params.flurryId = "TYQXPJZ66XM6FRNXZRT2" -- iPhone Flurry Id
+end
+
+if IS_ANDROID then
+    Params.rateId = "" -- Android Bundle Name
+else
+    Params.rateId = "646559956" -- App id -- TODO Id atual do Sex Quiz
 end
 
 return Params

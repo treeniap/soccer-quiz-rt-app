@@ -164,7 +164,6 @@ end
 
 function ScreenManager:enterMatch(channel)
     Server.pubnubSubscribe(channel, matchServerListener)
-    Server.pubnubSubscribe(UserData.info.user_id, require("scripts.screens.in_game_event").betResultListener)
     currentScreen:hide(prepareMatch)
     lockScreen()
 end
@@ -172,6 +171,7 @@ end
 function ScreenManager:exitMatch()
     Server.pubnubUnsubscribe(MatchManager:getMatchId())
     ScreenManager:show("initial")
+    AudioManager.playStopBetAnswerWait()
 end
 
 function ScreenManager:init()

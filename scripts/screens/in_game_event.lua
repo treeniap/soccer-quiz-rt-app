@@ -12,7 +12,11 @@ local SCREEN_BOTTOM = SCREEN_BOTTOM
 local SCREEN_RIGHT = SCREEN_RIGHT
 local SCREEN_LEFT = SCREEN_LEFT
 
+local easeOutQuad = easeOutQuad
+local easeInQuad = easeInQuad
+
 local currentAnswer
+local lastRanking
 
 local VOTE_BUTTONS_POSITIONS_Y = {
     display.contentCenterY - 92,
@@ -21,7 +25,7 @@ local VOTE_BUTTONS_POSITIONS_Y = {
     display.contentCenterY + 58
 }
 
-local VOTE_BUTTONS_START_POSITIONS_Y = {
+local VOTE_BUTTONS_START_POSITIONS_X = {
     SCREEN_LEFT - 128,
     SCREEN_RIGHT + 128,
     SCREEN_LEFT - 128,
@@ -86,7 +90,76 @@ local coinSlotsPosition = {
     {x = -2, y = -19}
 }
 
-local function createHexaResult(type, voteButtons)
+local function createBetLuckyAlbum(photos)
+    local albumGroup = display.newGroup()
+    albumGroup.x = -63
+    albumGroup.y = 57
+
+    local photoBg = TextureManager.newImage("stru_albumframe", albumGroup)
+    photoBg.x = 0
+    photoBg.y = 0
+
+    local function loadPhoto(_photo)
+        local photoGroup = display.newGroup()
+        photoGroup.x = 3
+        photoGroup.y = 3
+        local bg = display.newRect(photoGroup, 0, 0, 57, 57)
+        bg.x = 0
+        bg.y = 0
+        local noError, photo = pcall(TextureManager.newImageRect, _photo, 55, 55, photoGroup, system.DocumentsDirectory)
+        if noError and photo then
+            photo.x = 0
+            photo.y = 0
+        end
+        albumGroup:insert(2, photoGroup)
+        if not albumGroup.currentPhoto then
+            albumGroup.currentPhoto = photoGroup
+        else
+            albumGroup.nextPhoto = photoGroup
+        end
+    end
+    loadPhoto(photos[1])
+    if #photos > 1 then
+        local photoNum = 2
+        local photoTimer
+        local function checkAlbum()
+            if not albumGroup or not albumGroup.insert then
+                timer.cancel(photoTimer)
+                photoTimer = nil
+                return false
+            end
+            return true
+        end
+        local function changePhoto()
+            if not checkAlbum() then
+                return
+            end
+            loadPhoto(photos[photoNum])
+            transition.to(albumGroup.currentPhoto, {time = 500, y = 0, x = 64, transition = easeOutQuad, onComplete = function()
+                if not checkAlbum() then
+                    return
+                end
+                albumGroup:insert(1, albumGroup.currentPhoto)
+                transition.to(albumGroup.currentPhoto, {time = 500, y = -3, x = 0, transition = easeOutQuad, onComplete = function()
+                    if not checkAlbum() then
+                        return
+                    end
+                    albumGroup.currentPhoto:removeSelf()
+                    albumGroup.currentPhoto = albumGroup.nextPhoto
+                end})
+            end})
+            photoNum = photoNum + 1
+            if photoNum > #photos then
+                photoNum = 1
+            end
+        end
+        photoTimer = timer.performWithDelay(3000, changePhoto, 0)
+    end
+
+    return albumGroup
+end
+
+local function createHexaResult(type, voteButtons, photos)
     local valueMult, betCoins
     for i, vB in ipairs(voteButtons) do
         if vB.label == type then
@@ -147,32 +220,34 @@ local function createHexaResult(type, voteButtons)
         {x = 2, y = 5},
         {x = -2, y = 1}
     }
-    --[[ for friends
-    local photoBg = TextureManager.newImage("stru_albumframe", hexaGroup)
-    photoBg.x = -63
-    photoBg.y = 57
-    local photo = TextureManager.newImageRect(friend.photo, 53, 53, hexaGroup)
-    photo.x = -60
-    photo.y = 60
-
-    local coinSlotGroup = display.newGroup()
-    for i = 1, friend.coins do
-        local coin = TextureManager.newImage("stru_coin_friendsvote", coinSlotGroup)
-        coin.x = coinSlotsPosition[i].x
-        coin.y = coinSlotsPosition[i].y
+    if photos and #photos > 0 then
+        hexaGroup:insert(createBetLuckyAlbum(photos))
     end
-    coinSlotGroup.x = -79
-    coinSlotGroup.y = 68
-    hexaGroup:insert(coinSlotGroup)
-    --]]
     return hexaGroup
 end
 
-local function changeFoilToResult(_eventFoil, resultInfo, voteButtons)
-    _eventFoil.description:removeSelf()
-    _eventFoil.badge:removeSelf()
+local function getRightBetFriendsPhotos(ranking)
+    if lastRanking then
+        local photos = {}
+        for i, player in pairs(ranking) do
+            if lastRanking[player.user_id] and lastRanking[player.user_id] < player.score then
+                lastRanking[player.user_id] = player.score
+                photos[#photos + 1] = player.photo
+            end
+        end
+        return photos
+    end
+end
+
+local function changeFoilToResult(_eventFoil, resultInfo, voteButtons, ranking)
+    if _eventFoil.description.removeSelf then
+        _eventFoil.description:removeSelf()
+    end
+    if _eventFoil.badge.removeSelf then
+        _eventFoil.badge:removeSelf()
+    end
     _eventFoil.title:setText(resultInfo.title)
-    local hexaVote = createHexaResult(resultInfo.type, voteButtons)
+    local hexaVote = createHexaResult(resultInfo.type, voteButtons, getRightBetFriendsPhotos(ranking))
     hexaVote:setReferencePoint(display.CenterReferencePoint)
     hexaVote.x = 26
     hexaVote.y = -40 + (-display.screenOriginY)
@@ -232,6 +307,26 @@ local function createWhistle()
     return whistleGroup
 end
 
+local function setLastRanking()
+    local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
+    Server:getPlayersRank(userAndFriendsIds, MatchManager:getMatchId(), function(response, status)
+    --printTable(response)
+        if status == 200 then
+            lastRanking = {}
+            for i, player in pairs(response.scores) do
+                if player.user_id ~= UserData.info.user_id then
+                    lastRanking[player.user_id] = player.score
+                end
+            end
+            for i, id in ipairs(userAndFriendsIds) do
+                if not lastRanking[id] and id ~= UserData.info.user_id then
+                    lastRanking[id] = 0
+                end
+            end
+        end
+    end)
+end
+
 local resultInfo = {
     goal = {
         type = "goal",
@@ -260,24 +355,32 @@ local resultInfo = {
 }
 
 function InGameEvent.betResultListener(message)
-    local isRight = type(message.correct) == "boolean" and message.correct or (message.correct == "true")
     local _resultInfo
-
-    if isRight then
-        _resultInfo = resultInfo[currentAnswer]
-    else
+    printTable(message)
+    if not currentAnswer then
         _resultInfo = resultInfo[message.answer]
+        _resultInfo.totalCoins = UserData.inventory.coins
+        _resultInfo.isRight = "no_answer"
+    else
+        local isRight = type(message.correct) == "boolean" and message.correct or (message.correct == "true")
+        if isRight then
+            _resultInfo = resultInfo[currentAnswer]
+        else
+            _resultInfo = resultInfo[message.answer]
+        end
+        currentAnswer = nil
+        _resultInfo.earnedCoins = message.coins.prize
+        _resultInfo.totalCoins = message.coins.total
+        _resultInfo.isRight = isRight
     end
-    currentAnswer = nil
-    _resultInfo.earnedCoins = message.coins.prize
-    _resultInfo.totalCoins = message.coins.total
-    _resultInfo.isRight = isRight
+
     InGameScreen:onEventEnd(_resultInfo)
 end
 
 function InGameEvent:showUp(onComplete)
     local MOVE_TIME = 300
     local SHOW_DURATION = 1500
+    self.phase = "began"
     transition.to(self.eventFoil, {time = MOVE_TIME, x = SCREEN_LEFT, transition = easeOutQuad})
     transition.to(self.whistle, {time = MOVE_TIME, x = SCREEN_RIGHT - 50, transition = easeOutQuad, onComplete = function()
         transition.to(self.eventFoil, {delay = SHOW_DURATION, time = MOVE_TIME, x = SCREEN_LEFT - self.eventFoil.width, transition = easeInQuad})
@@ -285,28 +388,35 @@ function InGameEvent:showUp(onComplete)
         transition.to(self.whistle, {delay = SHOW_DURATION, time = MOVE_TIME, x = SCREEN_RIGHT + 64, transition = easeInQuad})
         for i, btn in ipairs(self.voteButtons) do
             btn.isVisible = true
-            transition.from(btn, {delay = SHOW_DURATION, time = MOVE_TIME, x = VOTE_BUTTONS_START_POSITIONS_Y[i], transition = easeOutQuad})
+            transition.from(btn, {delay = SHOW_DURATION, time = MOVE_TIME, x = VOTE_BUTTONS_START_POSITIONS_X[i], transition = easeOutQuad})
         end
-        timer.performWithDelay(SHOW_DURATION, onComplete)
+        timer.performWithDelay(SHOW_DURATION, function()
+            self.phase = "betting"
+            onComplete()
+        end)
     end})
     AudioManager.playAudio("showEvent")
 end
 
-function InGameEvent:showResult(resultInfo, onComplete)
+function InGameEvent:showResult(resultInfo, ranking, onComplete)
     for i, btn in ipairs(self.voteButtons) do
-        transition.to(btn, {time = 300, x = VOTE_BUTTONS_START_POSITIONS_Y[i], transition = easeInQuad})
+        transition.to(btn, {time = 300, x = VOTE_BUTTONS_START_POSITIONS_X[i], transition = easeInQuad})
     end
-    changeFoilToResult(self.eventFoil, resultInfo, self.voteButtons)
-    transition.to(self.eventFoil, {time = 300, x = SCREEN_LEFT, transition = easeOutQuad})
-    if resultInfo.isRight then
-        self.resultBar = createRightBet(resultInfo.earnedCoins)
-        AudioManager.playAudio("betRight")
-    else
-        self.resultBar = createWrongBet()
-        AudioManager.playAudio("betWrong")
+    changeFoilToResult(self.eventFoil, resultInfo, self.voteButtons, ranking)
+    transition.to(self.eventFoil, {time = 300, x = SCREEN_LEFT, transition = easeOutQuad, onComplete = function()
+        self.phase = "ended"
+    end})
+    if resultInfo.isRight ~= "no_answer" then
+        if resultInfo.isRight then
+            self.resultBar = createRightBet(resultInfo.earnedCoins)
+            AudioManager.playAudio("betRight")
+        else
+            self.resultBar = createWrongBet()
+            AudioManager.playAudio("betWrong")
+        end
+        transition.to(self.resultBar, {time = 300, x = SCREEN_RIGHT + 20, transition = easeOutQuad})
+        self:insert(self.resultBar)
     end
-    transition.to(self.resultBar, {time = 300, x = SCREEN_RIGHT + 20, transition = easeOutQuad})
-    self:insert(self.resultBar)
     onComplete()
     AudioManager.playStopBetAnswerWait()
 end
@@ -323,6 +433,10 @@ function InGameEvent:create(eventInfo)
     for k, v in pairs(InGameEvent) do
         eventGroup[k] = v
     end
+
+    currentAnswer = nil
+    lastRanking = nil
+    setLastRanking()
 
     local undoBtn = QuestionsBar:getUndoBtn()
 
@@ -410,22 +524,35 @@ function InGameEvent:create(eventInfo)
         --if bottomRightBtn then
         --    bottomRightBtn:showFriendVoted(f4)
         --end
-
+        local function postBet(url, coins)
+            local function onClientError(event)
+                Server:getUserInventory(nil, function()
+                    InGameScreen:updateTotalCoins()
+                    --native.showAlert("ERRO", "Possíveis causas:\n- O lance pode ter sido cancelado.\n- Você não possui uma boa conexão com a internet.\n- Suas configurações de data e hora estão erradas.", {"Ok"}, ScreenManager.callNext)
+                    native.showAlert("ERRO", "Houve um erro de comunicação com nosso servidor. Verifique se o horário de seu " .. getDeviceName() .. " está sendo ajustado automaticamente e/ou se sua internet está rápida e estável.", {"Ok"}, ScreenManager.callNext)
+                end)
+            end
+            local function listener(response, status)
+                if not response or status ~= 200 then
+                    print("Bet Error", status)
+                    timer.performWithDelay(2000, ScreenManager.callNext)
+                    return
+                end
+                print("Bet Ok", status)
+            end
+            Server.postBet(url, UserData.info.user_id, coins, onClientError, listener)
+        end
         for i, vB in ipairs(voteButtons) do
             if vB:getBetCoins() > 0 then
-                Server.postBet(vB.url, UserData.info.user_id, vB:getBetCoins(), function(event)
-                    Server:getUserInventory(nil, function()
-                        InGameScreen:updateTotalCoins()
-                        --native.showAlert("ERRO", "Possíveis causas:\n- O lance pode ter sido cancelado.\n- Você não possui uma boa conexão com a internet.\n- Suas configurações de data e hora estão erradas.", {"Ok"}, ScreenManager.callNext)
-                        native.showAlert("ERRO", "Houve um erro de comunicação com nosso servidor. Verifique se o horário de seu " .. getDeviceName() .. " está sendo ajustado automaticamente e/ou se sua internet está rápida e estável.", {"Ok"}, ScreenManager.callNext)
-                    end)
-                end)
+                --print(vB.url, vB:getBetCoins())
+                postBet(vB.url, vB:getBetCoins())
                 currentAnswer = vB.label
             end
             vB:lock(true)
         end
         if not currentAnswer then
-            timer.performWithDelay(2000, ScreenManager.callNext)
+            --timer.performWithDelay(2000, ScreenManager.callNext)
+            postBet(voteButtons[1].url, 0)
         end
         undoBtn:lock(true)
         AudioManager.playAudio("betTimeout")

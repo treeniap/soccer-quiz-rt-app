@@ -62,12 +62,12 @@ function AudioManager.stopAudio(audioHandler)
 end
 
 local betAnswerWaitHandler
-function AudioManager.playStopBetAnswerWait()
-    if betAnswerWaitHandler then
+function AudioManager.playStopBetAnswerWait(play)
+    if play then
+        betAnswerWaitHandler = audio.play(sounds["betAnswerWait"], {loops = -1})
+    elseif betAnswerWaitHandler then
         audio.stop(betAnswerWaitHandler)
         betAnswerWaitHandler = nil
-    else
-        betAnswerWaitHandler = audio.play(sounds["betAnswerWait"], {loops = -1})
     end
 end
 

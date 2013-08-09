@@ -13,6 +13,7 @@ require "scripts.screens.in_game_questions"
 require "scripts.screens.in_game_score"
 require "scripts.screens.in_game_event"
 require "scripts.screens.in_game_end"
+require "scripts.screens.in_game_period"
 
 InGameScreen = {}
 
@@ -22,12 +23,12 @@ local topBar, questionsBar, bottomRanking
 local scoreView, eventView, endView
 local friendsIdBadgesNames
 
-local function updateBottomRanking()
+local function updateBottomRanking(listener)
     local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
     Server:getPlayersRank(userAndFriendsIds, MatchManager:getMatchId(), function(response, status)
         --printTable(response)
         local ranking
-        if status == 200 then
+        if status == 200 and response then
             ranking = response.scores
             --check if all friends and the user are in the rank otherwise add then
             for i, id in ipairs(userAndFriendsIds) do
@@ -53,6 +54,9 @@ local function updateBottomRanking()
                 }
             end
         else
+            if listener then
+                listener()
+            end
             return
         end
         if not friendsIdBadgesNames then
@@ -76,6 +80,9 @@ local function updateBottomRanking()
             end
         end
 
+        if listener then
+            listener(ranking)
+        end
         bottomRanking:updateRankingPositions(ranking)
     end)
 end
@@ -129,11 +136,12 @@ end
 
 function InGameScreen:onEventEnd(resultInfo)
     display.getCurrentStage():setFocus(nil)
-    eventView:showResult(resultInfo, function()
-        questionsBar:onEventResult()
-        topBar:updateTotalCoins(resultInfo.totalCoins)
-        UserData:setTotalCoins(resultInfo.totalCoins)
-        updateBottomRanking()
+    updateBottomRanking(function(ranking)
+        eventView:showResult(resultInfo, ranking, function()
+            questionsBar:onEventResult()
+            topBar:updateTotalCoins(resultInfo.totalCoins)
+            UserData:setTotalCoins(resultInfo.totalCoins)
+        end)
     end)
 end
 
@@ -144,6 +152,40 @@ function InGameScreen:onGameOver(finalResultInfo)
     inGameGroup:insert(2, endView)
     questionsBar:lock()
     endView:showUp(function() questionsBar:onGameOver() end)
+end
+
+function InGameScreen:onPeriodChange(period)
+    print("InGameScreen:onPeriodChange")
+    if eventView then
+        if eventView.phase == "ended" then
+            questionsBar:onGame()
+            local oldEventView = eventView
+            oldEventView:hide(function()
+                oldEventView:removeSelf()
+                oldEventView = nil
+            end)
+            eventView = nil
+        else
+            timer.performWithDelay(500, function()
+                InGameScreen:onPeriodChange(period)
+            end)
+            return
+        end
+    end
+    display.getCurrentStage():setFocus(nil)
+    scoreView:hide()
+    local periodView = InGamePeriod:create(period)
+    inGameGroup:insert(2, periodView)
+    questionsBar:lock()
+    periodView:showUp(function()
+        timer.performWithDelay(2000, function()
+            periodView:hide(function()
+                scoreView:showUp()
+                periodView:removeSelf()
+            end)
+            AudioManager.playAudio("showLogo")
+        end)
+    end)
 end
 
 function InGameScreen:callNext()

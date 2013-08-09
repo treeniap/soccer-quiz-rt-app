@@ -42,7 +42,7 @@ function Chronometer:start(endTime, onFinish)
     local lastTime = system.getTimer()
     local cycleTimeElapsed = 0
     local audioHandler = AudioManager.playAudio("chronometer", nil, -1)
-    AudioManager.playStopBetAnswerWait()
+    AudioManager.playStopBetAnswerWait(true)
     local function updateChronometer(event)
         local currentTime = system.getTimer()
         cycleTimeElapsed = cycleTimeElapsed + (currentTime - lastTime)

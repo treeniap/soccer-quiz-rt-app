@@ -101,15 +101,19 @@ function InGameScore:update()
 end
 
 function InGameScore:showUp()
-    if self.transitionHandler then
+    if self.transitionHandler or self.alpha == 1 then
         return
     end
     self.transitionHandler = transition.to(self, {delay = 500, time = 1000, alpha = 1, onComplete = function() self.transitionHandler = nil end})
 end
 
 function InGameScore:hide(onComplete)
-    if self.transitionHandler then
-        transition.cancel(self.transitionHandler)
+    if self.transitionHandler or self.alpha == 0 then
+        --transition.cancel(self.transitionHandler)
+        if onComplete then
+            onComplete()
+        end
+        return
     end
     self.transitionHandler = transition.to(self, {time = 400, alpha = 0, onComplete = function()
         self.transitionHandler = nil

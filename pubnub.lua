@@ -19,7 +19,7 @@ function pubnub.new(init)
     local subscriptions = {}
 
     -- SSL ENABLED?
-    if self.ssl then 
+    if self.ssl then
         self.origin = "https://" .. self.origin
     else
         self.origin = "http://" .. self.origin
@@ -141,7 +141,7 @@ function pubnub.new(init)
 
         -- BEGIN SUBSCRIPTION (LISTEN FOR MESSAGES)
         substabizel()
-        
+
     end
 
     function self:unsubscribe(args)
@@ -154,8 +154,8 @@ function pubnub.new(init)
     end
 
     function self:presence(args)
-	args.channel = args.channel .. '-pnpres'
-	self:subscribe(args)
+        args.channel = args.channel .. '-pnpres'
+        self:subscribe(args)
     end
 
     function self:here_now(args)
@@ -176,7 +176,7 @@ function pubnub.new(init)
             }
         })
 
-    end    
+    end
 
     function self:history(args)
         if not (args.callback and args.channel) then
@@ -221,7 +221,7 @@ function pubnub.new(init)
             if args.reverse then
                 if (args.reverse == true or args.reverse == "true") then
                     query["reverse"] = "true"
-                    else
+                else
                     query["reverse"] = "false"
                 end
             end
@@ -233,7 +233,7 @@ function pubnub.new(init)
 
         if not count then
             count = 10
-            else count = args.count
+        else count = args.count
         end
 
         query["count"] = count
@@ -288,6 +288,7 @@ function pubnub.new(init)
         local params = {}
         params["V"] = "3.3"
         params["User-Agent"] = "Corona"
+        params["timeout"] = 300
 
         network.request( url, "GET", function(event)
             if (event.isError) then
@@ -319,37 +320,37 @@ function pubnub.new(init)
         return new_array
     end
 
-     function self:UUID()
+    function self:UUID()
         local chars = {"0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"}
         local uuid = {[9]="-",[14]="-",[15]="4",[19]="-",[24]="-"}
         local r, index
         for i = 1,36 do
-                if(uuid[i]==nil)then
-                        -- r = 0 | Math.random()*16;
-                        r = math.random (36)
-                        if(i == 20 and BinDecHex)then 
-                                -- (r & 0x3) | 0x8
-                                index = tonumber(Hex2Dec(BMOr(BMAnd(Dec2Hex(r), Dec2Hex(3)), Dec2Hex(8))))
-                                if(index < 1 or index > 36)then 
-                                        print("WARNING Index-19:",index)
-                                        return UUID() -- should never happen - just try again if it does ;-)
-                                end
-                        else
-                                index = r
-                        end
-                        uuid[i] = chars[index]
+            if(uuid[i]==nil)then
+                -- r = 0 | Math.random()*16;
+                r = math.random (36)
+                if(i == 20 and BinDecHex)then
+                    -- (r & 0x3) | 0x8
+                    index = tonumber(Hex2Dec(BMOr(BMAnd(Dec2Hex(r), Dec2Hex(3)), Dec2Hex(8))))
+                    if(index < 1 or index > 36)then
+                        print("WARNING Index-19:",index)
+                        return UUID() -- should never happen - just try again if it does ;-)
+                    end
+                else
+                    index = r
                 end
+                uuid[i] = chars[index]
+            end
         end
         return table.concat(uuid)
-     end
+    end
 
-     local Hex2Dec, BMOr, BMAnd, Dec2Hex
-     if(BinDecHex)then
+    local Hex2Dec, BMOr, BMAnd, Dec2Hex
+    if(BinDecHex)then
         Hex2Dec, BMOr, BMAnd, Dec2Hex = BinDecHex.Hex2Dec, BinDecHex.BMOr, BinDecHex.BMAnd, BinDecHex.Dec2Hex
-     end
+    end
 
     self.uuid = self:UUID()
-    
+
     -- RETURN NEW PUBNUB OBJECT
     return self
 

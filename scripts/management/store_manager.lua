@@ -20,6 +20,7 @@ local validProducts, invalidProducts = {}, {}
 
 local isStoreInitialized = false
 local isBuying
+local buyListener
 
 -----------------------------------------------------------------
 --	                    CALLING FUNCTIONS                      --
@@ -73,10 +74,13 @@ local function transactionCallback(event)
         -- Transaction was cancelled; tell you app to react accordingly here
     elseif transaction.state == "failed" then
         -- Transaction failed; tell you app to react accordingly here
-        native.showAlert("", "Store purchases are not available, please try again later", { "OK" })
+        native.showAlert("", "Compras na loja não estão disponíveis, por favor tente mais tarde.", { "OK" })
     end
     if transaction.state ~= "purchased" then
         store.finishTransaction(transaction)
+    end
+    if buyListener then
+        buyListener()
     end
 end
 
@@ -131,7 +135,8 @@ function StoreManager.initStore()
     end
 end
 
-function StoreManager.buyThis(inappPurchaseId)
+function StoreManager.buyThis(inappPurchaseId, listener)
+    buyListener = listener
     if not isBuying then
         isBuying = true
     end

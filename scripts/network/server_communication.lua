@@ -5,9 +5,6 @@
 ==============]]--
 Server = {}
 
-local json = require "json"
-require "pubnub"
-
 local APP_ID = "com.ffgfriends.chutepremiado"
 
 local STATUS_REACHABLE   = "reachable"
@@ -74,7 +71,7 @@ function Server.addNetworkStatusListener(listener)
 end
 
 local function encode(_payload)
-    local content = json.encode(_payload)
+    local content = Json.Encode(_payload)
     return {
         ["headers"] = { ["Accept"] = "application/json", ["Content-Type"] = "application/json" },
         ["body"] = content
@@ -161,6 +158,7 @@ function serverResponseHandler(_request)
 
     return function(event)
         local status = event.status
+        log("Result " .. _request.name .. " " .. status)
         --Server Error
         if event.isError or status >= 500  or status == -1 then
             printTable(event)
@@ -170,12 +168,12 @@ function serverResponseHandler(_request)
         --Client Error
         if status >= 400 then
             if _request.on_client_error then
-                _request.on_client_error(event)
+                _request.on_client_error(event, status)
             end
             return
         end
         --No Error
-        local noError, jsonContent = pcall(json.decode, event.response)
+        local noError, jsonContent = pcall(Json.Decode, event.response)
         if noError and jsonContent then
             --log("-----====RESPONSE START")
             ----printTable(jsonContent)
@@ -199,7 +197,7 @@ function networkRequest(_request)
         network.request(URL, _request.method, serverResponseHandler(_request), _request.post_params)
     else
         Server.addNetworkStatusListener(function() networkRequest(_request) end)
-        native.showAlert("", "Please check your internet connection.", { "Ok" })
+        native.showAlert("", "Por favor, verifique a sua conexão com a internet.", { "Ok" })
     end
 end
 
@@ -451,6 +449,7 @@ function Server:getPlayersRank(playersIds, leaderboardId, listener)
         retries_number = RETRIES_NUMBER,
         listener = listener,
         on_client_error = listener,
+        on_no_response = listener,
         --post_params = encode(payload)
     }
 end
@@ -497,7 +496,7 @@ end
 function Server:getAppLinks(listener)
     networkRequest{
         name = "getAppLinks",
-        url = "http://pw-games.com/chutepremiado/facebook_links.json",
+        url = "http://d1a6cxe4fj6xw1.cloudfront.net/facebook_links.json",
         method = "GET",
         retries_number = RETRIES_NUMBER,
         listener = listener,
@@ -512,7 +511,22 @@ end
 function Server:getUsefulLinks(listener)
     networkRequest{
         name = "getUsefulLinks",
-        url = "http://pw-games.com/chutepremiado/useful_links.json",
+        url = "http://d1a6cxe4fj6xw1.cloudfront.net/useful_links.json",
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = listener,
+        on_no_response = listener,
+    }
+end
+
+---==============================================================---
+---///////////////////////// APP STATUS /////////////////////////---
+---==============================================================---
+function Server:getAppStatus(listener)
+    networkRequest{
+        name = "getAppStatus",
+        url = "http://d1a6cxe4fj6xw1.cloudfront.net/app_status.json", --TODO
         method = "GET",
         retries_number = RETRIES_NUMBER,
         listener = listener,
@@ -525,25 +539,30 @@ end
 ---/////////////////////////// PUBNUB ///////////////////////////---
 ---==============================================================---
 function Server.pubnubSubscribe(channel, listener)
-    pubnubObj:subscribe({
-        channel = channel,
-        connect = function()
+    log("pubnubSubscribe", channel)
+    if weLovePubnub then
+        weLovePubnub.subscribe(channel)
+    else
+        pubnubObj:subscribe({
+            channel = channel,
+            connect = function()
             --'Connected to channel '
-        end,
-        callback = function(message)
+            end,
+            callback = function(message)
             --printTable(message)
-            listener(message)
-        end,
-        errorback = function()
-            print("Oh no!!! Dropped 3G Conection!")
-        end
-    })
+                listener(message)
+            end,
+            errorback = function()
+                print("Oh no!!! Dropped 3G Conection!")
+            end
+        })
+    end
 end
 function Server.pubnubUnsubscribe(channel)
     pubnubObj:unsubscribe({channel = channel})
 end
 
-function Server.postBet(url, id, coins, onClientError)
+function Server.postBet(url, id, coins, onClientError, listener)
     local payload = {
         user_id = id,
         coins = coins
@@ -552,11 +571,28 @@ function Server.postBet(url, id, coins, onClientError)
         name = "postBet",
         url = url,
         method = "POST",
-        listener = function() end,
+        listener = listener,
+        on_no_response = listener,
         on_client_error = onClientError,
-        retries_number = RETRIES_NUMBER,
+        retries_number = 0,
         post_params = encode(payload)
     }
+end
+
+function Server.pubnubConnect()
+    log("pubnub Connect")
+
+    local noError, errorMessage = pcall(require, "weLovePubnub")
+    if noError then
+        weLovePubnub.connect()
+    else
+        require "pubnub"
+        pubnubObj = pubnub.new({
+            subscribe_key = "sub-c-e2d4b628-fe18-11e2-b670-02ee2ddab7fe",
+            ssl           = false,
+            origin        = "pubsub.pubnub.com"
+        })
+    end
 end
 
 ---=====================================================---
@@ -567,11 +603,8 @@ function Server.init()
     network.setStatusListener("http://soccer-questions-api.herokuapp.com", networkStatusListener)
     networkStatusChangeListeners = {}
 
-    pubnubObj = pubnub.new({
-        subscribe_key = "sub-c-83c694d6-c708-11e2-8a13-02ee2ddab7fe",
-        ssl           = false,
-        origin        = "pubsub.pubnub.com"
-    })
+    Server.pubnubConnect()
+
     AssetsManager:createFolder("logos")
     AssetsManager:createFolder("pictures")
 end

@@ -6,7 +6,6 @@
 Facebook = {}
 
 local facebook = require "facebook"
-local json = require "Json"
 local appId = "371360562986250"
 local access_token
 local requestType
@@ -91,7 +90,7 @@ local function listener(event)
     elseif "request" == event.type then
         -- event.response is a JSON object from the FB server
         local response = event.response
-        response = json.Decode(event.response)
+        response = Json.Decode(event.response)
         --printTable(event)
         if requestType == REQUEST_TYPE_USER_INFO then
             userInfo = {
@@ -157,7 +156,7 @@ function Facebook:post(message, score)
         local actions
         local link = "http://welovequiz.com"
         if response and response.url then
-            actions = json.Encode(
+            actions = Json.Encode(
                 { name = "App Store",
                     link = response.url } )
             link = response.url

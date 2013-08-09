@@ -28,8 +28,12 @@ function TopBar:createView(isMenu)
     bg.y = 0
 
     --- More coins
-    local moreCoinsBtn = BtnMoreCoins:new(function()
-        StoreManager.buyThis("com.ffgfriends.chutepremiado.pacotedemoedas")
+    local moreCoinsBtn
+    moreCoinsBtn = BtnMoreCoins:new(function()
+        moreCoinsBtn:lock(true)
+        StoreManager.buyThis("com.ffgfriends.chutepremiado.pacotedemoedas", function()
+            moreCoinsBtn:lock(false)
+        end)
     end)
     moreCoinsBtn.x = 300
     moreCoinsBtn.y = -3

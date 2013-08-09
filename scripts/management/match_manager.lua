@@ -371,6 +371,7 @@ function MatchManager:setCurrentMatch(matchId)
             for j, matchInfo in ipairs(championshipInfo.incoming_matches) do
                 if matchInfo.id == matchId then
                     CurrentMatch.matchInfo = matchInfo
+                    CurrentMatch.period = nil
                     CurrentMatch.championshipRound = championshipInfo.current_round
                     CurrentMatch.championshipName = championshipInfo.name
                     CurrentMatch.championshipLogoName = championshipInfo.machine_friendly_name
@@ -442,6 +443,7 @@ end
 
 function MatchManager:getMatchTimeStatus()
     local status
+    local period
     local time
     local _date = CurrentMatch.matchInfo.starts_at
     local currentDate = getCurrentDate()
@@ -450,27 +452,38 @@ function MatchManager:getMatchTimeStatus()
     --print(minutesSpent)
     if minutesSpent <= 0 then
         status = "AQUECIMENTO"
+        period = "warming_up"
     elseif CurrentMatch.matchInfo.status == "finished" then --"started", "finished", "scheduled"
         status = "ENCERRADO"
+        period = "match_over"
         onMatchOver()
     else
         time = CurrentMatch.matchInfo.elapsed_time
         if minutesSpent > 60 and time > 0 then
             status = "2° TEMPO"
+            period = "second_half"
         elseif minutesSpent > 45 and time == 0 then
             time = nil
             status = "INTERVALO"
+            period = "half_time"
         else
             status = "1° TEMPO"
+            period = "first_half"
         end
     end
     --print(CurrentMatch.matchInfo.status, CurrentMatch.matchInfo.elapsed_time)
+    if CurrentMatch.period and CurrentMatch.period ~= period then
+        InGameScreen:onPeriodChange(period)
+    end
+    CurrentMatch.period = period
 
     return status, time
 end
 
 function MatchManager:getMatchId()
-    return CurrentMatch.matchInfo.id
+    if CurrentMatch and CurrentMatch.matchInfo and CurrentMatch.matchInfo.id then
+        return CurrentMatch.matchInfo.id
+    end
 end
 
 function MatchManager:getTeamName(teamId, isHome)
@@ -620,27 +633,27 @@ function Teams:load(listener)
     Server.getTeamsList(function(response)
         --printTable(response)
         local badgesList = {
-            ["519c26c35ae16dbe35000019"] = "badges/sao_paulo_fc.png",
-            ["519c26c35ae16dbe3500000b"] = "badges/sc_corinthians_paulista.png",
-            ["519c26c35ae16dbe35000025"] = "badges/ca_mineiro.png",
-            ["519c26c35ae16dbe35000003"] = "badges/ec_vitoria.png",
-            ["519c26c35ae16dbe35000011"] = "badges/cr_flamengo.png",
-            ["519c26c35ae16dbe35000013"] = "badges/gremio_fbpa.png",
-            ["519c26c35ae16dbe35000015"] = "badges/c_nautico_c.png",
-            ["519c26c35ae16dbe35000017"] = "badges/aa_ponte_preta.png",
-            ["519c26c35ae16dbe3500001d"] = "badges/ec_bahia.png",
-            ["519c26c35ae16dbe35000023"] = "badges/coritiba_fc.png",
-            ["519c26c35ae16dbe3500001f"] = "badges/cruzeiro_ec.png",
-            ["519c26c35ae16dbe35000021"] = "badges/goias_ec.png",
-            ["519c26c35ae16dbe35000029"] = "badges/ca_paranaense.png",
-            ["519c26c35ae16dbe35000007"] = "badges/cr_vasco_g.png",
-            ["51f15d2f4ea16d2299000001"] = "badges/se_palmeiras.png",
-            ["519c26c35ae16dbe35000005"] = "badges/sc_internacional.png",
-            ["519c26c35ae16dbe3500000d"] = "badges/botafogo_fr.png",
-            ["519c26c35ae16dbe3500000f"] = "badges/santos_fc.png",
-            ["519c26c35ae16dbe3500001b"] = "badges/criciuma_esporte_clube.png",
-            ["519c26c35ae16dbe35000027"] = "badges/fluminense_fc.png",
-            ["519c26c35ae16dbe35000009"] = "badges/portuguesa_desportos.png",
+            ["519c26c35ae16dbe35000019"] = "images/badges/sao_paulo_fc.png",
+            ["519c26c35ae16dbe3500000b"] = "images/badges/sc_corinthians_paulista.png",
+            ["519c26c35ae16dbe35000025"] = "images/badges/ca_mineiro.png",
+            ["519c26c35ae16dbe35000003"] = "images/badges/ec_vitoria.png",
+            ["519c26c35ae16dbe35000011"] = "images/badges/cr_flamengo.png",
+            ["519c26c35ae16dbe35000013"] = "images/badges/gremio_fbpa.png",
+            ["519c26c35ae16dbe35000015"] = "images/badges/c_nautico_c.png",
+            ["519c26c35ae16dbe35000017"] = "images/badges/aa_ponte_preta.png",
+            ["519c26c35ae16dbe3500001d"] = "images/badges/ec_bahia.png",
+            ["519c26c35ae16dbe35000023"] = "images/badges/coritiba_fc.png",
+            ["519c26c35ae16dbe3500001f"] = "images/badges/cruzeiro_ec.png",
+            ["519c26c35ae16dbe35000021"] = "images/badges/goias_ec.png",
+            ["519c26c35ae16dbe35000029"] = "images/badges/ca_paranaense.png",
+            ["519c26c35ae16dbe35000007"] = "images/badges/cr_vasco_g.png",
+            ["51f15d2f4ea16d2299000001"] = "images/badges/se_palmeiras.png",
+            ["519c26c35ae16dbe35000005"] = "images/badges/sc_internacional.png",
+            ["519c26c35ae16dbe3500000d"] = "images/badges/botafogo_fr.png",
+            ["519c26c35ae16dbe3500000f"] = "images/badges/santos_fc.png",
+            ["519c26c35ae16dbe3500001b"] = "images/badges/criciuma_esporte_clube.png",
+            ["519c26c35ae16dbe35000027"] = "images/badges/fluminense_fc.png",
+            ["519c26c35ae16dbe35000009"] = "images/badges/portuguesa_desportos.png",
         }
         local teamsList = {}
         for i, team in ipairs(response.teams) do

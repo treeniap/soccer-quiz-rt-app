@@ -11,6 +11,7 @@ end
 
 function UserData:setUserId(userId)
     self.info.user_id = userId
+    Server.pubnubSubscribe(self.info.user_id, require("scripts.screens.in_game_event").betResultListener)
 end
 
 function UserData:setTotalCoins(coins)

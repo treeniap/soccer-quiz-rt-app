@@ -19,6 +19,10 @@ function BtnMoreCoins:createView()
     self.textFichas = display.newText(self, "FICHAS", -28 + (display.screenOriginX*-0.5), -4, "MyriadPro-BoldCond", 18)
 end
 
+function BtnMoreCoins:lock(isLock)
+    self.isLocked = isLock
+end
+
 function BtnMoreCoins:new(onRelease)
     local moreCoinsBtnGroup = PressRelease:new(BtnMoreCoins, onRelease)
     return moreCoinsBtnGroup
