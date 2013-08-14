@@ -31,7 +31,6 @@ end
 ---=======================================================================---
 
 local function networkStatusListener(event)
-
     --printTable(event)
     if event.isReachable then
         if networkStatus ~= STATUS_REACHABLE then
@@ -56,10 +55,12 @@ local function networkStatusListener(event)
                 networkStatusChangeListeners[i] = nil
             end
             networkStatusChangeListeners = {}
+            AnalyticsManager.conectivity("LostInternetConnection")
         end
     end
     Server.wwan = event.isReachableViaCellular
     Server.wifi = event.isReachableViaWiFi
+    Server.connectionName = Server.wifi and "Wi-fi" or(Server.wwan and "3G" or (Server.connectionName and Server.connectionName or "Disconnected"))
 end
 
 function Server.isNetworkReachable()
@@ -182,6 +183,8 @@ function serverResponseHandler(_request)
             if result == "error" then
                 onError(_request, status)
             end
+        elseif event.response == " " then
+            callListener(_request.listener, jsonContent, status)
         end
     end
 end
@@ -251,7 +254,7 @@ function Server:checkUser(userInfo)
         end,
         retries_number = 30,
         on_no_response = function()
-            native.showAlert("Erro no servidor", "Por favor, tente mais tarde.", { "Ok" }, function() Server:checkUser(userInfo) end)
+            native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:checkUser(userInfo) end)
         end
     }
 end
@@ -280,7 +283,7 @@ function Server:createUser(userInfo)
         end,
         retries_number = 30,
         on_no_response = function()
-            native.showAlert("Erro no servidor", "Por favor, tente mais tarde.", { "Ok" }, function() Server:createUser(userInfo) end)
+            native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:createUser(userInfo) end)
         end,
         post_params = encode(payload)
     }
@@ -339,7 +342,7 @@ function Server:createInventory(userInfo)
         end,
         retries_number = 30,
         on_no_response = function()
-            native.showAlert("Erro no servidor", "Por favor, tente mais tarde.", { "Ok" }, function() Server:createInventory(userInfo) end)
+            native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:createInventory(userInfo) end)
         end,
         post_params = encode(payload)
     }
@@ -395,7 +398,7 @@ function Server:updateAttributes(userAttributes, userId)
         retries_number = RETRIES_NUMBER,
         post_params = encode(payload),
         on_no_response = function()
-            native.showAlert("Erro no servidor", "Por favor, tente mais tarde.", { "Ok" }, function() Server:updateAttributes(userAttributes, userId) end)
+            native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:updateAttributes(userAttributes, userId) end)
         end
     }
 end
@@ -417,6 +420,39 @@ function Server:onPurchase(productId, receipt, listener)
         listener = listener,
         on_client_error = function(response, status) print("on_client_error") printTable(response) end,
         retries_number = 5,
+        post_params = encode(payload),
+        on_no_response = function(response)
+            print("on_no_response") printTable(response)
+        end
+    }
+end
+
+function Server:claimFavoriteTeamCoins(matchId)
+    local payload = {}
+    payload.user_id = UserData.info.user_id
+    payload.match_id = matchId
+
+    local function listener(response, status)
+        timer.performWithDelay(4000, function()
+            print("UserData.lastFavTeamMatchId")
+            UserData.lastFavTeamMatchId = matchId
+            UserData:save()
+
+            Server:getUserInventory(nil, function()
+                ScreenManager:updateTotalCoin()
+            end)
+
+            native.showAlert("", "Você ganhou 5 fichas para apostar no jogo do seu time!", { "Ok" })
+        end)
+    end
+
+    networkRequest{
+        name = "claimFavoriteTeamCoins",
+        url = "http://api.questions.soccer.welovequiz.com/promotions/claim",
+        method = "PUT",
+        listener = listener,
+        on_client_error = function(response, status) print("on_client_error") printTable(response) end,
+        retries_number = RETRIES_NUMBER,
         post_params = encode(payload),
         on_no_response = function(response)
             print("on_no_response") printTable(response)
@@ -598,11 +634,10 @@ end
 ---=====================================================---
 ---/////////////////////////////////////////////////////---
 ---=====================================================---
+network.setStatusListener("http://soccer-questions-api.herokuapp.com", networkStatusListener)
+networkStatusChangeListeners = {}
 
 function Server.init()
-    network.setStatusListener("http://soccer-questions-api.herokuapp.com", networkStatusListener)
-    networkStatusChangeListeners = {}
-
     Server.pubnubConnect()
 
     AssetsManager:createFolder("logos")

@@ -90,6 +90,9 @@ function UserData:switchSound(isOn)
 end
 
 function UserData:checkTutorial()
+    self.session = 1
+    self.lastNotificationDate = getCurrentDate()
+    self.lastFavTeamMatchId = "xxxxx"
     local path = system.pathForFile("user.txt", system.DocumentsDirectory)
     local file = io.open(path, "r")
     if file then
@@ -101,8 +104,15 @@ function UserData:checkTutorial()
                 AudioManager.setVolume(self.soundOn)
             elseif(line:sub(1, 9) == "tutorial=") then
                 -- = tonumber(line:sub(10))
+            elseif(line:sub(1, 8) == "session=") then
+                self.session = tonumber(line:sub(9)) + 1
+            elseif(line:sub(1, 21) == "lastNotificationDate=") then
+                self.lastNotificationDate = date(line:sub(22))
+            elseif(line:sub(1, 19) == "lastFavTeamMatchId=") then
+                self.lastFavTeamMatchId = line:sub(20)
             end
         end
+        self:save()
         return true
     end
     AudioManager.setVolume(true)
@@ -120,6 +130,9 @@ function UserData:save()
 
     file:write("tutorial=1")
     file:write("\nsound=" .. (self.soundOn and 1 or 0))
+    file:write("\nsession=" .. self.session or 1)
+    file:write("\nlastNotificationDate=" .. self.lastNotificationDate or getCurrentDate())
+    file:write("\nlastFavTeamMatchId=" .. self.lastFavTeamMatchId or "xxxxx")
 
     io.close(file)
 end

@@ -110,6 +110,12 @@ local function createMatchView(match, y, currentDate)
             local touchHandler = createTouchHandler(y)
             matchesGroup:insert(touchHandler)
             matchGroup.touchHandler = touchHandler
+            print(UserData.lastFavTeamMatchId)
+            if UserData.lastFavTeamMatchId ~= match.id and
+                    (match.home_team.id == UserData.attributes.favorite_team_id or
+                    match.guest_team.id == UserData.attributes.favorite_team_id) then
+                Server:claimFavoriteTeamCoins(match.id)
+            end
         else
             time = display.newText("HOJE - " .. string.utf8upper(match.starts_at:fmt("%H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
         end
@@ -406,6 +412,8 @@ function InitialScreen:new()
     initialScreenGroup:insert(topBar)
 
     InitialScreen.group = initialScreenGroup
+
+    AnalyticsManager.enteredHomeScreen()
 
     return initialScreenGroup
 end

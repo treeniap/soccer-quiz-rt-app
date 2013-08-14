@@ -302,8 +302,8 @@ end
 -- TODO set date to test
 ---[[
 local month = 8
-local day = 10
-local hour = 19
+local day = 14
+local hour = 21
 local min = 0
 timer.performWithDelay(MINUTE_DURATION, function()
     min = min + 1
@@ -324,7 +324,7 @@ end, 0)
 --]]
 function getCurrentDate()
     local _date = os.date("*t")
-    if _date.wday > 1 and _date.wday < 7 and (_date.hour < 19 or (_date.hour == 19 and _date.min < 30)) then
+    if _date.wday > 1 and _date.wday < 7 and (_date.hour < 19 or (_date.hour == 19 and _date.min < 59)) then
         --_date.month = month
         --_date.day = day
         --_date.hour = hour
@@ -332,6 +332,16 @@ function getCurrentDate()
     end
     local currentDate = date(_date)
     return currentDate
+end
+
+function scheduleLocalNotification(uctTime, alertTxt, soundFileName)
+    local options = {
+        alert = alertTxt,
+        badge = 1,
+        sound = soundFileName
+    }
+
+    local notificationID = system.scheduleNotification(uctTime, options)
 end
 
 -- Monitors memory

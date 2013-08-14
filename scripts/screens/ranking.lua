@@ -308,7 +308,9 @@ local function getPlayersInTheRanking(button, ranking)
         end
         Server:downloadFilesList(downloadList, function()
             button.ranking = ranking
-            button.spinnerDefault:removeSelf()
+            if button.spinnerDefault then
+                button.spinnerDefault:removeSelf()
+            end
             button:lock(false)
         end)
     end
@@ -447,6 +449,8 @@ function RankingScreen:new()
     bgGroup.isVisible = false
     rankingsListGroup.isVisible = false
     rankingScreenGroup[rankingScreenGroup.numChildren].isVisible = false
+
+    AnalyticsManager.enteredRankingScreen()
 
     return rankingScreenGroup
 end

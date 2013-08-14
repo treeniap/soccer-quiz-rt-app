@@ -15,6 +15,7 @@ local currentScreen
 local previousScreen
 local answer
 local tutorial
+local MIN_USER_BET_TIME = 6
 
 local challengeInfo = {
     name = "DESAFIO DO PRÉ-JOGO",
@@ -102,7 +103,12 @@ local function matchServerListener(message)
     _eventInfo.teamBadge = getLogoFileName(message.team_id, 3)
     _eventInfo.userBetTimeout = date(message.user_bet_timeout)
     _eventInfo.userBetTimeout = _eventInfo.userBetTimeout:addseconds(getTimezoneOffset(os.time()))
-    currentScreen:onEventStart(_eventInfo)
+    local secondsToEvent = date.diff(_eventInfo.userBetTimeout, date(os.date("*t"))):spanseconds()
+
+    if secondsToEvent >= MIN_USER_BET_TIME then
+        currentScreen:onEventStart(_eventInfo)
+    end
+    AnalyticsManager.eventToDisplay(secondsToEvent, MIN_USER_BET_TIME)
 end
 
 function ScreenManager:updateTotalCoin()
@@ -174,7 +180,7 @@ function ScreenManager:exitMatch()
     AudioManager.playStopBetAnswerWait()
 end
 
-function ScreenManager:init()
+function ScreenManager.init()
     if not tutorial then
         MatchManager:init(function()
             TextureManager.loadMainSheet()

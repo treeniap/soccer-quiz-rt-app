@@ -5,6 +5,8 @@
 ==============]]--
 InGameScore = {}
 
+local UPDATE_TIME = 30000
+
 local function createChampionshipInfo()
     local championshipRound, championshipName, championshipBadge = MatchManager:getChampionshipInfo()
     local championshipGroup = display.newGroup()
@@ -156,7 +158,7 @@ function InGameScore:create()
 
     infoGroup.alpha = 0
 
-    infoGroup.timer = timer.performWithDelay(MINUTE_DURATION, function()
+    infoGroup.timer = timer.performWithDelay(UPDATE_TIME, function()
         MatchManager:updateMatch(infoGroup.update)
     end, 0)
     MatchManager:updateMatch(infoGroup.update)

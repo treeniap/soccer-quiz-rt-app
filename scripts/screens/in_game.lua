@@ -83,7 +83,9 @@ local function updateBottomRanking(listener)
         if listener then
             listener(ranking)
         end
-        bottomRanking:updateRankingPositions(ranking)
+        if bottomRanking then
+            bottomRanking:updateRankingPositions(ranking)
+        end
     end)
 end
 
@@ -137,11 +139,13 @@ end
 function InGameScreen:onEventEnd(resultInfo)
     display.getCurrentStage():setFocus(nil)
     updateBottomRanking(function(ranking)
-        eventView:showResult(resultInfo, ranking, function()
-            questionsBar:onEventResult()
-            topBar:updateTotalCoins(resultInfo.totalCoins)
-            UserData:setTotalCoins(resultInfo.totalCoins)
-        end)
+        if eventView then
+            eventView:showResult(resultInfo, ranking, function()
+                questionsBar:onEventResult()
+                topBar:updateTotalCoins(resultInfo.totalCoins)
+                UserData:setTotalCoins(resultInfo.totalCoins)
+            end)
+        end
     end)
 end
 
@@ -151,11 +155,14 @@ function InGameScreen:onGameOver(finalResultInfo)
     endView = InGameEnd:create(finalResultInfo)
     inGameGroup:insert(2, endView)
     questionsBar:lock()
-    endView:showUp(function() questionsBar:onGameOver() end)
+    endView:showUp(function()
+        questionsBar:onGameOver()
+        AnalyticsManager.changedGamePeriod("match_over")
+    end)
 end
 
 function InGameScreen:onPeriodChange(period)
-    print("InGameScreen:onPeriodChange")
+    --print("InGameScreen:onPeriodChange")
     if eventView then
         if eventView.phase == "ended" then
             questionsBar:onGame()
@@ -178,10 +185,11 @@ function InGameScreen:onPeriodChange(period)
     inGameGroup:insert(2, periodView)
     questionsBar:lock()
     periodView:showUp(function()
-        timer.performWithDelay(2000, function()
+        timer.performWithDelay(4000, function()
             periodView:hide(function()
                 scoreView:showUp()
                 periodView:removeSelf()
+                AnalyticsManager.changedGamePeriod(period)
             end)
             AudioManager.playAudio("showLogo")
         end)
@@ -270,6 +278,8 @@ function InGameScreen:new()
     topBar = TopBar:new()
     topBar:updateTotalCoins(UserData.inventory.coins)
     inGameGroup:insert(topBar)
+
+    AnalyticsManager.enteredInGameScreen()
 
     return inGameGroup
 end

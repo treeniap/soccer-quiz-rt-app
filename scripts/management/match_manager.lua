@@ -350,6 +350,7 @@ function MatchManager:init(onComplete)
         MatchManager:downloadTeamsLogos({sizes = "mini"})
         MatchManager:resquestMatches(function()
             MatchManager:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextSevenMatches(), listener = onComplete})
+            MatchManager:scheduleNextFavoriteTeamMatch()
         end)
     end)
 end
@@ -377,7 +378,7 @@ function MatchManager:setCurrentMatch(matchId)
                     CurrentMatch.championshipLogoName = championshipInfo.machine_friendly_name
                     ScreenManager:enterMatch(matchId)
                     --TODO teste: finaliza partida
-                    --timer.performWithDelay(4000, onMatchOver)
+                    --timer.performWithDelay(5000, onMatchOver)
                     postEnteredMatchOnFB(matchId)
                 end
             end
@@ -455,7 +456,7 @@ function MatchManager:getMatchTimeStatus()
         period = "warming_up"
     elseif CurrentMatch.matchInfo.status == "finished" then --"started", "finished", "scheduled"
         status = "ENCERRADO"
-        period = "match_over"
+        period = CurrentMatch.period -- "match_over"
         onMatchOver()
     else
         time = CurrentMatch.matchInfo.elapsed_time
@@ -484,19 +485,6 @@ function MatchManager:getMatchId()
     if CurrentMatch and CurrentMatch.matchInfo and CurrentMatch.matchInfo.id then
         return CurrentMatch.matchInfo.id
     end
-end
-
-function MatchManager:getTeamName(teamId, isHome)
-    if CurrentMatch:isHomeTeamId(teamId) then
-        return CurrentMatch:getHomeTeamName()
-    elseif CurrentMatch:isAwayTeamId(teamId) then
-        return CurrentMatch:getAwayTeamName()
-    elseif isHome then
-        return CurrentMatch:getHomeTeamName()
-    else
-        return CurrentMatch:getAwayTeamName()
-    end
-    error("Team Id: " .. teamId .. " is from another match")
 end
 
 function MatchManager:getTeamId(isHome)
@@ -569,6 +557,52 @@ function MatchManager:getUserTeamTwitter()
     local team = Teams:getTeamById(UserData.attributes.favorite_team_id)
     if team then
         return team.twitter
+    end
+end
+
+function MatchManager:getTeamName(teamId)
+    if teamId then
+        local team = Teams:getTeamById(teamId)
+        if team then
+            return team.name
+        end
+    end
+    return "none"
+end
+
+function MatchManager:scheduleNextFavoriteTeamMatch()
+    local favoriteTeamId = UserData.attributes.favorite_team_id
+    if nextMatchesInfo and favoriteTeamId then
+        local after = getCurrentDate():addminutes(5)
+        local scheduledDates = {}
+        print("current date", after:fmt("%A, %B %d %Y - %H:%M"))
+        for i, championship in ipairs(nextMatchesInfo) do
+            for j, matchInfo in ipairs(championship.incoming_matches) do
+                if matchInfo.guest_team.id == favoriteTeamId or matchInfo.home_team.id == favoriteTeamId then
+                    print(matchInfo.id, matchInfo.starts_at, UserData.lastNotificationDate)
+                    if matchInfo.starts_at > after and matchInfo.starts_at > UserData.lastNotificationDate then
+                        local startsAt = matchInfo.starts_at:copy()
+                        scheduledDates[#scheduledDates + 1] = startsAt
+
+                        startsAt:addseconds(-getTimezoneOffset(os.time()) - 300) -- converts to UTC
+                        print("next favorite team match date", startsAt:fmt("%A, %B %d %Y - %H:%M"))
+
+                        scheduleLocalNotification(startsAt,
+                            "Chegou a hora de " .. matchInfo.home_team.name .. " x " .. matchInfo.guest_team.name ..
+                                    ". Venha jogar Chute Premiado e ganhe 5 fichas!",
+                            "sounds/aif/16.aif")
+                    end
+                end
+            end
+        end
+        for i, _date in ipairs(scheduledDates) do
+            if _date > UserData.lastNotificationDate then
+                UserData.lastNotificationDate = _date
+            end
+        end
+        UserData:save()
+    else
+        timer.performWithDelay(1000, function() MatchManager:getNextFavoriteTeamMatch() end)
     end
 end
 

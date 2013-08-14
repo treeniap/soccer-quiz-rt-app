@@ -34,6 +34,8 @@ function TopBar:createView(isMenu)
         StoreManager.buyThis("com.ffgfriends.chutepremiado.pacotedemoedas", function()
             moreCoinsBtn:lock(false)
         end)
+
+        AnalyticsManager.clickedMoreCoins(isMenu and "Home" or "InGame")
     end)
     moreCoinsBtn.x = 300
     moreCoinsBtn.y = -3

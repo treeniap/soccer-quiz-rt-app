@@ -14,6 +14,7 @@ local favoriteTeamId
 
 local function createScreen1()
     local screenGroup = display.newGroup()
+    screenGroup.num = 1
 
     screenGroup.imgName = "images/tutorial/tuto_01.jpg"
     local width, height = 360, 480
@@ -56,6 +57,7 @@ end
 
 local function createScreen2(loadImage)
     local screenGroup = display.newGroup()
+    screenGroup.num = 2
 
     screenGroup.imgName = "images/tutorial/tuto_02.jpg"
     local width, height = 360, 480
@@ -104,6 +106,7 @@ end
 
 local function createScreen3(loadImage)
     local screenGroup = display.newGroup()
+    screenGroup.num = 3
 
     screenGroup.imgName = "images/tutorial/tuto_03.jpg"
     local width, height = 360, 480
@@ -119,20 +122,26 @@ local function createScreen3(loadImage)
     tutorialBox.y = TEXT_Y
 
     local textGroup = display.newGroup()
-    local text = display.newText(textGroup, "JOGAR COM", 0, 0, "MyriadPro-BoldCond", TEXT_SIZE)
-    text.x = 0
-    text.y = TEXT_Y - 11
-    local textYellow = display.newText(textGroup, " AMIGOS", 0, 0, "MyriadPro-BoldCond", TEXT_SIZE)
-    textYellow.x = text.x + text.width*0.5 + textYellow.width*0.5
-    textYellow.y = text.y
-    textYellow:setTextColor(255, 225, 5)
-    textGroup:setReferencePoint(display.CenterReferencePoint)
-    textGroup.x = display.contentCenterX
     screenGroup:insert(textGroup)
 
-    local text = display.newText(screenGroup, "É MUITO MAIS DIVERTIDO!", 0, 0, "MyriadPro-BoldCond", TEXT_SIZE)
-    text.x = display.contentCenterX
-    text.y = TEXT_Y + 11
+    local text = display.newText(textGroup, "USAMOS A SUA IDENTIDADE DO", 0, 0, "MyriadPro-BoldCond", TEXT_SIZE)
+    text.x = 0
+    text.y = TEXT_Y - 22
+
+    local textYellow = display.newText(textGroup, "FACEBOOK", 0, 0, "MyriadPro-BoldCond", TEXT_SIZE)
+    textYellow.x = -100
+    textYellow.y = TEXT_Y
+    textYellow:setTextColor(255, 225, 5)
+    local text = display.newText(textGroup, " PARA CRIAR SEU PERFIL E", 0, 0, "MyriadPro-BoldCond", TEXT_SIZE)
+    text.x = textYellow.x + textYellow.width*0.5 + text.width*0.5
+    text.y = TEXT_Y
+
+    local text = display.newText(textGroup, "ENCONTRAR SEUS AMIGOS.", 0, 0, "MyriadPro-BoldCond", TEXT_SIZE)
+    text.x = 0
+    text.y = TEXT_Y + 22
+
+    --textGroup:setReferencePoint(display.CenterReferencePoint)
+    textGroup.x = display.contentCenterX
 
     screenGroup.isLocked = true
     local button = BtnTutorial:new(function()
@@ -158,6 +167,7 @@ end
 
 local function createScreen4(loadImage)
     local screenGroup = display.newGroup()
+    screenGroup.num = 4
 
     screenGroup.imgName = "images/tutorial/tuto_05.jpg"
     local width, height = 360, 480
@@ -240,6 +250,7 @@ end
 
 local function createScreen5()
     local screenGroup = display.newGroup()
+    screenGroup.num = 5
 
     local startButton
     local width, height = 360, 480
@@ -346,17 +357,17 @@ local function createScreen5()
     text.x = display.contentCenterX
     text.y = TEXT_Y + 22
 
-    local starting
     local function onStartApp(button)
-        if UserData:updateAttributes(pushNotificationOn, favoriteTeamId) then
-            UserData:setTutorialCompleted()
-            TutorialScreen:hide(function()
-                ScreenManager:init()
-            end)
-        elseif not starting or not button then
-            starting = true
-            timer.performWithDelay(100, onStartApp)
+        local function completeTutorial()
+            if UserData:updateAttributes(pushNotificationOn, favoriteTeamId) then
+                UserData:setTutorialCompleted()
+                ScreenManager.init()
+                AnalyticsManager.finishedTutorial()
+            else
+                timer.performWithDelay(300, completeTutorial)
+            end
         end
+        TutorialScreen:hide(completeTutorial)
         return true
     end
 
@@ -383,7 +394,7 @@ function TutorialScreen:new()
         createScreen1(),
         createScreen2(),
         createScreen3(),
-        createScreen4(),
+        --createScreen4(),
         createScreen5(),
     }
 
@@ -391,6 +402,8 @@ function TutorialScreen:new()
     slideView = slideScreens.new(screens, tutorialSheetImage, tutorialSheetInfo)
 
     tutorialSheetInfo, tutorialSheetImage = nil, nil
+
+    AnalyticsManager.enteredTutorialScreen()
 end
 
 function TutorialScreen:hide(onComplete)

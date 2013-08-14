@@ -16,6 +16,7 @@ local easeOutQuad = easeOutQuad
 local easeInQuad = easeInQuad
 
 local currentAnswer
+local currentBet
 local lastRanking
 
 local VOTE_BUTTONS_POSITIONS_Y = {
@@ -361,6 +362,8 @@ function InGameEvent.betResultListener(message)
         _resultInfo = resultInfo[message.answer]
         _resultInfo.totalCoins = UserData.inventory.coins
         _resultInfo.isRight = "no_answer"
+
+        AnalyticsManager.question("skiped", 0, "no_answer")
     else
         local isRight = type(message.correct) == "boolean" and message.correct or (message.correct == "true")
         if isRight then
@@ -368,10 +371,13 @@ function InGameEvent.betResultListener(message)
         else
             _resultInfo = resultInfo[message.answer]
         end
-        currentAnswer = nil
         _resultInfo.earnedCoins = message.coins.prize
         _resultInfo.totalCoins = message.coins.total
         _resultInfo.isRight = isRight
+
+        AnalyticsManager.emptyCoins(nil, message.coins.total == 0)
+        AnalyticsManager.question(isRight and "guessed" or "missed", currentBet, currentAnswer)
+        currentAnswer = nil
     end
 
     InGameScreen:onEventEnd(_resultInfo)
@@ -435,6 +441,7 @@ function InGameEvent:create(eventInfo)
     end
 
     currentAnswer = nil
+    currentBet = nil
     lastRanking = nil
     setLastRanking()
 
@@ -531,6 +538,7 @@ function InGameEvent:create(eventInfo)
                     --native.showAlert("ERRO", "Possíveis causas:\n- O lance pode ter sido cancelado.\n- Você não possui uma boa conexão com a internet.\n- Suas configurações de data e hora estão erradas.", {"Ok"}, ScreenManager.callNext)
                     native.showAlert("ERRO", "Houve um erro de comunicação com nosso servidor. Verifique se o horário de seu " .. getDeviceName() .. " está sendo ajustado automaticamente e/ou se sua internet está rápida e estável.", {"Ok"}, ScreenManager.callNext)
                 end)
+                AnalyticsManager.conectivity("LateClientResponse")
             end
             local function listener(response, status)
                 if not response or status ~= 200 then
@@ -547,6 +555,9 @@ function InGameEvent:create(eventInfo)
                 --print(vB.url, vB:getBetCoins())
                 postBet(vB.url, vB:getBetCoins())
                 currentAnswer = vB.label
+                currentBet = vB:getBetCoins()
+
+                AnalyticsManager.emptyCoins(UserData.inventory.coins == 0)
             end
             vB:lock(true)
         end

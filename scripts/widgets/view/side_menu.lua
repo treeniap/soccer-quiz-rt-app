@@ -24,6 +24,7 @@ local function showHideMenu(btn, event)
         btn.touchBlocker.isVisible = true
         btn.isOpen = true
         btn.isLocked = true
+        AnalyticsManager.OpenedSideMenu()
     end
     return true
 end
@@ -53,6 +54,7 @@ local function createOptions()
         --print( switch.id, "is on?:", switch.isOn )
         AudioManager.playAudio("onOffBtn")
         UserData:switchSound(switch.isOn)
+        AnalyticsManager.clickedAudioSetting(UserData.soundOn and "AudioOn" or "AudioOff")
     end
 
     -- AUDIO TITLE
@@ -91,34 +93,35 @@ local function createOptions()
     --    }
     --optionsGroup:insert(musicOnOffSwitch)
 
-    -- NOTIFICACOES TITLE
-    lineY = lineY + 44 + (display.screenOriginY*-0.5)
-    local notificacoesTitleTxt = display.newEmbossedText(optionsGroup, "NOTIFICAÇÕES", lineX, lineY, "MyriadPro-BoldCond", 14)
-    notificacoesTitleTxt:setTextColor(192)
-    notificacoesTitleTxt:setEmbossColor(color)
-    optionsGroup:insert(TextureManager.newHorizontalLine(104, lineY + 18, 220 + display.screenOriginX*-2))
-
-    -- MEU TIME
-    lineY = lineY + 28
-    local meutimeTxt = display.newText(optionsGroup, "MEU TIME", lineX, lineY, "MyriadPro-BoldCond", 18)
-    meutimeTxt:setTextColor(0)
-    -- MEU TIME on/off switch
-    local function onSwitchNotificationPress(event)
-        UserData:updateAttributes(event.target.isOn, UserData.attributes.favorite_team_id)
-        AudioManager.playAudio("onOffBtn")
-    end
-    local myTeamOnOffSwitch = widget.newSwitch
-        {
-            left = 120,
-            top = lineY - 8,
-            initialSwitchState = UserData.attributes.push_notifications_enabled,
-            onPress = onSwitchNotificationPress,
-            onRelease = onSwitchNotificationPress,
-        }
-    optionsGroup:insert(myTeamOnOffSwitch)
-
-    -- TODOS OS TIMES
-    lineY = lineY + 36
+    ---- NOTIFICACOES TITLE
+    --lineY = lineY + 44 + (display.screenOriginY*-0.5)
+    --local notificacoesTitleTxt = display.newEmbossedText(optionsGroup, "NOTIFICAÇÕES", lineX, lineY, "MyriadPro-BoldCond", 14)
+    --notificacoesTitleTxt:setTextColor(192)
+    --notificacoesTitleTxt:setEmbossColor(color)
+    --optionsGroup:insert(TextureManager.newHorizontalLine(104, lineY + 18, 220 + display.screenOriginX*-2))
+    --
+    ---- MEU TIME
+    --lineY = lineY + 28
+    --local meutimeTxt = display.newText(optionsGroup, "MEU TIME", lineX, lineY, "MyriadPro-BoldCond", 18)
+    --meutimeTxt:setTextColor(0)
+    ---- MEU TIME on/off switch
+    --local function onSwitchNotificationPress(event)
+    --    UserData:updateAttributes(event.target.isOn, UserData.attributes.favorite_team_id)
+    --    AudioManager.playAudio("onOffBtn")
+    --    AnalyticsManager.clickedSettings(eventName)
+    --end
+    --local myTeamOnOffSwitch = widget.newSwitch
+    --    {
+    --        left = 120,
+    --        top = lineY - 8,
+    --        initialSwitchState = UserData.attributes.push_notifications_enabled,
+    --        onPress = onSwitchNotificationPress,
+    --        onRelease = onSwitchNotificationPress,
+    --    }
+    --optionsGroup:insert(myTeamOnOffSwitch)
+    --
+    ---- TODOS OS TIMES
+    --lineY = lineY + 36
     --local todosostimesTxt = display.newText(optionsGroup, "TODOS OS TIMES", lineX, lineY, "MyriadPro-BoldCond", 18)
     --todosostimesTxt:setTextColor(0)
     ---- TODOS OS TIMES on/off switch
@@ -144,7 +147,10 @@ local function createOptions()
         if status == 200 then
             for i, link in ipairs(response) do
                 lineY = lineY + 28
-                local fanpageLink = BtnLink:new(link.label, lineX, lineY, function() system.openURL(link.url) end)
+                local fanpageLink = BtnLink:new(link.label, lineX, lineY, function()
+                    system.openURL(link.url)
+                    AnalyticsManager.clickedUsefulLink(link.label)
+                end)
                 optionsGroup:insert(fanpageLink)
             end
         else

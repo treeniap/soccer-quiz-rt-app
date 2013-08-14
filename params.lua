@@ -14,7 +14,7 @@ end
 if IS_ANDROID then
     Params.rateId = "" -- Android Bundle Name
 else
-    Params.rateId = "646559956" -- App id -- TODO Id atual do Sex Quiz
+    Params.rateId = "670063656" -- App id
 end
 
 return Params

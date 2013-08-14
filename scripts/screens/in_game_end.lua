@@ -236,6 +236,7 @@ function InGameEnd:showUp(onComplete)
     --self.rightSideView.isVisible = false
 
     transition.from(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = function() showScore(onComplete, self.rightSideView) end})
+    AudioManager.playAudio("finalWhistle")
 end
 
 function InGameEnd:hide(onComplete)

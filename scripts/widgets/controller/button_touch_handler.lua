@@ -15,7 +15,7 @@ end
 
 function TouchHandler.pressReleaseHandler(button, event)
     if button.isLocked then
-        return false
+        return true
     end
 
     local result = false
@@ -68,7 +68,7 @@ end
 
 function TouchHandler.pressPushHandler(button, event)
     if button.isLocked then
-        return false
+        return true
     end
 
     local result = false

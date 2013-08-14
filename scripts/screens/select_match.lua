@@ -91,6 +91,11 @@ local function createMatchView(match, matchesGroup, yPos)
             status = display.newText(matchGroup, "JOGUE AGORA", 0, 0, "MyriadPro-BoldCond", 16)
             status:setTextColor(0)
             matchGroup.touchHandler = createTouchHandler(matchesGroup, yPos)
+            if UserData.lastFavTeamMatchId ~= match.id and
+                    (match.home_team.id == UserData.attributes.favorite_team_id or
+                    match.guest_team.id == UserData.attributes.favorite_team_id) then
+                Server:claimFavoriteTeamCoins(match.id)
+            end
         else
             time = display.newText(matchGroup, match.starts_at:fmt("%H:%M"), 0, 0, "MyriadPro-BoldCond", 24)
             status = display.newText(matchGroup, "AGUARDANDO", 0, 0, "MyriadPro-BoldCond", 14)
@@ -411,6 +416,8 @@ function SelectMatchScreen:new()
     bgGroup.isVisible = false
     championshipsListGroup.isVisible = false
     selectMatchGroup[selectMatchGroup.numChildren].isVisible = false
+
+    AnalyticsManager.enteredSelectMatchScreen()
 
     return selectMatchGroup
 end

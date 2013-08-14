@@ -3,14 +3,16 @@ system.setIdleTimer(false)
 require "Json"
 require "params"
 require "common"
+require "util.date"
 require "scripts.management.user_data_manager"
 require "scripts.management.texture_manager"
 require "scripts.management.audio_manager"
+require "scripts.management.analytics_manager"
 require "scripts.widgets.view.loading_ball"
 require "scripts.network.server_communication"
 LoadingBall:newScreen()
 
-local tutorial = UserData:checkTutorial()
+local tutorialCompleted = UserData:checkTutorial()
 
 local function onUpdateNeeded()
     local function onComplete(event)
@@ -43,22 +45,15 @@ local function load()
     require "scripts.management.store_manager"
     require "scripts.network.facebook"
     require "util.tween"
-    require "util.date"
 
     -- FLURRY
-    if IS_SIMULATOR then
-        analytics = {
-            init = function() end,
-            logEvent = function() end
-        }
-    else
-        analytics = require "analytics"
-        analytics.init(Params.flurryId)
-    end
-
+    AnalyticsManager.init()
+    -- STORE
     StoreManager.initStore()
+    -- AUDIO
     AudioManager.init()
-    if tutorial then
+
+    if tutorialCompleted then
         Server.init()
         Facebook:init()
     else
@@ -81,7 +76,7 @@ local function load()
                         ScreenManager.onAppResume()
                     end
                 else
-                    native.showAlert("Erro no servidor", "Por favor, tente mais tarde.", { "Ok" }, function() Server:getAppStatus(onAppStatusReceived) end)
+                    native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:getAppStatus(onAppStatusReceived) end)
                 end
             end
 
@@ -124,16 +119,35 @@ local function onAppStatusReceived(response, status)
             onUpdateNeeded()
             return
         else
-            if tutorial and response.message and response.message ~= "" then
+            if tutorialCompleted and response.message and response.message ~= "" then
                 native.showAlert("", response.message, {"Ok"})
             end
             load()
         end
     else
-        load()
-        --TODO
-        --native.showAlert("Erro no servidor", "Por favor, tente mais tarde.", { "Ok" }, function() Server:getAppStatus(onAppStatusReceived) end)
+        native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:getAppStatus(onAppStatusReceived) end)
     end
 end
 
 Server:getAppStatus(onAppStatusReceived)
+
+--- LOCAL NOTIFICATION
+local function notificationListener( event )
+    print("=====================")
+    printTable(event)
+    if ( event.type == "remote" ) then
+        --handle the push notification
+
+    elseif ( event.type == "local" ) then
+        --handle the local notification
+    end
+end
+
+Runtime:addEventListener( "notification", notificationListener )
+
+local launchArgs = ...
+
+if ( launchArgs and launchArgs.notification ) then
+    print( "event via launchArgs" )
+    notificationListener( launchArgs.notification )
+end

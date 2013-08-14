@@ -157,6 +157,7 @@ function SlideScreens.new(screenSet, tutorialSheetImage, tutorialSheetInfo)
             g:insert(g.numChildren, screenSet[imgNum+1])
             imgNum = imgNum + 1
             initImage(imgNum)
+            AnalyticsManager.changeTutorialScreen(screenSet[imgNum].num)
         end } )
     end
 

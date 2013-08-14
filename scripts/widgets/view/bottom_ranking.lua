@@ -101,8 +101,8 @@ local function createInviteFriends()
         else
             status = "Começou "
         end
-        Facebook:invite(status .. MatchManager:getTeamName(nil, true) .. " x " ..
-                MatchManager:getTeamName(nil, false) ..
+        Facebook:invite(status .. MatchManager:getTeamName(MatchManager:getTeamId(true)) .. " x " ..
+                MatchManager:getTeamName(MatchManager:getTeamId(false)) ..
                 ", venha jogar comigo!")
     end
 

@@ -7,7 +7,7 @@ AudioManager = {}
 
 local extName = "aif"
 if IS_ANDROID then
-    extName = "aif" --TODO mudar extensão para android
+    extName = "aif"
 end
 
 local sounds = {
@@ -29,6 +29,9 @@ local sounds = {
     betAnswerWait     = "15." .. extName,
     betRight          = "16." .. extName,
     betWrong          = "17." .. extName,
+    finalWhistle      = "18." .. extName,
+    coinPlus          = "coins." .. extName,
+    lastCoinPlus      = "last_coin." .. extName
 }
 
 local function loadGameAudio()
@@ -61,13 +64,24 @@ function AudioManager.stopAudio(audioHandler)
     audio.stop(audioHandler)
 end
 
-local betAnswerWaitHandler
+local handlerBetAnswerWait
+local timerBetAnswerWait
 function AudioManager.playStopBetAnswerWait(play)
     if play then
-        betAnswerWaitHandler = audio.play(sounds["betAnswerWait"], {loops = -1})
-    elseif betAnswerWaitHandler then
-        audio.stop(betAnswerWaitHandler)
-        betAnswerWaitHandler = nil
+        if not handlerBetAnswerWait then
+            handlerBetAnswerWait = audio.play(sounds["betAnswerWait"], {loops = -1})
+            timerBetAnswerWait = timer.performWithDelay(30000, function()
+                AudioManager.playStopBetAnswerWait()
+                timerBetAnswerWait = nil
+            end)
+        end
+    elseif handlerBetAnswerWait then
+        audio.stop(handlerBetAnswerWait)
+        handlerBetAnswerWait = nil
+        if timerBetAnswerWait then
+            timer.cancel(timerBetAnswerWait)
+        end
+        timerBetAnswerWait = nil
     end
 end
 

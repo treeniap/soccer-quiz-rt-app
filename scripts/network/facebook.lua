@@ -16,8 +16,10 @@ local REQUEST_TYPE_LOGIN = "login"
 local REQUEST_TYPE_USER_INFO = "me"
 local REQUEST_TYPE_USER_FRIENDS = "me/friends?fields=installed,name"
 local REQUEST_TYPE_USER_PIC = "me/picture"
+local REQUEST_TYPE_USER_PERM = "me/permissions"
 local REQUEST_TYPE_POST_MATCH = "postmatch"
 local REQUEST_TYPE_POST_SCORE = "postscore"
+local acceptedPublishStream = true
 
 local function getPictureSize(size)
     if type(size) == "number" then
@@ -59,6 +61,7 @@ local function listener(event)
     if event.isError then
         print(event.response)
         if requestType == REQUEST_TYPE_POST_MATCH or requestType == REQUEST_TYPE_POST_SCORE then
+            acceptedPublishStream = false
             return
         end
         local function onComplete(event)
@@ -89,7 +92,7 @@ local function listener(event)
         end
     elseif "request" == event.type then
         -- event.response is a JSON object from the FB server
-        local response = event.response
+        local response
         response = Json.Decode(event.response)
         --printTable(event)
         if requestType == REQUEST_TYPE_USER_INFO then
@@ -107,17 +110,12 @@ local function listener(event)
             request(getUserPictureUrl(response.username, "4x"), REQUEST_TYPE_USER_PIC)
             stepsCount = 3
 
-        elseif requestType == REQUEST_TYPE_USER_FRIENDS then
-            --printTable(response)
-            local friends_ids = {}
-            for i, friend in ipairs(response.data) do
-                if friend.installed then
-                    friends_ids[#friends_ids + 1] = friend.id
-                end
+        elseif requestType == REQUEST_TYPE_USER_PERM then
+            if response.data[1].publish_stream and response.data[1].publish_stream == 1 then
+                AnalyticsManager.acceptedFacebookWritePermission()
+            else
+                acceptedPublishStream = false
             end
-            UserData:init(userInfo, friends_ids)
-        elseif requestType == REQUEST_TYPE_POST_SCORE then
-            native.showAlert("Facebook", "Pontuação postada.", {"Ok"})
         elseif requestType == REQUEST_TYPE_USER_PIC then
             local imageSize = getPictureSize(tonumber(response.data.width))
             userInfo.facebook_profile[getPictureFieldName(imageSize)] = response.data.url
@@ -139,37 +137,68 @@ local function listener(event)
             if stepsCount <= 0 then
                 request(REQUEST_TYPE_USER_FRIENDS)
             end
+        elseif requestType == REQUEST_TYPE_USER_FRIENDS then
+            --printTable(response)
+            local friends_ids = {}
+            for i, friend in ipairs(response.data) do
+                if friend.installed then
+                    friends_ids[#friends_ids + 1] = friend.id
+                end
+            end
+            UserData:init(userInfo, friends_ids)
+
+            request(REQUEST_TYPE_USER_PERM)
+        elseif requestType == REQUEST_TYPE_POST_SCORE then
+            AnalyticsManager.post("SharedMatchResultOnFacebook")
+            native.showAlert("Facebook", "Pontuação postada.", {"Ok"})
+        elseif requestType == REQUEST_TYPE_POST_MATCH then
+            AnalyticsManager.post("PostedMatchOnFacebookWall")
         end
     elseif "dialog" == event.type then
-        --printTable(event)
+        local charNum = 1
+        local friendsCount = 0
+        while charNum and charNum < event.response:len() do
+            local st
+            st, charNum = string.find(event.response, "to%5B", charNum, true)
+            if st then
+                friendsCount = friendsCount + 1
+            end
+        end
+        if friendsCount > 0 then
+            AnalyticsManager.inviteFriends("success", friendsCount)
+        else
+            AnalyticsManager.inviteFriends("cancelled", friendsCount)
+        end
     end
 end
 
 function Facebook:post(message, score)
     --print(message)
-    Server:getAppLinks(function(response)
-        if score then
-            requestType = REQUEST_TYPE_POST_SCORE
-        else
-            requestType = REQUEST_TYPE_POST_MATCH
-        end
-        local actions
-        local link = "http://welovequiz.com"
-        if response and response.url then
-            actions = Json.Encode(
-                { name = "App Store",
-                    link = response.url } )
-            link = response.url
-        end
-        local attachment = {
-            name = "Chute Premiado",
-            link = link,
-            description = message,
-            picture = "http://pw-games.com/chutepremiado/fb-icon.jpg",
-            actions = actions,
-        }
-        facebook.request("me/feed", "POST", attachment)
-    end)
+    if acceptedPublishStream then
+        Server:getAppLinks(function(response)
+            if score then
+                requestType = REQUEST_TYPE_POST_SCORE
+            else
+                requestType = REQUEST_TYPE_POST_MATCH
+            end
+            local actions
+            local link = "http://welovequiz.com"
+            if response and response.url then
+                actions = Json.Encode(
+                    { name = "App Store",
+                        link = response.url } )
+                link = response.url
+            end
+            local attachment = {
+                name = "Chute Premiado",
+                link = link,
+                description = message,
+                picture = "http://pw-games.com/chutepremiado/fb-icon.jpg",
+                actions = actions,
+            }
+            facebook.request("me/feed", "POST", attachment)
+        end)
+    end
 end
 
 function Facebook:invite(message)
