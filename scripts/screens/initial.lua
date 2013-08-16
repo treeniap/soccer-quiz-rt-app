@@ -103,17 +103,16 @@ local function createMatchView(match, y, currentDate)
         local c = date.diff(currentDate, match.starts_at)
         --print(c:spanminutes())
         local minutesToMatch = c:spanminutes()
-        if minutesToMatch > 110 then
-            time = display.newText("ENCERRADO", 0, 0, "MyriadPro-BoldCond", 16)
-        elseif minutesToMatch >= -5 then
+        --if minutesToMatch > 110 then
+        --    time = display.newText("ENCERRADO", 0, 0, "MyriadPro-BoldCond", 16)
+        if minutesToMatch >= -5 then
             time = display.newText("JOGUE AGORA", 0, 0, "MyriadPro-BoldCond", 16)
             local touchHandler = createTouchHandler(y)
             matchesGroup:insert(touchHandler)
             matchGroup.touchHandler = touchHandler
-            print(UserData.lastFavTeamMatchId)
-            if UserData.lastFavTeamMatchId ~= match.id and
-                    (match.home_team.id == UserData.attributes.favorite_team_id or
-                    match.guest_team.id == UserData.attributes.favorite_team_id) then
+
+            if match.home_team.id == UserData.attributes.favorite_team_id or
+                    match.guest_team.id == UserData.attributes.favorite_team_id then
                 Server:claimFavoriteTeamCoins(match.id)
             end
         else

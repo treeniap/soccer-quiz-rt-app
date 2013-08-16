@@ -73,8 +73,12 @@ local function updateBottomRanking(listener)
                     player.teamBadge = friendsIdBadgesNames[player.user_id]
                 else
                     Server:getInventory(player.user_id, function(response)
-                        friendsIdBadgesNames[player.user_id] = getLogoFileName(response.inventory.attributes.favorite_team_id, 1)
-                        player.teamBadge = friendsIdBadgesNames[player.user_id]
+                        if not response then
+                            player.teamBadge = "none"
+                        else
+                            friendsIdBadgesNames[player.user_id] = getLogoFileName(response.inventory.attributes.favorite_team_id, 1)
+                            player.teamBadge = friendsIdBadgesNames[player.user_id]
+                        end
                     end)
                 end
             end
@@ -151,6 +155,20 @@ end
 
 function InGameScreen:onGameOver(finalResultInfo)
     display.getCurrentStage():setFocus(nil)
+    if eventView then
+        Server:getUserInventory(nil, function()
+            questionsBar:onGame()
+            eventView:hide(function()
+                eventView:removeSelf()
+                eventView = nil
+
+                InGameScreen:updateTotalCoins()
+                native.showAlert("", "O evento que estavamos aguardando foi cancelado e as moedas apostadas foram devolvidas.", { "Ok" })
+                InGameScreen:onGameOver(finalResultInfo)
+            end)
+        end)
+        return
+    end
     scoreView:hide()
     endView = InGameEnd:create(finalResultInfo)
     inGameGroup:insert(2, endView)

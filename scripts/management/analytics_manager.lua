@@ -204,6 +204,13 @@ function AnalyticsManager.conectivity(eventName)
     analytics.logEvent(eventName, {ConnectionType = Server.connectionName})
 end
 
+function AnalyticsManager.serverError(_requestName)
+    analytics.logEvent("ServerError", {
+        ConnectionType = Server.connectionName,
+        RequestName    = _requestName
+    })
+end
+
 ----//////////////////////////////
 ---//////////-- Init --//////////
 --//////////////////////////////

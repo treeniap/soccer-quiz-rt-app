@@ -92,7 +92,6 @@ end
 function UserData:checkTutorial()
     self.session = 1
     self.lastNotificationDate = getCurrentDate()
-    self.lastFavTeamMatchId = "xxxxx"
     local path = system.pathForFile("user.txt", system.DocumentsDirectory)
     local file = io.open(path, "r")
     if file then
@@ -108,8 +107,6 @@ function UserData:checkTutorial()
                 self.session = tonumber(line:sub(9)) + 1
             elseif(line:sub(1, 21) == "lastNotificationDate=") then
                 self.lastNotificationDate = date(line:sub(22))
-            elseif(line:sub(1, 19) == "lastFavTeamMatchId=") then
-                self.lastFavTeamMatchId = line:sub(20)
             end
         end
         self:save()
@@ -132,7 +129,6 @@ function UserData:save()
     file:write("\nsound=" .. (self.soundOn and 1 or 0))
     file:write("\nsession=" .. self.session or 1)
     file:write("\nlastNotificationDate=" .. self.lastNotificationDate or getCurrentDate())
-    file:write("\nlastFavTeamMatchId=" .. self.lastFavTeamMatchId or "xxxxx")
 
     io.close(file)
 end

@@ -539,6 +539,7 @@ function InGameEvent:create(eventInfo)
                     native.showAlert("ERRO", "Houve um erro de comunicação com nosso servidor. Verifique se o horário de seu " .. getDeviceName() .. " está sendo ajustado automaticamente e/ou se sua internet está rápida e estável.", {"Ok"}, ScreenManager.callNext)
                 end)
                 AnalyticsManager.conectivity("LateClientResponse")
+                AudioManager.playStopBetAnswerWait()
             end
             local function listener(response, status)
                 if not response or status ~= 200 then

@@ -77,16 +77,24 @@ function ScreenManager:callNext()
 end
 
 local function showMatch()
-    currentScreen:showUp(function()
-        currentScreen:onGame()
-        unlockScreen()
-    end)
+    if not pcall(function()
+        currentScreen:showUp(function()
+            currentScreen:onGame()
+            unlockScreen()
+        end)
+    end) then
+        ScreenManager:exitMatch()
+    end
 end
 
 local function prepareMatch()
-    currentScreen = require("scripts.screens.in_game")
-    currentScreen:new()
-    MatchManager:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
+    if not pcall(function()
+        currentScreen = require("scripts.screens.in_game")
+        currentScreen:new()
+        MatchManager:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
+    end) then
+        ScreenManager:exitMatch()
+    end
 end
 
 local function matchServerListener(message)
@@ -94,6 +102,7 @@ local function matchServerListener(message)
     if message.state and message.state == "cancelled" then
         timer.performWithDelay(2000, ScreenManager.callNext)
         InGameScreen:updateTotalCoins()
+        native.showAlert("", "O evento que estavamos aguardando foi cancelado e as moedas apostadas foram devolvidas.", { "Ok" })
         return
     end
     local _eventInfo = eventsInfo[message.template.key]
@@ -101,8 +110,7 @@ local function matchServerListener(message)
 
     _eventInfo.teamName = string.utf8upper(MatchManager:getTeamName(message.team_id))
     _eventInfo.teamBadge = getLogoFileName(message.team_id, 3)
-    _eventInfo.userBetTimeout = date(message.user_bet_timeout)
-    _eventInfo.userBetTimeout = _eventInfo.userBetTimeout:addseconds(getTimezoneOffset(os.time()))
+    _eventInfo.userBetTimeout = date(message.user_bet_timeout):tolocal()
     local secondsToEvent = date.diff(_eventInfo.userBetTimeout, date(os.date("*t"))):spanseconds()
 
     if secondsToEvent >= MIN_USER_BET_TIME then

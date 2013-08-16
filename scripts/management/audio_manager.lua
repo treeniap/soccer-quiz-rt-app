@@ -10,6 +10,8 @@ if IS_ANDROID then
     extName = "aif"
 end
 
+local SUPPORTERS_CHANNEL = 1
+
 local sounds = {
     showSideMenuBtn   = "01." .. extName,
     showBottomRanking = "02." .. extName,
@@ -47,6 +49,7 @@ end
 
 function AudioManager.init()
     loadGameAudio()
+    audio.reserveChannels(1)
 end
 
 function AudioManager.playAudio(soundName, delay, loops)
@@ -64,20 +67,21 @@ function AudioManager.stopAudio(audioHandler)
     audio.stop(audioHandler)
 end
 
-local handlerBetAnswerWait
 local timerBetAnswerWait
 function AudioManager.playStopBetAnswerWait(play)
     if play then
-        if not handlerBetAnswerWait then
-            handlerBetAnswerWait = audio.play(sounds["betAnswerWait"], {loops = -1})
-            timerBetAnswerWait = timer.performWithDelay(30000, function()
-                AudioManager.playStopBetAnswerWait()
-                timerBetAnswerWait = nil
-            end)
+        if timerBetAnswerWait then
+            timer.cancel(timerBetAnswerWait)
         end
-    elseif handlerBetAnswerWait then
-        audio.stop(handlerBetAnswerWait)
-        handlerBetAnswerWait = nil
+        audio.play(sounds["betAnswerWait"], {channel = SUPPORTERS_CHANNEL, loops = -1, onComplete = function()
+            audio.setVolume(1, {channel = SUPPORTERS_CHANNEL})
+        end})
+        timerBetAnswerWait = timer.performWithDelay(60000, function()
+            timerBetAnswerWait = nil
+            AudioManager.playStopBetAnswerWait()
+        end)
+    elseif audio.isChannelActive(SUPPORTERS_CHANNEL) then
+        audio.fadeOut({channel = SUPPORTERS_CHANNEL, time = 2000})
         if timerBetAnswerWait then
             timer.cancel(timerBetAnswerWait)
         end

@@ -75,8 +75,6 @@ local function load()
                         end
                         ScreenManager.onAppResume()
                     end
-                else
-                    native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:getAppStatus(onAppStatusReceived) end)
                 end
             end
 
@@ -124,14 +122,14 @@ local function onAppStatusReceived(response, status)
             end
             load()
         end
-    else
-        native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:getAppStatus(onAppStatusReceived) end)
     end
 end
 
 Server:getAppStatus(onAppStatusReceived)
 
 --- LOCAL NOTIFICATION
+native.setProperty("applicationIconBadgeNumber", 0)
+
 local function notificationListener( event )
     print("=====================")
     printTable(event)
@@ -141,6 +139,8 @@ local function notificationListener( event )
     elseif ( event.type == "local" ) then
         --handle the local notification
     end
+
+    native.setProperty("applicationIconBadgeNumber", 0)
 end
 
 Runtime:addEventListener( "notification", notificationListener )

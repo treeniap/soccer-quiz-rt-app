@@ -10,6 +10,7 @@ local APP_ID = "com.ffgfriends.chutepremiado"
 local STATUS_REACHABLE   = "reachable"
 local STATUS_UNREACHABLE = "unreachable"
 local STATUS_NONE        = "none"
+local TRY_AGAIN_ON_NO_RESPONSE = "tryAgain"
 local networkStatus = STATUS_REACHABLE
 local networkStatusChangeListeners
 
@@ -104,7 +105,7 @@ function Server:downloadFilesList(filesList, listener)
                     listener()
                 end
             end
-            --print("downloadCount", #logosList, downloadCount)
+            --print("downloadCount", #filesList, downloadCount)
         end
     end
     for i, file in ipairs(filesList) do
@@ -121,6 +122,15 @@ local serverResponseHandler
 local callListener
 local retryTimes = {1000, 300, 100}
 local RETRIES_NUMBER = 3
+
+local function erroTryAgainLater(_request)
+    native.showAlert(
+        "Erro no servidor",
+        "Por favor, tente novamente mais tarde.",
+        { "Ok" },
+        function() networkRequest(_request) end)
+    AnalyticsManager.serverError(_request.name)
+end
 
 function callListener(_listener, _response, _status)
     if _listener then
@@ -139,19 +149,27 @@ function callListener(_listener, _response, _status)
     end
 end
 
+
 local function onError(_request, status)
-    if _request.retries_number and _request.retries_number > 0 then
-        --print("Request retry: " .. _request.retries_number)
+    if _request.retries_count and _request.retries_count > 0 then
+        --print("Request retry: " .. _request.retries_count)
         local _t = 500
-        if _request.retries_number <= #retryTimes then
-            _t = retryTimes[_request.retries_number]
+        if _request.retries_count <= #retryTimes then
+            _t = retryTimes[_request.retries_count]
         end
         timer.performWithDelay(_t, function()
-            _request.retries_number = _request.retries_number - 1
+            _request.retries_count = _request.retries_count - 1
             networkRequest(_request)
         end)
-    elseif _request.on_no_response then
-        _request.on_no_response(nil, status)
+    else
+        _request.retries_count = nil
+        if _request.on_no_response then
+            if type(_request.on_no_response) == "function" then
+                _request.on_no_response(nil, status)
+            elseif _request.on_no_response == TRY_AGAIN_ON_NO_RESPONSE then
+                erroTryAgainLater(_request)
+            end
+        end
     end
 end
 
@@ -197,6 +215,9 @@ function networkRequest(_request)
             return
         end
         log(_request.name, URL)
+        if not _request.retries_count then
+            _request.retries_count = _request.retries_number
+        end
         network.request(URL, _request.method, serverResponseHandler(_request), _request.post_params)
     else
         Server.addNetworkStatusListener(function() networkRequest(_request) end)
@@ -213,7 +234,8 @@ function Server.getMatchesList(listener)
         url = "http://api.kb.soccer.welovequiz.com/1/championships",
         method = "GET",
         listener = listener,
-        retries_number = RETRIES_NUMBER
+        retries_number = RETRIES_NUMBER,
+        on_no_response = TRY_AGAIN_ON_NO_RESPONSE
     }
 end
 
@@ -233,7 +255,8 @@ function Server.getTeamsList(listener)
         url = "http://api.kb.soccer.welovequiz.com/1/teams",
         method = "GET",
         listener = listener,
-        retries_number = RETRIES_NUMBER
+        retries_number = RETRIES_NUMBER,
+        on_no_response = TRY_AGAIN_ON_NO_RESPONSE
     }
 end
 
@@ -247,15 +270,13 @@ function Server:checkUser(userInfo)
         method = "GET",
         listener = function(response, status)
             UserData:setUserId(response.user.id)
-            Server:getUserInventory(userInfo, ScreenManager.init)
+            Server:getUserInventory(userInfo, ScreenManager.init, TRY_AGAIN_ON_NO_RESPONSE)
         end,
         on_client_error = function()
             Server:createUser(userInfo)
         end,
         retries_number = 30,
-        on_no_response = function()
-            native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:checkUser(userInfo) end)
-        end
+        on_no_response = TRY_AGAIN_ON_NO_RESPONSE
     }
 end
 
@@ -282,21 +303,8 @@ function Server:createUser(userInfo)
             Server:createInventory(userInfo)
         end,
         retries_number = 30,
-        on_no_response = function()
-            native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:createUser(userInfo) end)
-        end,
+        on_no_response = TRY_AGAIN_ON_NO_RESPONSE,
         post_params = encode(payload)
-    }
-end
-
-function Server:checkFriend(fbId, listener, onNoResponse)
-    networkRequest{
-        name = "checkFriend" .. fbId,
-        url = "http://api.users.welovequiz.com/v1/facebook_profiles/" .. fbId,
-        method = "GET",
-        listener = listener,
-        retries_number = RETRIES_NUMBER,
-        on_no_response = onNoResponse
     }
 end
 
@@ -338,17 +346,15 @@ function Server:createInventory(userInfo)
         url = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/inventories",
         method = "POST",
         listener = function(response, status)
-            Server:getUserInventory(userInfo, ScreenManager.init)
+            Server:getUserInventory(userInfo, ScreenManager.init, TRY_AGAIN_ON_NO_RESPONSE)
         end,
         retries_number = 30,
-        on_no_response = function()
-            native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:createInventory(userInfo) end)
-        end,
+        on_no_response = TRY_AGAIN_ON_NO_RESPONSE,
         post_params = encode(payload)
     }
 end
 
-function Server:getUserInventory(userInfo, listener)
+function Server:getUserInventory(userInfo, listener, onNoResponse)
     getUserInventoryUrl = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/inventories?app_id=" .. APP_ID
     networkRequest{
         name = "getUserInventory",
@@ -364,8 +370,10 @@ function Server:getUserInventory(userInfo, listener)
                 Server:createInventory(userInfo)
             end
         end,
-        retries_number = RETRIES_NUMBER
+        retries_number = RETRIES_NUMBER,
+        on_no_response = onNoResponse or listener
     }
+    testignError = false
 end
 
 function Server:getInventory(userId, listener)
@@ -377,8 +385,10 @@ function Server:getInventory(userId, listener)
         listener = function(response, status)
             listener(response)
         end,
-        retries_number = RETRIES_NUMBER
+        retries_number = RETRIES_NUMBER,
+        on_no_response = listener
     }
+    testignError = false
 end
 
 function Server:updateAttributes(userAttributes, userId)
@@ -397,9 +407,7 @@ function Server:updateAttributes(userAttributes, userId)
         on_client_error = function(response, status) --[[print("on_client_error") printTable(response)]] end,
         retries_number = RETRIES_NUMBER,
         post_params = encode(payload),
-        on_no_response = function()
-            native.showAlert("Erro no servidor", "Por favor, tente novamente mais tarde.", { "Ok" }, function() Server:updateAttributes(userAttributes, userId) end)
-        end
+        on_no_response = TRY_AGAIN_ON_NO_RESPONSE
     }
 end
 
@@ -421,9 +429,7 @@ function Server:onPurchase(productId, receipt, listener)
         on_client_error = function(response, status) print("on_client_error") printTable(response) end,
         retries_number = 5,
         post_params = encode(payload),
-        on_no_response = function(response)
-            print("on_no_response") printTable(response)
-        end
+        on_no_response = TRY_AGAIN_ON_NO_RESPONSE
     }
 end
 
@@ -434,10 +440,6 @@ function Server:claimFavoriteTeamCoins(matchId)
 
     local function listener(response, status)
         timer.performWithDelay(4000, function()
-            print("UserData.lastFavTeamMatchId")
-            UserData.lastFavTeamMatchId = matchId
-            UserData:save()
-
             Server:getUserInventory(nil, function()
                 ScreenManager:updateTotalCoin()
             end)
@@ -448,14 +450,14 @@ function Server:claimFavoriteTeamCoins(matchId)
 
     networkRequest{
         name = "claimFavoriteTeamCoins",
-        url = "http://api.questions.soccer.welovequiz.com/promotions/claim",
+        url = "http://api.questions.soccer.welovequiz.com/offers/claim",
         method = "PUT",
         listener = listener,
-        on_client_error = function(response, status) print("on_client_error") printTable(response) end,
+        on_client_error = function(response, status) log("already claimed") end,
         retries_number = RETRIES_NUMBER,
         post_params = encode(payload),
-        on_no_response = function(response)
-            print("on_no_response") printTable(response)
+        on_no_response = function(response, status)
+            print("on_no_response", status)
         end
     }
 end
@@ -567,7 +569,7 @@ function Server:getAppStatus(listener)
         retries_number = RETRIES_NUMBER,
         listener = listener,
         on_client_error = listener,
-        on_no_response = listener,
+        on_no_response = TRY_AGAIN_ON_NO_RESPONSE,
     }
 end
 
@@ -586,7 +588,7 @@ function Server.pubnubSubscribe(channel, listener)
             end,
             callback = function(message)
             --printTable(message)
-                listener(message)
+                pcall(listener, message)
             end,
             errorback = function()
                 print("Oh no!!! Dropped 3G Conection!")

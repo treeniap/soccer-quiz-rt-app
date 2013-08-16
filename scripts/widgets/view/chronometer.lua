@@ -48,6 +48,11 @@ function Chronometer:start(endTime, onFinish)
         cycleTimeElapsed = cycleTimeElapsed + (currentTime - lastTime)
         lastTime = currentTime
         while cycleTimeElapsed >= MILLISECONDS_PER_PIXEL do
+            if not self.bar.x then
+                Runtime:removeEventListener("enterFrame", updateChronometer)
+                AudioManager.stopAudio(audioHandler)
+                return
+            end
             self:moveBar()
             cycleTimeElapsed = cycleTimeElapsed - MILLISECONDS_PER_PIXEL
             count = count + 1

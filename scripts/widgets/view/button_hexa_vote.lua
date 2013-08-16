@@ -176,10 +176,12 @@ function BtnHexaVote:resetCoins()
 end
 
 function BtnHexaVote:lock(isLock)
-    for i = 1, self.numChildren do
-        self[i]:lock(isLock)
+    if self.numChildren then
+        for i = 1, self.numChildren do
+            self[i]:lock(isLock)
+        end
+        self.isLocked = isLock
     end
-    self.isLocked = isLock
 end
 
 function BtnHexaVote:onPressed()

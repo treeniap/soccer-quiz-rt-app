@@ -12,6 +12,7 @@ RankingScreen = {}
 local rankingScreenGroup
 local bgGroup
 local rankingsListGroup
+local bannerGroup
 local rankingButtons
 
 local function closeRankingButtons(openingButton)
@@ -267,6 +268,29 @@ local function createBG()
     return bgGroup
 end
 
+local function createBanner()
+    local BANNER_FILE_NAME = "banner_ranking.jpg"
+    bannerGroup = display.newGroup()
+    local noError, banner
+    local function newBanner()
+        noError, banner = pcall(TextureManager.newImageRect, BANNER_FILE_NAME, 360, 101, bannerGroup, system.DocumentsDirectory)
+        if noError and banner then
+            banner:setReferencePoint(display.TopCenterReferencePoint)
+            banner.x = display.contentCenterX
+            banner.y = SCREEN_BOTTOM + banner.height
+            transition.to(banner, {time = 500, y = SCREEN_BOTTOM - banner.height})
+        end
+    end
+    newBanner()
+    if noError and not banner then
+        Server:downloadFilesList({{
+            url = "http://pw-games.com/chutepremiado/banner_ranking.jpg",
+            fileName = BANNER_FILE_NAME
+        }}, newBanner)
+    end
+    return bannerGroup
+end
+
 local function getPlayersInTheRanking(button, ranking)
     local imageSize = getImagePrefix()
     if imageSize == "default" then
@@ -300,7 +324,11 @@ local function getPlayersInTheRanking(button, ranking)
                         ranking[i].teamBadge = getLogoFileName(UserData.attributes.favorite_team_id, 1)
                     else
                         Server:getInventory(user.id, function(response)
-                            ranking[i].teamBadge = getLogoFileName(response.inventory.attributes.favorite_team_id, 1)
+                            if not response then
+                                ranking[i].teamBadge = "none"
+                            else
+                                ranking[i].teamBadge = getLogoFileName(response.inventory.attributes.favorite_team_id, 1)
+                            end
                         end)
                     end
                 end
@@ -434,6 +462,7 @@ function RankingScreen:showUp(onComplete)
         transition.from(rankingScreenGroup[rankingScreenGroup.numChildren], {time = 300, y = SCREEN_TOP - 50, transition = easeInQuart})
         AudioManager.playAudio("showTopBar")
         timer.performWithDelay(650, onComplete)
+        rankingScreenGroup:insert(createBanner())
     end})
 end
 
@@ -457,6 +486,7 @@ end
 
 function RankingScreen:hide(onComplete)
     local function hiding()
+        transition.to(bannerGroup, {time = 300, y = 100, alpha = 0})
         for i = 1, rankingsListGroup.numChildren do
             transition.to(rankingsListGroup[i], {time = 300, y = 50*-i - 50, transition = easeInQuart})
         end
@@ -476,10 +506,12 @@ end
 function RankingScreen:destroy()
     bgGroup:removeSelf()
     rankingsListGroup:removeSelf()
+    bannerGroup:removeSelf()
     rankingScreenGroup:removeSelf()
-    rankingScreenGroup = nil
     bgGroup = nil
     rankingsListGroup = nil
+    bannerGroup = nil
+    rankingScreenGroup = nil
     rankingButtons = nil
 end
 

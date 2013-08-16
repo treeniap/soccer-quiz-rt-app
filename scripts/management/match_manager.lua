@@ -249,8 +249,7 @@ local function setMatchesDateObj(championships)
     for i, championship in ipairs(championships) do
         local championshipMatches = championship.incoming_matches
         for j, _match in ipairs(championshipMatches) do
-            local dateObj = date(_match.starts_at)
-            _match.starts_at = dateObj:addseconds(getTimezoneOffset(os.time()))
+            _match.starts_at = date(_match.starts_at):tolocal()
         end
         organizeMatchesByDate(championshipMatches)
     end
@@ -436,8 +435,7 @@ end
 function MatchManager:updateMatch(onComplete)
     Server.getMatchInfo(CurrentMatch.matchInfo.url, function(response, status)
         CurrentMatch.matchInfo = response.match
-        local dateObj = date(CurrentMatch.matchInfo.starts_at)
-        CurrentMatch.matchInfo.starts_at = dateObj:addseconds(getTimezoneOffset(os.time()))
+        CurrentMatch.matchInfo.starts_at = date(CurrentMatch.matchInfo.starts_at):tolocal()
         onComplete()
     end)
 end
@@ -579,15 +577,27 @@ function MatchManager:scheduleNextFavoriteTeamMatch()
         for i, championship in ipairs(nextMatchesInfo) do
             for j, matchInfo in ipairs(championship.incoming_matches) do
                 if matchInfo.guest_team.id == favoriteTeamId or matchInfo.home_team.id == favoriteTeamId then
-                    print(matchInfo.id, matchInfo.starts_at, UserData.lastNotificationDate)
+                    print("matchStartsAt " .. matchInfo.starts_at, "lastNotDate " .. UserData.lastNotificationDate)
                     if matchInfo.starts_at > after and matchInfo.starts_at > UserData.lastNotificationDate then
                         local startsAt = matchInfo.starts_at:copy()
                         scheduledDates[#scheduledDates + 1] = startsAt
 
-                        startsAt:addseconds(-getTimezoneOffset(os.time()) - 300) -- converts to UTC
-                        print("next favorite team match date", startsAt:fmt("%A, %B %d %Y - %H:%M"))
+                        startsAt:toutc() -- converts to UTC
+                        startsAt:addseconds(-300) -- advances 5 minutes
 
-                        scheduleLocalNotification(startsAt,
+                        local convertedStartsAt = {
+                            hour = startsAt:gethours(),
+                            min = startsAt:getminutes(),
+                            wday = startsAt:getweekday(),
+                            day = startsAt:getday(),
+                            month = startsAt:getmonth(),
+                            year = startsAt:getyear(),
+                            sec = startsAt:getseconds(),
+                            yday = startsAt:getyearday(),
+                            isdst = false,
+                        }
+
+                        scheduleLocalNotification(convertedStartsAt,
                             "Chegou a hora de " .. matchInfo.home_team.name .. " x " .. matchInfo.guest_team.name ..
                                     ". Venha jogar Chute Premiado e ganhe 5 fichas!",
                             "sounds/aif/16.aif")

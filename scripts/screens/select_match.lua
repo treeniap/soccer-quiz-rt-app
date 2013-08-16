@@ -82,18 +82,18 @@ local function createMatchView(match, matchesGroup, yPos)
     elseif daysDiff == 0 then
         local c = date.diff(currentDate, match.starts_at)
         local minutesToMatch = c:spanminutes()
-        if minutesToMatch > 110 then
-            time = display.newText(matchGroup, match.home_goals .. " - " .. match.guest_goals, 0, 0, "MyriadPro-BoldCond", 24)
-            status = display.newText(matchGroup, "ENCERRADO", 0, 0, "MyriadPro-BoldCond", 14)
-            status:setTextColor(135)
-        elseif minutesToMatch >= -5 then
+        --if minutesToMatch > 110 then
+        --    time = display.newText(matchGroup, match.home_goals .. " - " .. match.guest_goals, 0, 0, "MyriadPro-BoldCond", 24)
+        --    status = display.newText(matchGroup, "ENCERRADO", 0, 0, "MyriadPro-BoldCond", 14)
+        --    status:setTextColor(135)
+        if minutesToMatch >= -5 then
             time = display.newText(matchGroup, match.home_goals .. " - " .. match.guest_goals, 0, 0, "MyriadPro-BoldCond", 24)
             status = display.newText(matchGroup, "JOGUE AGORA", 0, 0, "MyriadPro-BoldCond", 16)
             status:setTextColor(0)
             matchGroup.touchHandler = createTouchHandler(matchesGroup, yPos)
-            if UserData.lastFavTeamMatchId ~= match.id and
-                    (match.home_team.id == UserData.attributes.favorite_team_id or
-                    match.guest_team.id == UserData.attributes.favorite_team_id) then
+
+            if match.home_team.id == UserData.attributes.favorite_team_id or
+                    match.guest_team.id == UserData.attributes.favorite_team_id then
                 Server:claimFavoriteTeamCoins(match.id)
             end
         else

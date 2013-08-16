@@ -7,6 +7,7 @@ InGameEnd = {}
 
 local stats, scores
 local finalScore
+local bannerGroup
 
 --[[
 -- rightGuesses       = {number = 8, points = 7000},
@@ -203,6 +204,33 @@ local function createRightSide(totalCoupons, championshipName, position)
     return rightSideGroup
 end
 
+local function createBanner()
+    local BANNER_FILE_NAME = "banner_results.jpg"
+    local noError, banner
+    local function newBanner()
+        if bannerGroup then
+            noError, banner = pcall(TextureManager.newImageRect, BANNER_FILE_NAME, 160, 377, bannerGroup, system.DocumentsDirectory)
+            if noError and banner then
+                banner:setReferencePoint(display.CenterRightReferencePoint)
+                banner.x = SCREEN_RIGHT + banner.width
+                banner.y = display.contentCenterY - 24
+                local bannerMask = graphics.newMask("images/banner_results_mask.png")
+                banner:setMask(bannerMask)
+                banner.maskX = 24
+                transition.to(banner, {time = 500, x = SCREEN_RIGHT + 22 + display.screenOriginX})
+            end
+        end
+    end
+    newBanner()
+    if noError and not banner then
+        Server:downloadFilesList({{
+            url = "http://pw-games.com/chutepremiado/banner_results.jpg",
+            fileName = BANNER_FILE_NAME
+        }}, newBanner)
+    end
+    return bannerGroup
+end
+
 local function showScore(onComplete, rightSideView)
     --local pts = 0
     local count = 0
@@ -229,6 +257,7 @@ local function showScore(onComplete, rightSideView)
         v.x = -100 + display.screenOriginX
         v.isVisible = true
     end
+    timer.performWithDelay(6000, createBanner)
 end
 
 function InGameEnd:showUp(onComplete)
@@ -243,6 +272,7 @@ function InGameEnd:hide(onComplete)
     --self.rightSideView.isVisible = false
 
     transition.to(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = onComplete})
+    transition.to(bannerGroup, {time = 300, x = 160, alpha = 0, transition = easeOutExpo})
 end
 
 function InGameEnd:create(finalResultInfo)
@@ -253,9 +283,12 @@ function InGameEnd:create(finalResultInfo)
 
     stats, scores = {}, {}
 
+    bannerGroup = display.newGroup()
+    endGroup:insert(bannerGroup)
+
     endGroup.leftSideView = createFinalFoil(finalResultInfo)
-    --endGroup.rightSideView = createRightSide(finalResultInfo.totalCoupons, finalResultInfo.championshipName, finalResultInfo.position)
     endGroup:insert(endGroup.leftSideView)
+    --endGroup.rightSideView = createRightSide(finalResultInfo.totalCoupons, finalResultInfo.championshipName, finalResultInfo.position)
     --endGroup:insert(endGroup.rightSideView)
 
     endGroup.isVisible = false
