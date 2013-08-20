@@ -193,7 +193,7 @@ function Facebook:post(message, score)
                 name = "Chute Premiado",
                 link = link,
                 description = message,
-                picture = "http://pw-games.com/chutepremiado/fb-icon.jpg",
+                picture = "http://d1a6cxe4fj6xw1.cloudfront.net/fb-icon.jpg",
                 actions = actions,
             }
             facebook.request("me/feed", "POST", attachment)

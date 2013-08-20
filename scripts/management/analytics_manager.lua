@@ -9,7 +9,7 @@ AnalyticsManager = {}
 ---///////-- Screen:Home --///////
 --///////////////////////////////
 local function numberOfPlayNow()
-    local matches = MatchManager:getNextSevenMatches()
+    local matches = MatchManager:getNextEightMatches()
     local currentDate = getCurrentDate()
     local num = 0
     for i, match in pairs(matches) do
@@ -165,6 +165,14 @@ function AnalyticsManager.finishedTutorial()
     })
 end
 
+function AnalyticsManager.rating(_rateClick)
+    analytics.logEvent("Rating", {
+        SessionCounter   = UserData.session,
+        TentativeCounter = UserData.rating,
+        RateClick        = tostring(_rateClick)
+    })
+end
+
 ----/////////////////////////////
 ---//////-- Sociability --//////
 --/////////////////////////////
@@ -177,6 +185,13 @@ end
 
 function AnalyticsManager.post(eventName)
     analytics.logEvent(eventName)
+end
+
+function AnalyticsManager.TweetLinkClick()
+    analytics.logEvent("TweetLinkClick", {
+        SessionCounter   = UserData.session,
+        ChosenTeam = MatchManager:getTeamName(UserData.attributes.favorite_team_id)
+    })
 end
 
 ----/////////////////////////////
@@ -215,8 +230,7 @@ end
 ---//////////-- Init --//////////
 --//////////////////////////////
 function AnalyticsManager.init()
-    --TODO test analytics
-    if IS_SIMULATOR then
+    if IS_SIMULATOR then -- test: analytics
         analytics = {
             init = function() end,
             logEvent = function(eventName, params)

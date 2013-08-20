@@ -23,7 +23,7 @@ local getUserInventoryUrl
 local pubnubObj
 
 local function log(...)
-    print("SERVER - ", ...)
+    --print("SERVER - ", ...)
     --io.output():flush()
 end
 
@@ -444,7 +444,7 @@ function Server:claimFavoriteTeamCoins(matchId)
                 ScreenManager:updateTotalCoin()
             end)
 
-            native.showAlert("", "Você ganhou 5 fichas para apostar no jogo do seu time!", { "Ok" })
+            AchievementNotification:new("images/medals/icon_fichas.png", "VOCÊ GANHOU 5 FICHAS!")
         end)
     end
 
@@ -570,6 +570,21 @@ function Server:getAppStatus(listener)
         listener = listener,
         on_client_error = listener,
         on_no_response = TRY_AGAIN_ON_NO_RESPONSE,
+    }
+end
+
+---==============================================================---
+---/////////////////////////// BANNER ///////////////////////////---
+---==============================================================---
+function Server:getBanner(listener)
+    networkRequest{
+        name = "getBanner",
+        url = "http://d1a6cxe4fj6xw1.cloudfront.net/banners.json",
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = listener,
+        on_no_response = listener,
     }
 end
 

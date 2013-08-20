@@ -14,6 +14,7 @@ local bgGroup
 local rankingsListGroup
 local bannerGroup
 local rankingButtons
+local topBar
 
 local function closeRankingButtons(openingButton)
     for i, button in ipairs(rankingButtons) do
@@ -40,8 +41,6 @@ local function displaceCloseRankBtns()
 end
 
 local function createNameText(name)
-    local nameGroup = display.newGroup()
-
     local FONT_SIZE = 18
 
     local lineSize = 0
@@ -243,6 +242,7 @@ local function createBG()
 
         self.inTransition = true
         lockScreen()
+        bannerGroup:hide()
     end
 
     function RankingScreen:closeBG(onClose)
@@ -263,6 +263,7 @@ local function createBG()
         displaceCloseRankBtns()
         self.inTransition = true
         lockScreen()
+        bannerGroup:showUp()
     end
 
     return bgGroup
@@ -271,23 +272,46 @@ end
 local function createBanner()
     local BANNER_FILE_NAME = "banner_ranking.jpg"
     bannerGroup = display.newGroup()
-    local noError, banner
-    local function newBanner()
-        noError, banner = pcall(TextureManager.newImageRect, BANNER_FILE_NAME, 360, 101, bannerGroup, system.DocumentsDirectory)
-        if noError and banner then
-            banner:setReferencePoint(display.TopCenterReferencePoint)
-            banner.x = display.contentCenterX
-            banner.y = SCREEN_BOTTOM + banner.height
-            transition.to(banner, {time = 500, y = SCREEN_BOTTOM - banner.height})
+    bannerGroup.x = display.contentCenterX
+    bannerGroup.y = SCREEN_BOTTOM + 50
+    function bannerGroup:showUp()
+        self.show = true
+        transition.to(self, {time = 300, y = SCREEN_BOTTOM - 50, alpha = 1, transition = easeInQuart})
+    end
+    function bannerGroup:hide()
+        self.show = false
+        transition.to(self, {time = 300, y = SCREEN_BOTTOM + 50, alpha = 0, transition = easeInQuart})
+    end
+
+    Server:getBanner(function(response, status)
+        if response and status == 200 then
+            local function newBanner()
+                if not bannerGroup then
+                    return
+                end
+                local noError, banner = pcall(TextureManager.newImageRect, BANNER_FILE_NAME, 360, 101, bannerGroup, system.DocumentsDirectory)
+                if noError and banner then
+                    banner.x = 0
+                    banner.y = 0
+                    bannerGroup.touch = function(self, event)
+                        if event.phase == "ended" then
+                            ScreenManager:showWebView(response.ranking.url)
+                        end
+                    end
+                    bannerGroup:addEventListener("touch", bannerGroup)
+                    if bannerGroup.show then
+                        bannerGroup.y = SCREEN_BOTTOM + 50
+                        bannerGroup:showUp()
+                    end
+                end
+            end
+            Server:downloadFilesList({{
+                url = response.ranking.banner_img,
+                fileName = BANNER_FILE_NAME
+            }}, newBanner)
         end
-    end
-    newBanner()
-    if noError and not banner then
-        Server:downloadFilesList({{
-            url = "http://pw-games.com/chutepremiado/banner_ranking.jpg",
-            fileName = BANNER_FILE_NAME
-        }}, newBanner)
-    end
+    end)
+
     return bannerGroup
 end
 
@@ -454,15 +478,16 @@ function RankingScreen:showUp(onComplete)
     bgGroup.isVisible = true
     transition.from(bgGroup, {time = 500, alpha = 0, onComplete = function()
         rankingsListGroup.isVisible = true
-        rankingScreenGroup[rankingScreenGroup.numChildren].isVisible = true
+        topBar.isVisible = true
         for i = 1, rankingsListGroup.numChildren do
             transition.from(rankingsListGroup[i], {delay = 300, time = 300, y = 50*-i - 50, transition = easeInQuart})
         end
         AudioManager.playAudio("openCloseMenu", 500)
-        transition.from(rankingScreenGroup[rankingScreenGroup.numChildren], {time = 300, y = SCREEN_TOP - 50, transition = easeInQuart})
+        transition.from(topBar, {time = 300, y = SCREEN_TOP - 50, transition = easeInQuart})
         AudioManager.playAudio("showTopBar")
         timer.performWithDelay(650, onComplete)
-        rankingScreenGroup:insert(createBanner())
+        bannerGroup.isVisible = true
+        bannerGroup:showUp()
     end})
 end
 
@@ -471,26 +496,32 @@ function RankingScreen:new()
     rankingScreenGroup = display.newGroup()
     rankingButtons = {}
 
+    topBar = TopBarMenu:new("RANKING")
+
     rankingScreenGroup:insert(createBG())
     rankingScreenGroup:insert(createRankingsList())
-    rankingScreenGroup:insert(TopBarMenu:new("RANKING"))
+    rankingScreenGroup:insert(topBar)
+    rankingScreenGroup:insert(createBanner())
 
     bgGroup.isVisible = false
     rankingsListGroup.isVisible = false
-    rankingScreenGroup[rankingScreenGroup.numChildren].isVisible = false
+    topBar.isVisible = false
+    bannerGroup.isVisible = false
 
     AnalyticsManager.enteredRankingScreen()
+
+    RankingScreen.group = rankingScreenGroup
 
     return rankingScreenGroup
 end
 
 function RankingScreen:hide(onComplete)
     local function hiding()
-        transition.to(bannerGroup, {time = 300, y = 100, alpha = 0})
+        bannerGroup:hide()
         for i = 1, rankingsListGroup.numChildren do
             transition.to(rankingsListGroup[i], {time = 300, y = 50*-i - 50, transition = easeInQuart})
         end
-        transition.to(rankingScreenGroup[rankingScreenGroup.numChildren], {delay = 300, time = 300, y = SCREEN_TOP - 50, transition = easeInQuart, onComplete = function()
+        transition.to(topBar, {delay = 300, time = 300, y = SCREEN_TOP - 50, transition = easeInQuart, onComplete = function()
             transition.to(bgGroup, {time = 500, alpha = 0, onComplete = RankingScreen.destroy})
             onComplete()
         end})
@@ -504,12 +535,15 @@ function RankingScreen:hide(onComplete)
 end
 
 function RankingScreen:destroy()
+    bannerGroup:removeEventListener("touch", bannerGroup)
     bgGroup:removeSelf()
     rankingsListGroup:removeSelf()
+    topBar:removeSelf()
     bannerGroup:removeSelf()
     rankingScreenGroup:removeSelf()
     bgGroup = nil
     rankingsListGroup = nil
+    topBar = nil
     bannerGroup = nil
     rankingScreenGroup = nil
     rankingButtons = nil

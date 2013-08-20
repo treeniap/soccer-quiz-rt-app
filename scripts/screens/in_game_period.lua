@@ -7,17 +7,18 @@ InGamePeriod = {}
 
 local periods = {
     first_half = "1° TEMPO",
-    half_time = "INTERVALO",
+    ["break"] = "INTERVALO",
     second_half = "2° TEMPO",
-    end_normal_time = "INTERVALO - PRORROGAÇÃO",
-    first_ex = "1° TEMPO - PRORROGAÇÃO",
-    second_ex = "2° TEMPO - PRORROGAÇÃO",
+    draw_break = "INTERVALO - PRORROGAÇÃO",
+    extra_first_half = "1° TEMPO - PRORROGAÇÃO",
+    extra_break = "INTERVALO - PRORROGAÇÃO",
+    extra_second_half = "2° TEMPO - PRORROGAÇÃO",
 }
 
 local function createLeftFoil(periodName)
     local foilGroup = display.newGroup()
     -- scalable menu background
-    local menuFoilCenter = TextureManager.newImageRect("images/stru_foil_center.png", 141 + display.screenOriginX*-2 + display.screenOriginY*-0.25, 450, foilGroup)
+    local menuFoilCenter = TextureManager.newImageRect("images/stru_foil_center.png", 185 + display.screenOriginX*-2 + display.screenOriginY*-0.25, 450, foilGroup)
     menuFoilCenter.x = 0
     menuFoilCenter.y = 0
 
@@ -27,11 +28,13 @@ local function createLeftFoil(periodName)
     menuFoilBorder.y = 0
 
     -- title
-    local eventNameTxt = display.newEmbossedText(foilGroup, periods[periodName], 0, 0, "MyriadPro-BoldCond", 24)
-    eventNameTxt.x = 28
-    eventNameTxt.y = -150 + (display.screenOriginY*-0.75)
-    eventNameTxt:setTextColor(0)
-    foilGroup.title = eventNameTxt
+    if periods[periodName] then
+        local eventNameTxt = display.newEmbossedText(foilGroup, periods[periodName], 0, 0, "MyriadPro-BoldCond", 24)
+        eventNameTxt.x = 28
+        eventNameTxt.y = -150 + (display.screenOriginY*-0.75)
+        eventNameTxt:setTextColor(0)
+        foilGroup.title = eventNameTxt
+    end
     foilGroup:insert(TextureManager.newHorizontalLine(20, -135 + (display.screenOriginY*-0.75), 180))
 
     local whistle = TextureManager.newImage("stru_whistle", foilGroup)

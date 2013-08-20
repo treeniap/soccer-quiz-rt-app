@@ -43,6 +43,7 @@ local function load()
     require "scripts.management.match_manager"
     require "scripts.management.assets_manager"
     require "scripts.management.store_manager"
+    require "scripts.widgets.view.achievement_notification"
     require "scripts.network.facebook"
     require "util.tween"
 
@@ -111,7 +112,7 @@ end
 
 local function onAppStatusReceived(response, status)
     if status == 200 and response and response.appstore_last_version then
-        print(tonumber(system.getInfo("appVersionString")), tonumber(response.appstore_last_version))
+        --print(tonumber(system.getInfo("appVersionString")), tonumber(response.appstore_last_version))
         if (tonumber(system.getInfo("appVersionString")) or tonumber(response.appstore_last_version)) <
                 tonumber(response.appstore_last_version) then
             onUpdateNeeded()
@@ -131,8 +132,8 @@ Server:getAppStatus(onAppStatusReceived)
 native.setProperty("applicationIconBadgeNumber", 0)
 
 local function notificationListener( event )
-    print("=====================")
-    printTable(event)
+    --print("=====================")
+    --printTable(event)
     if ( event.type == "remote" ) then
         --handle the push notification
 
@@ -148,6 +149,6 @@ Runtime:addEventListener( "notification", notificationListener )
 local launchArgs = ...
 
 if ( launchArgs and launchArgs.notification ) then
-    print( "event via launchArgs" )
+    --print( "event via launchArgs" )
     notificationListener( launchArgs.notification )
 end

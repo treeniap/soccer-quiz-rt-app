@@ -142,13 +142,35 @@ local function createOptions()
     linksuteisTitleTxt:setEmbossColor(color)
     optionsGroup:insert(TextureManager.newHorizontalLine(104, lineY + 18, 220 + display.screenOriginX*-2))
 
+    -- SUPORTE E SUGESTÕES
+    lineY = lineY + 28
+    local fanpageLink = BtnLink:new("SUPORTE E SUGESTÕES", lineX, lineY, function()
+        pcall(function()
+            local options =
+            {
+                to = "suporte@chutepremiado.zendesk.com",
+                subject = "<Preencha Aqui>",
+                body = "Minha dúvida ou sugestão é:\n\n\n\n\n\n" ..
+                        "................................\n" ..
+                        "Meus dados:" ..
+                        "\nMeu nome: " ..             UserData.info.first_name .. " " .. UserData.info.last_name ..
+                        "\nTime escolhido: " ..       MatchManager:getTeamName(UserData.attributes.favorite_team_id) ..
+                        "\nQuantidade de fichas: " .. UserData.inventory.coins ..
+                        "\nMeu ID no Facebook: " ..   UserData.info.facebook_profile.id
+            }
+            native.showPopup("mail", options)
+            AnalyticsManager.clickedUsefulLink("SUPORTE E SUGESTÕES")
+        end)
+    end)
+    optionsGroup:insert(fanpageLink)
+
     local function onLinksReceived(response, status)
         --printTable(response)
         if status == 200 then
             for i, link in ipairs(response) do
                 lineY = lineY + 28
                 local fanpageLink = BtnLink:new(link.label, lineX, lineY, function()
-                    system.openURL(link.url)
+                    ScreenManager:showWebView(link.url)
                     AnalyticsManager.clickedUsefulLink(link.label)
                 end)
                 optionsGroup:insert(fanpageLink)

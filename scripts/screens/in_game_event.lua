@@ -357,7 +357,7 @@ local resultInfo = {
 
 function InGameEvent.betResultListener(message)
     local _resultInfo
-    printTable(message)
+    --printTable(message)
     if not currentAnswer then
         _resultInfo = resultInfo[message.answer]
         _resultInfo.totalCoins = UserData.inventory.coins
@@ -543,11 +543,11 @@ function InGameEvent:create(eventInfo)
             end
             local function listener(response, status)
                 if not response or status ~= 200 then
-                    print("Bet Error", status)
+                    --print("Bet Error", status)
                     timer.performWithDelay(2000, ScreenManager.callNext)
                     return
                 end
-                print("Bet Ok", status)
+                --print("Bet Ok", status)
             end
             Server.postBet(url, UserData.info.user_id, coins, onClientError, listener)
         end

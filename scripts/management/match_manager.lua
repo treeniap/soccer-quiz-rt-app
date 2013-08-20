@@ -15,180 +15,187 @@ local nextMatchesInfo
 
 local matchesInfoTEST = {
     {
-        id = "00",
-        home_goals = 2,
-        guest_goals = 1,
-        starts_at = "2013-06-23T21:30:10+00:00",
-        home_team = {
-            id = "01",
-            name = "Portuguesa",
-            mini_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_portuguesa_desportos.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_2x_portuguesa_desportos.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_4x_portuguesa_desportos.png"
+        current_round = 5,
+        name = "BRASILEIRÃO",
+        machine_friendly_name = "brasileiro_serie_a_2013",
+        incoming_matches = {
+            {
+                id = "00",
+                home_goals = 2,
+                guest_goals = 1,
+                starts_at = "2013-08-23T21:30:10+00:00",
+                home_team = {
+                    id = "01",
+                    name = "Portuguesa",
+                    mini_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_portuguesa_desportos.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_2x_portuguesa_desportos.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_4x_portuguesa_desportos.png"
+                    },
+                    medium_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_portuguesa_desportos.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_2x_portuguesa_desportos.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_4x_portuguesa_desportos.png"
+                    },
+                    big_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_portuguesa_desportos.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_2x_portuguesa_desportos.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_4x_portuguesa_desportos.png"
+                    },
+                },
+                guest_team = {
+                    id = "02",
+                    name = "Fluminense",
+                    mini_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_fluminense_fc.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_2x_fluminense_fc.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_4x_fluminense_fc.png"
+                    },
+                    medium_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_fluminense_fc.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_2x_fluminense_fc.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_4x_fluminense_fc.png"
+                    },
+                    big_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_fluminense_fc.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_2x_fluminense_fc.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_4x_fluminense_fc.png"
+                    },
+                }
             },
-            medium_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_portuguesa_desportos.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_2x_portuguesa_desportos.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_4x_portuguesa_desportos.png"
+            {
+                id = "01",
+                home_goals = 0,
+                guest_goals = 0,
+                starts_at = "2013-08-23T19:10:50+00:00",
+                home_team = {
+                    id = "03",
+                    name = "Vitória",
+                    mini_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_ec_vitoria.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_2x_ec_vitoria.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_4x_ec_vitoria.png"
+                    },
+                    medium_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_ec_vitoria.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_2x_ec_vitoria.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_4x_ec_vitoria.png"
+                    },
+                    big_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_ec_vitoria.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_2x_ec_vitoria.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_4x_ec_vitoria.png"
+                    },
+                },
+                guest_team = {
+                    id = "04",
+                    name = "Internacional",
+                    mini_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_sc_internacional.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_2x_sc_internacional.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_4x_sc_internacional.png"
+                    },
+                    medium_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_sc_internacional.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_2x_sc_internacional.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_4x_sc_internacional.png"
+                    },
+                    big_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_sc_internacional.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_2x_sc_internacional.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_4x_sc_internacional.png"
+                    },
+                }
+            },{
+                id = "02",
+                home_goals = 2,
+                guest_goals = 1,
+                starts_at = "2013-06-23T19:10:50+00:00",
+                home_team = {
+                    id = "02",
+                    name = "Fluminense",
+                    mini_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_fluminense_fc.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_2x_fluminense_fc.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_4x_fluminense_fc.png"
+                    },
+                    medium_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_fluminense_fc.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_2x_fluminense_fc.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_4x_fluminense_fc.png"
+                    },
+                    big_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_fluminense_fc.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_2x_fluminense_fc.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_4x_fluminense_fc.png"
+                    },
+                },
+                guest_team = {
+                    id = "01",
+                    name = "Portuguesa",
+                    mini_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_portuguesa_desportos.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_2x_portuguesa_desportos.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_4x_portuguesa_desportos.png"
+                    },
+                    medium_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_portuguesa_desportos.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_2x_portuguesa_desportos.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_4x_portuguesa_desportos.png"
+                    },
+                    big_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_portuguesa_desportos.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_2x_portuguesa_desportos.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_4x_portuguesa_desportos.png"
+                    },
+                }
             },
-            big_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_portuguesa_desportos.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_2x_portuguesa_desportos.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_4x_portuguesa_desportos.png"
-            },
-        },
-        guest_team = {
-            id = "02",
-            name = "Fluminense",
-            mini_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_fluminense_fc.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_2x_fluminense_fc.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_4x_fluminense_fc.png"
-            },
-            medium_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_fluminense_fc.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_2x_fluminense_fc.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_4x_fluminense_fc.png"
-            },
-            big_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_fluminense_fc.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_2x_fluminense_fc.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_4x_fluminense_fc.png"
-            },
+            {
+                id = "03",
+                home_goals = 0,
+                guest_goals = 0,
+                starts_at = "2013-06-23T00:00:26+00:00",
+                home_team = {
+                    id = "04",
+                    name = "Internacional",
+                    mini_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_sc_internacional.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_2x_sc_internacional.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_4x_sc_internacional.png"
+                    },
+                    medium_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_sc_internacional.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_2x_sc_internacional.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_4x_sc_internacional.png"
+                    },
+                    big_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_sc_internacional.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_2x_sc_internacional.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_4x_sc_internacional.png"
+                    },
+                },
+                guest_team = {
+                    id = "03",
+                    name = "Vitória",
+                    mini_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_ec_vitoria.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_2x_ec_vitoria.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_4x_ec_vitoria.png"
+                    },
+                    medium_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_ec_vitoria.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_2x_ec_vitoria.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_4x_ec_vitoria.png"
+                    },
+                    big_logo_urls = {
+                        default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_ec_vitoria.png",
+                        ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_2x_ec_vitoria.png",
+                        ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_4x_ec_vitoria.png"
+                    },
+                }
+            }
         }
-    },
-    {
-        id = "01",
-        home_goals = 0,
-        guest_goals = 0,
-        starts_at = "2013-06-23T19:10:50+00:00",
-        home_team = {
-            id = "03",
-            name = "Vitória",
-            mini_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_ec_vitoria.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_2x_ec_vitoria.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_4x_ec_vitoria.png"
-            },
-            medium_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_ec_vitoria.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_2x_ec_vitoria.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_4x_ec_vitoria.png"
-            },
-            big_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_ec_vitoria.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_2x_ec_vitoria.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_4x_ec_vitoria.png"
-            },
-        },
-        guest_team = {
-            id = "04",
-            name = "Internacional",
-            mini_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_sc_internacional.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_2x_sc_internacional.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_4x_sc_internacional.png"
-            },
-            medium_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_sc_internacional.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_2x_sc_internacional.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_4x_sc_internacional.png"
-            },
-            big_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_sc_internacional.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_2x_sc_internacional.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_4x_sc_internacional.png"
-            },
-        }
-    },{
-        id = "02",
-        home_goals = 2,
-        guest_goals = 1,
-        starts_at = "2013-06-23T19:10:50+00:00",
-        home_team = {
-            id = "02",
-            name = "Fluminense",
-            mini_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_fluminense_fc.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_2x_fluminense_fc.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/mini_4x_fluminense_fc.png"
-            },
-            medium_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_fluminense_fc.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_2x_fluminense_fc.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/medium_4x_fluminense_fc.png"
-            },
-            big_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_fluminense_fc.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_2x_fluminense_fc.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000027/big_4x_fluminense_fc.png"
-            },
-        },
-        guest_team = {
-            id = "01",
-            name = "Portuguesa",
-            mini_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_portuguesa_desportos.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_2x_portuguesa_desportos.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/mini_4x_portuguesa_desportos.png"
-            },
-            medium_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_portuguesa_desportos.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_2x_portuguesa_desportos.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/medium_4x_portuguesa_desportos.png"
-            },
-            big_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_portuguesa_desportos.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_2x_portuguesa_desportos.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000009/big_4x_portuguesa_desportos.png"
-            },
-        }
-    },
-    {
-        id = "03",
-        home_goals = 0,
-        guest_goals = 0,
-        starts_at = "2013-06-23T00:00:26+00:00",
-        home_team = {
-            id = "04",
-            name = "Internacional",
-            mini_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_sc_internacional.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_2x_sc_internacional.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/mini_4x_sc_internacional.png"
-            },
-            medium_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_sc_internacional.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_2x_sc_internacional.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/medium_4x_sc_internacional.png"
-            },
-            big_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_sc_internacional.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_2x_sc_internacional.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000005/big_4x_sc_internacional.png"
-            },
-        },
-        guest_team = {
-            id = "03",
-            name = "Vitória",
-            mini_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_ec_vitoria.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_2x_ec_vitoria.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/mini_4x_ec_vitoria.png"
-            },
-            medium_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_ec_vitoria.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_2x_ec_vitoria.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/medium_4x_ec_vitoria.png"
-            },
-            big_logo_urls = {
-                default = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_ec_vitoria.png",
-                ["2x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_2x_ec_vitoria.png",
-                ["4x"] = "https://wlq-soccer-kb.s3.amazonaws.com/uploads/team/logo/519c26c35ae16dbe35000003/big_4x_ec_vitoria.png"
-            },
-        }
-    },
+    }
 }
 
 local function onMatchOver()
@@ -204,11 +211,11 @@ local function onMatchOver()
                     InGameScreen:onGameOver(finalResultInfo)
                 end,
                 function(response)
-                    printTable(response)
+                    --printTable(response)
                     finalResultInfo = {
-                        matchPoints    = " ",
-                        globalPoints   = " ",
-                        globalPosition = " "
+                        matchPoints    = "0",
+                        globalPoints   = "0",
+                        globalPosition = "-"
                     }
                     MatchManager.finalResultInfo = finalResultInfo
                     InGameScreen:onGameOver(finalResultInfo)
@@ -221,8 +228,8 @@ local function onMatchOver()
                 getPlayerGlobalRanking()
             end,
             function(response)
-                printTable(response)
-                finalResultInfo.matchPoints = " "
+                --printTable(response)
+                finalResultInfo.matchPoints = "0"
                 getPlayerGlobalRanking()
             end)
     end)
@@ -348,7 +355,7 @@ function MatchManager:init(onComplete)
     MatchManager:loadTeamsList(function()
         MatchManager:downloadTeamsLogos({sizes = "mini"})
         MatchManager:resquestMatches(function()
-            MatchManager:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextSevenMatches(), listener = onComplete})
+            MatchManager:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextEightMatches(), listener = onComplete})
             MatchManager:scheduleNextFavoriteTeamMatch()
         end)
     end)
@@ -356,7 +363,6 @@ end
 
 function MatchManager:resquestMatches(onComplete)
     Server.getMatchesList(function(response, status)
-        print("matches received")
         nextMatchesInfo = response.championships
         setMatchesDateObj(nextMatchesInfo)
         if onComplete then
@@ -370,14 +376,14 @@ function MatchManager:setCurrentMatch(matchId)
         for i, championshipInfo in ipairs(nextMatchesInfo) do
             for j, matchInfo in ipairs(championshipInfo.incoming_matches) do
                 if matchInfo.id == matchId then
+                    --printTable(matchInfo)
                     CurrentMatch.matchInfo = matchInfo
                     CurrentMatch.period = nil
                     CurrentMatch.championshipRound = championshipInfo.current_round
                     CurrentMatch.championshipName = championshipInfo.name
                     CurrentMatch.championshipLogoName = championshipInfo.machine_friendly_name
                     ScreenManager:enterMatch(matchId)
-                    --TODO teste: finaliza partida
-                    --timer.performWithDelay(5000, onMatchOver)
+                    --timer.performWithDelay(5000, onMatchOver) -- teste: finaliza partida
                     postEnteredMatchOnFB(matchId)
                 end
             end
@@ -432,47 +438,62 @@ function MatchManager:getChampionshipInfo()
     CurrentMatch.championshipName, logoFileName[CurrentMatch.championshipLogoName]
 end
 
-function MatchManager:updateMatch(onComplete)
+function MatchManager:updateMatch(onComplete, infoGroup)
     Server.getMatchInfo(CurrentMatch.matchInfo.url, function(response, status)
         CurrentMatch.matchInfo = response.match
         CurrentMatch.matchInfo.starts_at = date(CurrentMatch.matchInfo.starts_at):tolocal()
+        if CurrentMatch.matchInfo.status_updated_at then
+            CurrentMatch.matchInfo.status_updated_at = date(CurrentMatch.matchInfo.status_updated_at):tolocal()
+        else
+            CurrentMatch.matchInfo.status_updated_at = getCurrentDate():addseconds(-math.floor(system.getTimer()/1000))
+        end
         onComplete()
+
+        local elapsedTime = date.diff(getCurrentDate(), CurrentMatch.matchInfo.status_updated_at):spanminutes()
+        local nextUpdateTime = elapsedTime - math.floor(elapsedTime)
+        nextUpdateTime = math.floor(60000 - 60000*nextUpdateTime)
+        if nextUpdateTime >= 30000 then
+            nextUpdateTime = 30000
+        end
+        infoGroup.timer = timer.performWithDelay(nextUpdateTime, function() MatchManager:updateMatch(onComplete, infoGroup) end)
     end)
 end
 
 function MatchManager:getMatchTimeStatus()
-    local status
-    local period
+    local possibleStatus = {
+        scheduled = "AQUECIMENTO",
+        first_half = "1° TEMPO",
+        ["break"] = "INTERVALO",
+        second_half = "2° TEMPO",
+        draw_break = "INTERVALO - PRORROGAÇÃO",
+        extra_first_half = "1° TEMPO - PRORROGAÇÃO",
+        extra_break = "INTERVALO - PRORROGAÇÃO",
+        extra_second_half = "2° TEMPO - PRORROGAÇÃO",
+        finished = "ENCERRADO",
+    }
+
+    local period = CurrentMatch.matchInfo.status
+    local status = possibleStatus[period] or  " "
     local time
-    local _date = CurrentMatch.matchInfo.starts_at
-    local currentDate = getCurrentDate()
-    local c = date.diff(currentDate, _date)
-    local minutesSpent = math.floor(c:spanminutes())
-    --print(minutesSpent)
-    if minutesSpent <= 0 then
-        status = "AQUECIMENTO"
-        period = "warming_up"
-    elseif CurrentMatch.matchInfo.status == "finished" then --"started", "finished", "scheduled"
-        status = "ENCERRADO"
-        period = CurrentMatch.period -- "match_over"
-        onMatchOver()
-    else
-        time = CurrentMatch.matchInfo.elapsed_time
-        if minutesSpent > 60 and time > 0 then
-            status = "2° TEMPO"
-            period = "second_half"
-        elseif minutesSpent > 45 and time == 0 then
-            time = nil
-            status = "INTERVALO"
-            period = "half_time"
-        else
-            status = "1° TEMPO"
-            period = "first_half"
+
+    if period == "first_half" or period == "second_half" or period == "extra_first_half" or period == "extra_second_half" then
+        local updatedAt = CurrentMatch.matchInfo.status_updated_at
+        if updatedAt then
+            local elapsedTime = date.diff(getCurrentDate(), updatedAt):spanminutes()
+            --print(getCurrentDate(), updatedAt, date.diff(getCurrentDate(), updatedAt), elapsedTime)
+            time = math.floor(elapsedTime)
         end
     end
-    --print(CurrentMatch.matchInfo.status, CurrentMatch.matchInfo.elapsed_time)
+
     if CurrentMatch.period and CurrentMatch.period ~= period then
-        InGameScreen:onPeriodChange(period)
+        if period == "finished" then
+            onMatchOver()
+        else
+            if period == "break" then
+                UserData:checkRating()
+            end
+            InGameScreen:onPeriodChange(period)
+        end
     end
     CurrentMatch.period = period
 
@@ -514,7 +535,7 @@ function MatchManager:getChampionshipsList()
     return nextMatchesInfo
 end
 
-function MatchManager:getNextSevenMatches()
+function MatchManager:getNextEightMatches()
     local nextMatches = {}
     local currentDate = getCurrentDate()
     for i, championship in ipairs(nextMatchesInfo) do
@@ -531,7 +552,7 @@ function MatchManager:getNextSevenMatches()
     end
     nextMatches = organizeMatchesByDate(nextMatches)
     for i = #nextMatches, 1, -1 do
-        if i > 7 then
+        if i > 8 then
             table.remove(nextMatches, i)
         else
             break
@@ -559,6 +580,13 @@ function MatchManager:getUserTeamTwitter()
 end
 
 function MatchManager:getTeamName(teamId)
+    if type(teamId) == "boolean" then
+        if teamId then
+            return CurrentMatch:getHomeTeamName()
+        else
+            return CurrentMatch:getAwayTeamName()
+        end
+    end
     if teamId then
         local team = Teams:getTeamById(teamId)
         if team then
@@ -573,11 +601,11 @@ function MatchManager:scheduleNextFavoriteTeamMatch()
     if nextMatchesInfo and favoriteTeamId then
         local after = getCurrentDate():addminutes(5)
         local scheduledDates = {}
-        print("current date", after:fmt("%A, %B %d %Y - %H:%M"))
+        --print("current date", after:fmt("%A, %B %d %Y - %H:%M"))
         for i, championship in ipairs(nextMatchesInfo) do
             for j, matchInfo in ipairs(championship.incoming_matches) do
                 if matchInfo.guest_team.id == favoriteTeamId or matchInfo.home_team.id == favoriteTeamId then
-                    print("matchStartsAt " .. matchInfo.starts_at, "lastNotDate " .. UserData.lastNotificationDate)
+                    --print("matchStartsAt " .. matchInfo.starts_at, "lastNotDate " .. UserData.lastNotificationDate)
                     if matchInfo.starts_at > after and matchInfo.starts_at > UserData.lastNotificationDate then
                         local startsAt = matchInfo.starts_at:copy()
                         scheduledDates[#scheduledDates + 1] = startsAt

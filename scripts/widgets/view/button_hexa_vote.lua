@@ -154,11 +154,9 @@ function BtnHexaVote:addCoin()
         self.coinSlot.coinsAmount = self.coinSlot.coinsAmount + 1
         self.coinSlot[self.coinSlot.coinsAmount + 1].isVisible = true
         if self.coinSlot.coinsAmount == #coinSlotsPosition then
-            print("AUDIO - lastCoinPlus",
-            AudioManager.playAudio("lastCoinPlus"))
+            AudioManager.playAudio("lastCoinPlus")
         else
-            print("AUDIO - coinPlus",
-            AudioManager.playAudio("coinPlus"))
+            AudioManager.playAudio("coinPlus")
         end
     end
 end

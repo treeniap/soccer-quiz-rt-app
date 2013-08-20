@@ -5,8 +5,6 @@
 ==============]]--
 InGameScore = {}
 
-local UPDATE_TIME = 30000
-
 local function createChampionshipInfo()
     local championshipRound, championshipName, championshipBadge = MatchManager:getChampionshipInfo()
     local championshipGroup = display.newGroup()
@@ -50,13 +48,13 @@ end
 
 local function createTeamsNames()
     local teamsNamesGroup = display.newGroup()
-    local homeTeamName = display.newText(teamsNamesGroup, string.utf8upper(MatchManager:getTeamName(MatchManager:getTeamId(true))), 0, 0, "MyriadPro-BoldCond", 16)
+    local homeTeamName = display.newText(teamsNamesGroup, string.utf8upper(MatchManager:getTeamName(true)), 0, 0, "MyriadPro-BoldCond", 16)
     homeTeamName.x = -106 - (display.screenOriginX*-0.25)
     homeTeamName:setTextColor(0)
     --local vs = display.newText(teamsNamesGroup, " VS ", 0, 0, "MyriadPro-BoldCond", 16)
     --vs.x = homeTeamName.width*0.5 + vs.width*0.5
     --vs:setTextColor(128)
-    local awayTeamName = display.newText(teamsNamesGroup, string.utf8upper(MatchManager:getTeamName(MatchManager:getTeamId(false))), 0, 0, "MyriadPro-BoldCond", 16)
+    local awayTeamName = display.newText(teamsNamesGroup, string.utf8upper(MatchManager:getTeamName(false)), 0, 0, "MyriadPro-BoldCond", 16)
     awayTeamName.x = 106 + (display.screenOriginX*-0.25)
     awayTeamName:setTextColor(0)
     --local scale = teamsNamesGroup.width > CONTENT_WIDTH and CONTENT_WIDTH/teamsNamesGroup.width or 1
@@ -158,10 +156,7 @@ function InGameScore:create()
 
     infoGroup.alpha = 0
 
-    infoGroup.timer = timer.performWithDelay(UPDATE_TIME, function()
-        MatchManager:updateMatch(infoGroup.update)
-    end, 0)
-    MatchManager:updateMatch(infoGroup.update)
+    MatchManager:updateMatch(infoGroup.update, infoGroup)
 
     return infoGroup
 end

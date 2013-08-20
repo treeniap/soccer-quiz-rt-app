@@ -83,7 +83,8 @@ local function showMatch()
             unlockScreen()
         end)
     end) then
-        ScreenManager:exitMatch()
+        currentScreen = nil
+        ScreenManager:show("initial")
     end
 end
 
@@ -93,7 +94,8 @@ local function prepareMatch()
         currentScreen:new()
         MatchManager:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
     end) then
-        ScreenManager:exitMatch()
+        currentScreen = nil
+        ScreenManager:show("initial")
     end
 end
 

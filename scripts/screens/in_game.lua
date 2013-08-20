@@ -299,6 +299,8 @@ function InGameScreen:new()
 
     AnalyticsManager.enteredInGameScreen()
 
+    InGameScreen.group = inGameGroup
+
     return inGameGroup
 end
 

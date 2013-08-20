@@ -89,8 +89,51 @@ function UserData:switchSound(isOn)
     AudioManager.setVolume(isOn)
 end
 
+function UserData:checkRating()
+    if self.session > 1 and self.rating < 3 then
+        local function onComplete(response, status)
+            if status and status == 200 then
+                local matchPoints = response.user_ranking.score
+                if tonumber(matchPoints) > 0 then
+                    native.showAlert(
+                        "Parabéns! Você fez " .. matchPoints .. " pontos no 1º tempo!",
+                        "Está gostando do Chute Premiado? Dê 5 estrelas para mais atualizações.",
+                        {"Avaliar", "Mais tarde"},
+                        function (event)
+                            if "clicked" == event.action then
+                                local i = event.index
+                                if 1 == i then
+                                    AnalyticsManager.rating(true)
+                                    self.rating = 3
+                                    self:save()
+                                    local url
+                                    if IS_ANDROID then
+                                        url = "market://details?id="
+                                    else
+                                        url = "itms-apps://ax.itunes.apple.com/WebObjects/MZStore.woa"
+                                        url = url .. "/wa/viewContentsUserReviews?"
+                                        url = url .. "type=Purple+Software&id="
+                                    end
+                                    url = url .. Params.rateId
+
+                                    system.openURL(url)
+                                elseif 2 == i then
+                                    AnalyticsManager.rating(false)
+                                end
+                            end
+                        end)
+                    self.rating = self.rating + 1
+                    self:save()
+                end
+            end
+        end
+        Server:getPlayerRanking(MatchManager:getMatchId(), onComplete, onComplete)
+    end
+end
+
 function UserData:checkTutorial()
     self.session = 1
+    self.rating = 0
     self.lastNotificationDate = getCurrentDate()
     local path = system.pathForFile("user.txt", system.DocumentsDirectory)
     local file = io.open(path, "r")
@@ -105,6 +148,8 @@ function UserData:checkTutorial()
                 -- = tonumber(line:sub(10))
             elseif(line:sub(1, 8) == "session=") then
                 self.session = tonumber(line:sub(9)) + 1
+            elseif(line:sub(1, 7) == "rating=") then
+                self.rating = tonumber(line:sub(8))
             elseif(line:sub(1, 21) == "lastNotificationDate=") then
                 self.lastNotificationDate = date(line:sub(22))
             end
@@ -128,6 +173,7 @@ function UserData:save()
     file:write("tutorial=1")
     file:write("\nsound=" .. (self.soundOn and 1 or 0))
     file:write("\nsession=" .. self.session or 1)
+    file:write("\nrating=" .. self.rating or 0)
     file:write("\nlastNotificationDate=" .. self.lastNotificationDate or getCurrentDate())
 
     io.close(file)

@@ -25,6 +25,9 @@ local buyListener
 -----------------------------------------------------------------
 --	                    CALLING FUNCTIONS                      --
 -----------------------------------------------------------------
+local function log(...)
+    --print("STORE -", ...)
+end
 
 -------------------------------------------------------------------------------
 -- Process and display product information obtained from store.
@@ -37,20 +40,20 @@ local function transactionCallback(event)
     --storeText.parent:insert(storeText)
     --storeText.text = storeText.text.."\n"..event.name
     --storeText.text = storeText.text.."\n"..transaction.state
-    print("transactionCallback: Received event ", event.name)
-    print("state", transaction.state)
+    log("transactionCallback: Received event ", event.name)
+    log("state", transaction.state)
 
     if transaction.state == "purchased" then
         -- Transaction was successful; unlock/download content now
-        print("Transaction successful!")
-        print("productIdentifier", transaction.productIdentifier)
-        --print("receipt", transaction.receipt)
-        print("transactionIdentifier", transaction.identifier)
-        print("date", transaction.date)
+        log("Transaction successful!")
+        log("productIdentifier", transaction.productIdentifier)
+        --log("receipt", transaction.receipt)
+        log("transactionIdentifier", transaction.identifier)
+        log("date", transaction.date)
 
         local mime = require ( "mime" )
         local encoded = mime.b64(transaction.receipt)
-        --print(encoded)
+        --log(encoded)
         Server:onPurchase(transaction.productIdentifier, encoded, function(response, status)
             if status == 201 then
                 -- The following must be called after transaction is complete.
@@ -85,15 +88,15 @@ local function transactionCallback(event)
 end
 
 local unpackValidProducts = function()
-    print("Loading product list")
+    log("Loading product list")
     if not validProducts then
         native.showAlert("In App features not available", { "OK" })
     else
-        print("Product list loaded")
-        print("Country: " .. system.getPreference("locale", "country"))
+        log("Product list loaded")
+        log("Country: " .. system.getPreference("locale", "country"))
         for i=1, #invalidProducts do
             -- Debug:  display the product info
-            print("Item " .. invalidProducts[i] .. " is invalid.")
+            log("Item " .. invalidProducts[i] .. " is invalid.")
         end
         isStoreInitialized = true
     end
@@ -104,13 +107,13 @@ end
 -- This callback is set up by store.loadProducts()
 -------------------------------------------------------------------------------
 local loadProductsCallback = function(event)
-    print("showing products", #event.products)
+    log("showing products", #event.products)
     for i=1, #event.products do
         local currentItem = event.products[i]
-        print(currentItem.title)
-        print(currentItem.description)
-        print(currentItem.price)
-        print(currentItem.productIdentifier)
+        log(currentItem.title)
+        log(currentItem.description)
+        log(currentItem.price)
+        log(currentItem.productIdentifier)
     end
 
     -- save for later use
@@ -123,7 +126,7 @@ end
 -------------------------------------------------------------------------------
 local function setupMyStore()
     store.loadProducts(productsIDs, loadProductsCallback)
-    print("After store.loadProducts, waiting for callback")
+    log("After store.loadProducts, waiting for callback")
 end
 
 function StoreManager.initStore()

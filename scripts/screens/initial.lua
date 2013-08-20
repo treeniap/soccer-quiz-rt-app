@@ -21,6 +21,10 @@ local updateTimer
 local updateMatchesFoil
 local isUpdatingMatchesFoil
 
+local hasPlayNow
+local hasScheduledMatches
+local sawWelcomeAlert
+
 local function createLogo()
     logo = TextureManager.newImage("stru_logotipo", initialScreenGroup)
     logo.x = logo.width*0.5
@@ -115,6 +119,7 @@ local function createMatchView(match, y, currentDate)
                     match.guest_team.id == UserData.attributes.favorite_team_id then
                 Server:claimFavoriteTeamCoins(match.id)
             end
+            hasPlayNow = true
         else
             time = display.newText("HOJE - " .. string.utf8upper(match.starts_at:fmt("%H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
         end
@@ -147,6 +152,7 @@ local function createMatchView(match, y, currentDate)
     matchGroup.x = (160 + (-display.screenOriginX))*0.5 - 4 + display.screenOriginX*0.5
     matchGroup.y = y + 4
     matchGroup.baseY = y + 4
+    hasScheduledMatches = true
     return matchGroup
 end
 
@@ -159,7 +165,7 @@ local function createMatchesView(x, y)
     end
     _maskFile = _maskFile .. ".png"
 
-    local matches = MatchManager:getNextSevenMatches()
+    local matches = MatchManager:getNextEightMatches()
     --local scrollHeight = #matches*96 + (-display.screenOriginY)
     --scrollHeight = 1*96 + (-display.screenOriginY)
     matchesGroup = widget.newScrollView
@@ -336,6 +342,21 @@ local function createMatchesFoil(onComplete)
     return matchesFoil
 end
 
+local function showWelcomeAlert()
+    if not sawWelcomeAlert then
+        if not hasScheduledMatches then
+            native.showAlert("Bem-vindo ao Chute Premiado!",
+                "Não encontramos nenhum jogo agendado. Por favor, retorne mais tarde.",
+                {"Ok"})
+        elseif not hasPlayNow then
+            native.showAlert("Bem-vindo ao Chute Premiado!",
+                "Neste momento, não há nenhum jogo em andamento. Por favor, retorne no horário do jogo.",
+                {"Ok"})
+        end
+        sawWelcomeAlert = true
+    end
+end
+
 function InitialScreen:showUp(onComplete)
     isUpdatingMatchesFoil = true
     bottomRanking:showUp(function()
@@ -346,6 +367,7 @@ function InitialScreen:showUp(onComplete)
             if onComplete then
                 onComplete()
             end
+            showWelcomeAlert()
         end))
     end)
 end

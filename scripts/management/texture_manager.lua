@@ -12,10 +12,10 @@ local function printTextMem(sheetName)
     for i = 1, 30 - sheetName:len() do
         sheetName = sheetName .. " "
     end
-    -- TMU = Texture Memory Usage
-    if spriteMemoryUsed > 0.05 or spriteMemoryUsed < -0.05 then
-        print(sheetName, string.format("TMU = %.1f MB", spriteMemoryUsed), string.format("totalTMU = %.1f MB", lastTotalMemoryUsed))
-    end
+    --- TMU = Texture Memory Usage
+    --if spriteMemoryUsed > 0.05 or spriteMemoryUsed < -0.05 then
+    --    print(sheetName, string.format("TMU = %.1f MB", spriteMemoryUsed), string.format("totalTMU = %.1f MB", lastTotalMemoryUsed))
+    --end
 end
 
 printTextMem(" ")

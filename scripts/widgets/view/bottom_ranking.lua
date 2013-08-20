@@ -184,6 +184,7 @@ local function createTweetsBar()
             display.getCurrentStage():setFocus(nil)
             if tweetsGroup.links[tweetsGroup.showing] then
                 ScreenManager:showWebView(tweetsGroup.links[tweetsGroup.showing])
+                AnalyticsManager.TweetLinkClick()
             end
         end
         return true
