@@ -625,10 +625,15 @@ function MatchManager:scheduleNextFavoriteTeamMatch()
                             isdst = false,
                         }
 
+                        local soundFile = "sounds/aif/16.aif"
+                        if favoriteTeamId == "519c26c35ae16dbe3500000b" then -- id Corinthians
+                            soundFile = "sounds/notifications/519c26c35ae16dbe3500000b.m4a"
+                        end
+
                         scheduleLocalNotification(convertedStartsAt,
                             "Chegou a hora de " .. matchInfo.home_team.name .. " x " .. matchInfo.guest_team.name ..
                                     ". Venha jogar Chute Premiado e ganhe 5 fichas!",
-                            "sounds/aif/16.aif")
+                            soundFile)
                     end
                 end
             end

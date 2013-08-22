@@ -101,8 +101,8 @@ local function createInviteFriends()
         else
             status = "Começou "
         end
-        Facebook:invite(status .. MatchManager:getTeamName(MatchManager:getTeamId(true)) .. " x " ..
-                MatchManager:getTeamName(MatchManager:getTeamId(false)) ..
+        Facebook:invite(status .. MatchManager:getTeamName(true) .. " x " ..
+                MatchManager:getTeamName(false) ..
                 ", venha jogar comigo!")
     end
 
@@ -353,6 +353,23 @@ function BottomRanking:updateRankingPositions(ranking)
         rectTouchHandler.group = playersRankingGroup
         TouchHandler.setSlideListener(rectTouchHandler, 458)
         self.rectTouchHandler = rectTouchHandler
+    else
+        inviteBtn.touch = function(button, event)
+            local phase = event.phase
+            if "began" == phase then
+                -- Subsequent touch events will target button even if they are outside the stageBounds of button
+                display.getCurrentStage():setFocus(button)
+                button.isFocus = true
+            elseif button.isFocus then
+                if "ended" == phase or "cancelled" == phase then
+                    button.onRelease()
+                    -- Allow touch events to be sent normally to the objects they "hit"
+                    display.getCurrentStage():setFocus(button, nil)
+                    button.isFocus = false
+                end
+            end
+        end
+        inviteBtn:addEventListener("touch", inviteBtn)
     end
 end
 

@@ -104,7 +104,7 @@ local function matchServerListener(message)
     if message.state and message.state == "cancelled" then
         timer.performWithDelay(2000, ScreenManager.callNext)
         InGameScreen:updateTotalCoins()
-        native.showAlert("", "O evento que estavamos aguardando foi cancelado e as moedas apostadas foram devolvidas.", { "Ok" })
+        native.showAlert("", "O evento que estavamos aguardando foi cancelado e as fichas apostadas foram devolvidas.", { "Ok" })
         return
     end
     local _eventInfo = eventsInfo[message.template.key]

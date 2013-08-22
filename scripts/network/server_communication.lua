@@ -309,6 +309,12 @@ function Server:createUser(userInfo)
 end
 
 function Server:getUsers(ids, facebook, listener, onNoResponse)
+    if not ids or #ids == 0 then
+        if onNoResponse then
+            onNoResponse()
+        end
+        return
+    end
     local idStr = facebook and "fb_ids[]=" or "ids[]="
     local url = "http://api.users.welovequiz.com/v1/users?"
     for i, id in ipairs(ids) do
@@ -324,6 +330,7 @@ function Server:getUsers(ids, facebook, listener, onNoResponse)
         method = "GET",
         listener = listener,
         retries_number = RETRIES_NUMBER,
+        on_client_error = onNoResponse,
         on_no_response = onNoResponse
     }
 end

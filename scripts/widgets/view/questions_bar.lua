@@ -198,8 +198,8 @@ function QuestionsBar:createView()
 
     facebookBtn = BtnFacebook:new(function(button, event)
         if not button.hasPosted and MatchManager.finalResultInfo.matchPoints ~= " " then
-            Facebook:post("Meus palpites no jogo " .. MatchManager:getTeamName(MatchManager:getTeamId(true)) .. " x " ..
-                    MatchManager:getTeamName(MatchManager:getTeamId(false)) .. " valeram " .. MatchManager.finalResultInfo.matchPoints ..
+            Facebook:post("Meus palpites no jogo " .. MatchManager:getTeamName(true) .. " x " ..
+                    MatchManager:getTeamName(false) .. " valeram " .. MatchManager.finalResultInfo.matchPoints ..
                     " pontos. Estou mais perto de ganhar minha camisa de futebol oficial no prêmio desta semana!", true)
             button.hasPosted = true
         end
@@ -216,8 +216,8 @@ function QuestionsBar:createView()
             local twitter
             local function post()
                 twitter:post("Ganhei " .. MatchManager.finalResultInfo.matchPoints ..
-                        " pontos no jogo " .. MatchManager:getTeamName(MatchManager:getTeamId(true)) .. " x " ..
-                        MatchManager:getTeamName(MatchManager:getTeamId(false)) .. ". Estou perto de ganhar minha camisa oficial no prêmio da semana! #ChutePremiado")
+                        " pontos no jogo " .. MatchManager:getTeamName(true) .. " x " ..
+                        MatchManager:getTeamName(false) .. ". Estou perto de ganhar minha camisa oficial no prêmio da semana! @chutepremiado")
             end
             local listener = function( event )
                 --printTable(event)

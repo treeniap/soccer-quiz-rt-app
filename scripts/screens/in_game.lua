@@ -163,7 +163,7 @@ function InGameScreen:onGameOver(finalResultInfo)
                 eventView = nil
 
                 InGameScreen:updateTotalCoins()
-                native.showAlert("", "O evento que estavamos aguardando foi cancelado e as moedas apostadas foram devolvidas.", { "Ok" })
+                native.showAlert("", "O evento que estavamos aguardando foi cancelado e as fichas apostadas foram devolvidas.", { "Ok" })
                 InGameScreen:onGameOver(finalResultInfo)
             end)
         end)

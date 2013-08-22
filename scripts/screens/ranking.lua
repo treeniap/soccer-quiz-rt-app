@@ -73,7 +73,7 @@ local function createPlayerView(player, playersGroup, yPos, rankingPosition)
 
     local playerPositionTxt = display.newText(playerGroup, rankingPosition, 0, 0, "MyriadPro-BoldCond", 32)
     playerPositionTxt:setReferencePoint(display.CenterLeftReferencePoint)
-    playerPositionTxt.x = 16
+    playerPositionTxt.x = 12
     playerPositionTxt.y = 0
 
     local noError, photo = pcall(TextureManager.newImageRect, player.photo, 46, 46, playerGroup, system.DocumentsDirectory)
