@@ -17,6 +17,13 @@ local networkStatusChangeListeners
 ---URLS
 local getUserInventoryUrl
 
+local KB_URL          = "http://api.kb.soccer.welovequiz.com/1/"
+local LEADERBOARD_URL = "http://api.leaderboards.welovequiz.com/v1/"
+local USERS_URL       = "http://api.users.welovequiz.com/v1/"
+local INVENTORY_URL   = "http://api.inventory.welovequiz.com/v1/users/"
+local QUESTIONS_URL   = "http://api.questions.soccer.welovequiz.com/"
+local CLOUD_URL       = "http://d1a6cxe4fj6xw1.cloudfront.net/"
+
 --
 -- INITIALIZE PUBNUB STATE
 --
@@ -231,7 +238,7 @@ end
 function Server.getMatchesList(listener)
     networkRequest{
         name = "getMatchesList",
-        url = "http://api.kb.soccer.welovequiz.com/1/championships",
+        url = KB_URL .. "championships",
         method = "GET",
         listener = listener,
         retries_number = RETRIES_NUMBER,
@@ -252,7 +259,7 @@ end
 function Server.getTeamsList(listener)
     networkRequest{
         name = "getTeamsList",
-        url = "http://api.kb.soccer.welovequiz.com/1/teams",
+        url = KB_URL .. "teams",
         method = "GET",
         listener = listener,
         retries_number = RETRIES_NUMBER,
@@ -266,11 +273,12 @@ end
 function Server:checkUser(userInfo)
     networkRequest{
         name = "checkUser",
-        url = "http://api.users.welovequiz.com/v1/facebook_profiles/" .. userInfo.facebook_profile.id,
+        url = USERS_URL .. "facebook_profiles/" .. userInfo.facebook_profile.id,
         method = "GET",
         listener = function(response, status)
             UserData:setUserId(response.user.id)
             Server:getUserInventory(userInfo, ScreenManager.init, TRY_AGAIN_ON_NO_RESPONSE)
+            Server:updateUser(userInfo, response.user.id)
         end,
         on_client_error = function()
             Server:createUser(userInfo)
@@ -284,7 +292,7 @@ function Server:createUser(userInfo)
     local payload = {}
     payload.user = {
         first_name = userInfo.first_name,
-        last_name = userInfo.first_name,
+        last_name = userInfo.last_name,
         facebook_profile = {
             id = userInfo.facebook_profile.id,
             access_token = userInfo.facebook_profile.access_token,
@@ -296,7 +304,7 @@ function Server:createUser(userInfo)
 
     networkRequest{
         name = "createUser",
-        url = "http://api.users.welovequiz.com/v1/users",
+        url = USERS_URL .. "users",
         method = "POST",
         listener = function(response, status)
             UserData:setUserId(response.user.id)
@@ -304,6 +312,31 @@ function Server:createUser(userInfo)
         end,
         retries_number = 30,
         on_no_response = TRY_AGAIN_ON_NO_RESPONSE,
+        post_params = encode(payload)
+    }
+end
+
+function Server:updateUser(userInfo, userId)
+    local payload = {}
+    payload.user = {
+        first_name = userInfo.first_name,
+        last_name = userInfo.last_name,
+        facebook_profile = {
+            id = userInfo.facebook_profile.id,
+            access_token = userInfo.facebook_profile.access_token,
+            picture_url = userInfo.facebook_profile.picture_url,
+            picture_2x_url = userInfo.facebook_profile.picture_2x_url,
+            picture_4x_url = userInfo.facebook_profile.picture_4x_url,
+        }
+    }
+
+    networkRequest{
+        name = "updateUser",
+        url = USERS_URL .. "users/" .. userId,
+        method = "PUT",
+        listener = function(response, status)
+        end,
+        retries_number = RETRIES_NUMBER,
         post_params = encode(payload)
     }
 end
@@ -316,7 +349,7 @@ function Server:getUsers(ids, facebook, listener, onNoResponse)
         return
     end
     local idStr = facebook and "fb_ids[]=" or "ids[]="
-    local url = "http://api.users.welovequiz.com/v1/users?"
+    local url = USERS_URL .. "users?"
     for i, id in ipairs(ids) do
         if i > 1 then
             url = url .. "&"
@@ -350,7 +383,7 @@ function Server:createInventory(userInfo)
 
     networkRequest{
         name = "createInventory",
-        url = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/inventories",
+        url = INVENTORY_URL .. UserData.info.user_id .. "/inventories",
         method = "POST",
         listener = function(response, status)
             Server:getUserInventory(userInfo, ScreenManager.init, TRY_AGAIN_ON_NO_RESPONSE)
@@ -362,7 +395,7 @@ function Server:createInventory(userInfo)
 end
 
 function Server:getUserInventory(userInfo, listener, onNoResponse)
-    getUserInventoryUrl = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/inventories?app_id=" .. APP_ID
+    getUserInventoryUrl = INVENTORY_URL .. UserData.info.user_id .. "/inventories?app_id=" .. APP_ID
     networkRequest{
         name = "getUserInventory",
         url = getUserInventoryUrl,
@@ -384,7 +417,7 @@ function Server:getUserInventory(userInfo, listener, onNoResponse)
 end
 
 function Server:getInventory(userId, listener)
-    getUserInventoryUrl = "http://api.inventory.welovequiz.com/v1/users/" .. userId .. "/inventories?app_id=" .. APP_ID
+    getUserInventoryUrl = INVENTORY_URL .. userId .. "/inventories?app_id=" .. APP_ID
     networkRequest{
         name = "getInventory" .. userId,
         url = getUserInventoryUrl,
@@ -408,7 +441,7 @@ function Server:updateAttributes(userAttributes, userId)
 
     networkRequest{
         name = "updateAttributes",
-        url = "http://api.inventory.welovequiz.com/v1/users/" .. userId .. "/inventories/attributes",
+        url = INVENTORY_URL .. userId .. "/inventories/attributes",
         method = "PUT",
         listener = function(response, status) --[[print("listener") printTable(response)]] end,
         on_client_error = function(response, status) --[[print("on_client_error") printTable(response)]] end,
@@ -430,7 +463,7 @@ function Server:onPurchase(productId, receipt, listener)
 
     networkRequest{
         name = "onPurchase",
-        url = "http://api.inventory.welovequiz.com/v1/users/" .. UserData.info.user_id .. "/purchases",
+        url = INVENTORY_URL .. UserData.info.user_id .. "/purchases",
         method = "POST",
         listener = listener,
         on_client_error = function(response, status) print("on_client_error") printTable(response) end,
@@ -457,7 +490,7 @@ function Server:claimFavoriteTeamCoins(matchId)
 
     networkRequest{
         name = "claimFavoriteTeamCoins",
-        url = "http://api.questions.soccer.welovequiz.com/offers/claim",
+        url = QUESTIONS_URL .. "offers/claim",
         method = "PUT",
         listener = listener,
         on_client_error = function(response, status) log("already claimed") end,
@@ -480,7 +513,7 @@ function Server:getPlayersRank(playersIds, leaderboardId, listener)
     --}
     local leaderboardStr = leaderboardId and "temp_leaderboards" or "leaderboards"
     local leaderboardKey = leaderboardId and leaderboardId or "global"
-    local url = "http://api.leaderboards.welovequiz.com/v1/" .. leaderboardStr .. "/scores?"
+    local url = LEADERBOARD_URL .. leaderboardStr .. "/scores?"
     url = url .. "app_id=" .. APP_ID
     url = url .. "&key=" .. leaderboardKey
     for i, id in ipairs(playersIds) do
@@ -502,7 +535,7 @@ end
 function Server:getTopRanking(leaderboardId, listener)
     local leaderboardStr = leaderboardId and "temp_leaderboards" or "leaderboards"
     local leaderboardKey = leaderboardId and leaderboardId or "global"
-    local url = "http://api.leaderboards.welovequiz.com/v1/" .. leaderboardStr .. "/scores?"
+    local url = LEADERBOARD_URL .. leaderboardStr .. "/scores?"
     url = url .. "app_id=" .. APP_ID
     url = url .. "&key=" .. leaderboardKey
 
@@ -519,7 +552,7 @@ end
 function Server:getPlayerRanking(leaderboardId, listener, errorListener)
     local leaderboardStr = leaderboardId and "temp_leaderboards" or "leaderboards"
     local leaderboardKey = leaderboardId and leaderboardId or "global"
-    local url = "http://api.leaderboards.welovequiz.com/v1/" .. leaderboardStr .. "/user_ranking?"
+    local url = LEADERBOARD_URL .. leaderboardStr .. "/user_ranking?"
     url = url .. "app_id=" .. APP_ID
     url = url .. "&key=" .. leaderboardKey
     url = url .. "&for=" .. UserData.info.user_id
@@ -541,7 +574,7 @@ end
 function Server:getAppLinks(listener)
     networkRequest{
         name = "getAppLinks",
-        url = "http://d1a6cxe4fj6xw1.cloudfront.net/facebook_links.json",
+        url = CLOUD_URL .. "facebook_links.json",
         method = "GET",
         retries_number = RETRIES_NUMBER,
         listener = listener,
@@ -556,7 +589,7 @@ end
 function Server:getUsefulLinks(listener)
     networkRequest{
         name = "getUsefulLinks",
-        url = "http://d1a6cxe4fj6xw1.cloudfront.net/useful_links.json",
+        url = CLOUD_URL .. "useful_links.json",
         method = "GET",
         retries_number = RETRIES_NUMBER,
         listener = listener,
@@ -571,7 +604,7 @@ end
 function Server:getAppStatus(listener)
     networkRequest{
         name = "getAppStatus",
-        url = "http://d1a6cxe4fj6xw1.cloudfront.net/app_status.json",
+        url = CLOUD_URL .. "app_status.json",
         method = "GET",
         retries_number = RETRIES_NUMBER,
         listener = listener,
@@ -586,7 +619,7 @@ end
 function Server:getBanner(listener)
     networkRequest{
         name = "getBanner",
-        url = "http://d1a6cxe4fj6xw1.cloudfront.net/banners.json",
+        url = CLOUD_URL .. "banners.json",
         method = "GET",
         retries_number = RETRIES_NUMBER,
         listener = listener,

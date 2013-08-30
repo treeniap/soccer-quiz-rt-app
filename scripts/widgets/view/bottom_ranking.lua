@@ -30,6 +30,9 @@ local function createPlayerView(player, position, isGoldenPlayer)
         notch = TextureManager.newImage("stru_notchgolden", playerGroup)
     else
         notch = TextureManager.newImage("stru_notchsilver", playerGroup)
+        playerGroup.onRelease = function()
+            Facebook:postFriend(player.user_id)
+        end
     end
     notch.x = 0
     notch.y = 0

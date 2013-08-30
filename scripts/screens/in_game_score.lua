@@ -156,7 +156,7 @@ function InGameScore:create()
 
     infoGroup.alpha = 0
 
-    MatchManager:updateMatch(infoGroup.update, infoGroup)
+    MatchManager:updateMatch(infoGroup.update, infoGroup, true)
 
     return infoGroup
 end

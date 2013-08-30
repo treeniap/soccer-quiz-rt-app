@@ -7,6 +7,7 @@ require "scripts.widgets.controller.button_press_release"
 require "scripts.widgets.controller.button_touch_handler"
 require "scripts.widgets.view.top_bar"
 require "scripts.widgets.view.bottom_ranking"
+require "scripts.widgets.view.goal"
 require "util.utf8"
 
 ScreenManager = {}
@@ -108,6 +109,7 @@ local function matchServerListener(message)
         return
     end
     local _eventInfo = eventsInfo[message.template.key]
+    _eventInfo.key = message.template.key
     _eventInfo.alternatives = message.template.alternatives
 
     _eventInfo.teamName = string.utf8upper(MatchManager:getTeamName(message.team_id))
@@ -188,6 +190,7 @@ function ScreenManager:exitMatch()
     Server.pubnubUnsubscribe(MatchManager:getMatchId())
     ScreenManager:show("initial")
     AudioManager.playStopBetAnswerWait()
+    MatchManager:onExitMatch()
 end
 
 function ScreenManager.init()

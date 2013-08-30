@@ -299,38 +299,8 @@ function unlockScreen()
     end
 end
 
--- test: set date to test
---[[
-local month = 8
-local day = 20
-local hour = 21
-local min = 45
-timer.performWithDelay(MINUTE_DURATION, function()
-    min = min + 1
-    if min > 59 then
-        min = 0
-        hour = hour + 1
-        print(month, day, hour, min)
-        if hour > 23 then
-            hour = 0
-            day = day + 1
-            if day > 31 then
-                day = 1
-                month = month + 1
-            end
-        end
-    end
-end, 0)
---]]
 function getCurrentDate()
-    local _date = os.date("*t")
-    --if _date.wday > 1 and _date.wday < 7 and (_date.hour < 19 or (_date.hour == 19 and _date.min < 30)) then
-    --    _date.month = month
-    --    _date.day = day
-    --    _date.hour = hour
-    --    _date.min = min
-    --end
-    local currentDate = date(_date)
+    local currentDate = date(os.date("*t"))
     return currentDate
 end
 
@@ -342,7 +312,7 @@ function scheduleLocalNotification(uctTime, alertTxt, soundFileName)
     }
     --print("scheduleLocalNotification", uctTime, alertTxt)
     --printTable(uctTime)
-    local notificationID = system.scheduleNotification(uctTime, options)
+    return system.scheduleNotification(uctTime, options)
 end
 
 -- Monitors memory

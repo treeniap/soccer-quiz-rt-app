@@ -227,16 +227,9 @@ function InGameScreen:updateTotalCoins()
     topBar:updateTotalCoins(UserData.inventory.coins)
 end
 
-local questions = {
-    {id = "00", text = "Bragantines fará gol no primeiro tempo?",               answer = "SIM", prize = 5, result = "right",   wasSaw = true},
-    {id = "01", text = "Ademar fará algum gol no segundo tempo da partida?",    answer = "NÃO", prize = 9, result = "wrong",   wasSaw = true},
-    {id = "02", text = "Muricy Ramalho fará substituições no itervalo?",        answer = "NÃO", prize = 3, result = "waiting", wasSaw = true},
-    {id = "03", text = "Marcelo Caramelo receberá cartão amarelo na partida?",  answer = "",    prize = 4, result = "waiting", wasSaw = true},
-    {id = "04", text = "Bragantines fará gol no primeiro tempo?",               answer = "SIM", prize = 5, result = "right",   wasSaw = false},
-    {id = "05", text = "Ademar fará algum gol no segundo tempo da partida?",    answer = "NÃO", prize = 9, result = "wrong",   wasSaw = false},
-    {id = "06", text = "Muricy Ramalho fará substituições no itervalo?",        answer = "NÃO", prize = 3, result = "waiting", wasSaw = false},
-    {id = "07", text = "Marcelo Caramelo receberá cartão amarelo na partida?",  answer = "",    prize = 4, result = "waiting", wasSaw = false}
-}
+function InGameScreen:goal()
+    --questionsBar:addEvent()
+end
 
 function InGameScreen:showUp(onComplete)
     --local ranking = {}
@@ -286,7 +279,6 @@ function InGameScreen:new()
     inGameGroup = display.newGroup()
 
     questionsBar = QuestionsBar:new()
-    --questionsBar:setQuestions(questions)
     inGameGroup:insert(questionsBar)
 
     bottomRanking = BottomRanking:new(UserData:getUserPicture())

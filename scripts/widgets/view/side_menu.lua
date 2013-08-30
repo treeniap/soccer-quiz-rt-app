@@ -243,6 +243,7 @@ local function createMenuOptions()
     local sairLink = BtnLink:new("SAIR", lineX, lineY, function()
         transition.to(menuFoilGroup, {time = 300, x = menuFoilGroup.hideX, transition = easeOutBack, onComplete = function()
             ScreenManager:exitMatch()
+            Goal:close()
         end})
     end)
     sairLink.xScale = 1.5

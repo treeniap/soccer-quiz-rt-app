@@ -17,7 +17,7 @@ local VER_LINE_2_X = 260 + (-display.screenOriginX)
 
 local HOR_LINE_Y_INCR = 60
 
-local OPENED_MASK = "half"
+local OPENED_MASK = "big"
 local OPENED_SIZE = OPENED_MASK == "big" and 100 or 0
 
 local function openCloseListener(button, event)
@@ -50,86 +50,35 @@ local function createScrollGroup()
             hideBackground = true,
             horizontalScrollDisabled = true
         }
+    scrollView.x = 0
+    scrollView.y = -135 - (-display.screenOriginY)
+    scrollView.num = 0
 
     return scrollView
 end
 
---{text = "Bragantines fará gol no primeiro tempo?", answer = "SIM", prize = 5, result = "right"},
-local function createQuestionLine(question, horLineY)
-    local questionGroup = display.newGroup()
-    questionGroup.y = horLineY
+local function createEventLine(event, num)
+    local eventGroup = display.newGroup()
 
-    local qText = display.newText(questionGroup, question.text, display.screenOriginX + 12, 8, VER_LINE_1_X - (display.screenOriginX + 12), HOR_LINE_Y_INCR - 12, "MyriadPro-Cond", 20)
-    local aText = display.newText(question.answer, VER_LINE_1_X + 8, 16, "MyriadPro-BoldCond", 32)
-    if question.answer == "" then
-        question.result = "wrong"
-    end
-
-    if question.result == "waiting" then
-        qText:setTextColor(92)
-        aText:setTextColor(92)
-        local iconTime = TextureManager.newImage("stru_icontime", questionGroup)
-        iconTime.x = VER_LINE_2_X + HOR_LINE_Y_INCR*0.5
-        iconTime.y = HOR_LINE_Y_INCR*0.5
-    else
-        if question.result == "right" then
-            local iconRight = TextureManager.newImage("stru_aright", questionGroup)
-            iconRight.x = VER_LINE_1_X + HOR_LINE_Y_INCR*0.5
-            iconRight.y = HOR_LINE_Y_INCR*0.5
-            local coin = TextureManager.newImage("stru_coin_vote", questionGroup)
-            coin.x = VER_LINE_2_X + HOR_LINE_Y_INCR*0.5
-            coin.y = HOR_LINE_Y_INCR*0.75
-            local pText = display.newText(questionGroup, question.prize, VER_LINE_2_X + 20, 8, "MyriadPro-BoldCond", 50)
-            pText:setTextColor(0)
-        elseif question.result == "wrong" then
-            local iconWrong = TextureManager.newImage("stru_awrong", questionGroup)
-            iconWrong.x = VER_LINE_1_X + HOR_LINE_Y_INCR*0.5
-            iconWrong.y = HOR_LINE_Y_INCR*0.5
-            local pText = display.newText(questionGroup, "_", VER_LINE_2_X + 8, -32, "MyriadPro-BoldCond", 80)
-            pText:setTextColor(0)
-        end
-        qText:setTextColor(0)
-        aText:setTextColor(0)
-    end
-
-    questionGroup:insert(aText)
-
-    return questionGroup
-end
-
-local function createQuestionsList(list)
-    local questionsListGroup = createScrollGroup()
-
-    local LIST_HEIGHT = #list*HOR_LINE_Y_INCR
-
-    local vertLine1 = display.newLine(VER_LINE_1_X, 0, VER_LINE_1_X, LIST_HEIGHT)
+    local vertLine1 = display.newLine(VER_LINE_1_X, 0, VER_LINE_1_X, HOR_LINE_Y_INCR)
     vertLine1:setColor(135, 192)
-    local vertLine2 = display.newLine(VER_LINE_2_X, 0, VER_LINE_2_X, LIST_HEIGHT)
+    local vertLine2 = display.newLine(VER_LINE_2_X, 0, VER_LINE_2_X, HOR_LINE_Y_INCR)
     vertLine2:setColor(135, 192)
-    questionsListGroup:insert(vertLine1)
-    questionsListGroup:insert(vertLine2)
+    eventGroup:insert(vertLine1)
+    eventGroup:insert(vertLine2)
 
-    local horLineY = 0
-    for i, question in ipairs(list) do
-        if not question.wasSaw then
-            local lineBg = TextureManager.newImageRect("images/stru_tablehigh.png", CONTENT_WIDTH, HOR_LINE_Y_INCR)
-            lineBg.x = display.contentCenterX
-            lineBg.y = horLineY + HOR_LINE_Y_INCR*0.5
-            questionsListGroup:insert(1, lineBg)
-        end
-        questionsListGroup:insert(createQuestionLine(question, horLineY))
-        questionsListGroup:insert(TextureManager.newHorizontalLine(display.contentCenterX, horLineY, CONTENT_WIDTH))
-        --display.newText(playerGroup, player.score .. " pts", 0, 0, "MyriadPro-BoldCond", 16)
-        horLineY = horLineY + HOR_LINE_Y_INCR
-    end
-    questionsListGroup:insert(TextureManager.newHorizontalLine(display.contentCenterX, horLineY, CONTENT_WIDTH))
+    local goal = TextureManager.newImage("bola_frame01", eventGroup)
 
-    local vertLine1 = display.newLine(VER_LINE_1_X + 1, 1, VER_LINE_1_X + 1, LIST_HEIGHT + 1)
-    local vertLine2 = display.newLine(VER_LINE_2_X + 1, 1, VER_LINE_2_X + 1, LIST_HEIGHT + 1)
-    questionsListGroup:insert(vertLine1)
-    questionsListGroup:insert(vertLine2)
+    eventGroup:insert(TextureManager.newHorizontalLine(display.contentCenterX, HOR_LINE_Y_INCR, CONTENT_WIDTH))
 
-    return questionsListGroup
+    local vertLine1 = display.newLine(VER_LINE_1_X + 1, 1, VER_LINE_1_X + 1, HOR_LINE_Y_INCR + 1)
+    local vertLine2 = display.newLine(VER_LINE_2_X + 1, 1, VER_LINE_2_X + 1, HOR_LINE_Y_INCR + 1)
+    eventGroup:insert(vertLine1)
+    eventGroup:insert(vertLine2)
+
+    eventGroup.y = num*HOR_LINE_Y_INCR
+
+    return eventGroup
 end
 
 local function createWaiting()
@@ -145,11 +94,13 @@ function QuestionsBar:getUndoBtn()
     return undoBtn
 end
 
-function QuestionsBar:setQuestions(questions)
-    local list = createQuestionsList(questions)
-    list.x = 0
-    list.y = -135 - (-display.screenOriginY)
-    self:insert(2, list)
+function QuestionsBar:addEvent(event)
+    if not self.list then
+        self.list = createScrollGroup()
+        self:insert(2, self.list)
+    end
+    self.list:insert(createEventLine(event, self.list.num))
+    self.list.num = self.list.num + 1
 end
 
 function QuestionsBar:createView()
@@ -197,10 +148,14 @@ function QuestionsBar:createView()
     --chronometer:addEventListener("touch", dragAndDrop)
 
     facebookBtn = BtnFacebook:new(function(button, event)
-        if not button.hasPosted and MatchManager.finalResultInfo.matchPoints ~= " " then
-            Facebook:post("Meus palpites no jogo " .. MatchManager:getTeamName(true) .. " x " ..
+        if not button.hasPosted and not MatchManager.finalResultInfo then
+            Facebook:post()
+            button.hasPosted = true
+            timer.performWithDelay(2000, function() button.hasPosted = false end)
+        elseif not button.hasPosted and MatchManager.finalResultInfo and MatchManager.finalResultInfo.matchPoints ~= " " then
+            Facebook:postMessage("Meus palpites no jogo " .. MatchManager:getTeamName(true) .. " x " ..
                     MatchManager:getTeamName(false) .. " valeram " .. MatchManager.finalResultInfo.matchPoints ..
-                    " pontos. Estou mais perto de ganhar minha camisa de futebol oficial no prêmio desta semana!", true)
+                    " pontos. Estou mais perto de ganhar minha camisa de futebol oficial no prêmio desta semana!")
             button.hasPosted = true
         end
         return true
@@ -212,19 +167,41 @@ function QuestionsBar:createView()
     --facebookBtn:addEventListener("touch", dragAndDrop)
 
     twitterBtn = BtnTwitter:new(function(button, event)
-        if not button.hasPosted and MatchManager.finalResultInfo.matchPoints ~= " " then
+        if not button.hasPosted and not MatchManager.finalResultInfo then
             local twitter
             local function post()
-                twitter:post("Ganhei " .. MatchManager.finalResultInfo.matchPoints ..
+                twitter:showPopup("", "@chutepremiado")
+            end
+            local listener = function( event )
+            --printTable(event)
+                if event.phase == "authorised" then
+                    post()
+                else
+                    AnalyticsManager.postTwitter("PostedOnTwitter")
+                    --native.showAlert("Twitter", "Pontuação postada.", {"Ok"})
+                end
+            end
+            twitter = require("scripts.network.GGTwitter"):new("kaO6n7jMhgyNzx9lXhLg", "OY0PBfVKizWKfUutKjwh1gt3W99YOmlqbYtgqzg81I", listener)
+            if twitter:isAuthorised() then
+                post()
+            else
+                twitter:authorise()
+            end
+            button.hasPosted = true
+            timer.performWithDelay(2000, function() button.hasPosted = false end)
+        elseif not button.hasPosted and MatchManager.finalResultInfo and MatchManager.finalResultInfo.matchPoints ~= " " then
+            local twitter
+            local function post()
+                twitter:showPopup("Ganhei " .. MatchManager.finalResultInfo.matchPoints ..
                         " pontos no jogo " .. MatchManager:getTeamName(true) .. " x " ..
-                        MatchManager:getTeamName(false) .. ". Estou perto de ganhar minha camisa oficial no prêmio da semana! @chutepremiado")
+                        MatchManager:getTeamName(false) .. ". Estou perto de ganhar minha camisa oficial no prêmio da semana!", "@chutepremiado")
             end
             local listener = function( event )
                 --printTable(event)
                 if event.phase == "authorised" then
                     post()
                 else
-                    AnalyticsManager.post("SharedMatchResultOnTwitter")
+                    AnalyticsManager.postTwitter("MatchResult")
                     native.showAlert("Twitter", "Pontuação postada.", {"Ok"})
                 end
             end
@@ -294,8 +271,8 @@ function QuestionsBar:onGame()
         nextBtn.isVisible = false
         undoBtn.isVisible = false
         chronometer.isVisible = false
-        facebookBtn.isVisible = false
-        twitterBtn.isVisible = false
+        facebookBtn.isVisible = true
+        twitterBtn.isVisible = true
         waitingGroup.isVisible = false
         self:showUp()
     end)

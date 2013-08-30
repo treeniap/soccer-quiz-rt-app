@@ -47,6 +47,7 @@ end
 function UserData:init(params, friends_ids)
     self.info = params
     self.info.friendsIds = {}
+    self.info.friendsFacebookIds = {}
     --printTable(params)
 
     local function checkUser()
@@ -74,6 +75,7 @@ function UserData:init(params, friends_ids)
                     fileName = getPictureFileName(user.id)
                 }
             self.info.friendsIds[#self.info.friendsIds + 1] = user.id
+            self.info.friendsFacebookIds[user.id] = user.facebook_profile.id
         end
         Server:downloadFilesList(downloadList, function() end)
 

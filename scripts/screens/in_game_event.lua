@@ -17,6 +17,7 @@ local easeInQuad = easeInQuad
 
 local currentAnswer
 local currentBet
+local currentEvent
 local lastRanking
 
 local VOTE_BUTTONS_POSITIONS_Y = {
@@ -31,6 +32,12 @@ local VOTE_BUTTONS_START_POSITIONS_X = {
     SCREEN_RIGHT + 128,
     SCREEN_LEFT - 128,
     SCREEN_RIGHT + 128
+}
+
+local alternativeName = {
+    penalty = "Penalty",
+    foul = "Foul",
+    corner_kick = "Corner"
 }
 
 local function createEventFoil(eventName, teamBadge, teamName)
@@ -363,7 +370,7 @@ function InGameEvent.betResultListener(message)
         _resultInfo.totalCoins = UserData.inventory.coins
         _resultInfo.isRight = "no_answer"
 
-        AnalyticsManager.question("skiped", 0, "no_answer")
+        AnalyticsManager.question(currentEvent, "skiped", 0, "no_answer")
     else
         local isRight = type(message.correct) == "boolean" and message.correct or (message.correct == "true")
         if isRight then
@@ -376,7 +383,7 @@ function InGameEvent.betResultListener(message)
         _resultInfo.isRight = isRight
 
         AnalyticsManager.emptyCoins(nil, message.coins.total == 0)
-        AnalyticsManager.question(isRight and "guessed" or "missed", currentBet, currentAnswer)
+        AnalyticsManager.question(currentEvent, isRight and "guessed" or "missed", currentBet, currentAnswer)
         currentAnswer = nil
     end
 
@@ -575,6 +582,8 @@ function InGameEvent:create(eventInfo)
     eventGroup.eventFoil = createEventFoil(eventInfo.title, eventInfo.teamBadge, eventInfo.teamName)
     eventGroup:insert(eventGroup.whistle)
     eventGroup:insert(eventGroup.eventFoil)
+
+    currentEvent = alternativeName[eventInfo.key] or ""
 
     return eventGroup
 end

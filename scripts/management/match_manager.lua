@@ -13,6 +13,30 @@ local Teams
 
 local nextMatchesInfo
 
+local TeamsAssets = {               -- badges                                    -- hasAudio
+    ["519c26c35ae16dbe35000019"] = {"images/badges/sao_paulo_fc.png",            true},
+    ["519c26c35ae16dbe3500000b"] = {"images/badges/sc_corinthians_paulista.png", true},
+    ["519c26c35ae16dbe35000025"] = {"images/badges/ca_mineiro.png",              false},
+    ["519c26c35ae16dbe35000003"] = {"images/badges/ec_vitoria.png",              false},
+    ["519c26c35ae16dbe35000011"] = {"images/badges/cr_flamengo.png",             false},
+    ["519c26c35ae16dbe35000013"] = {"images/badges/gremio_fbpa.png",             false},
+    ["519c26c35ae16dbe35000015"] = {"images/badges/c_nautico_c.png",             false},
+    ["519c26c35ae16dbe35000017"] = {"images/badges/aa_ponte_preta.png",          false},
+    ["519c26c35ae16dbe3500001d"] = {"images/badges/ec_bahia.png",                false},
+    ["519c26c35ae16dbe35000023"] = {"images/badges/coritiba_fc.png",             false},
+    ["519c26c35ae16dbe3500001f"] = {"images/badges/cruzeiro_ec.png",             false},
+    ["519c26c35ae16dbe35000021"] = {"images/badges/goias_ec.png",                false},
+    ["519c26c35ae16dbe35000029"] = {"images/badges/ca_paranaense.png",           false},
+    ["519c26c35ae16dbe35000007"] = {"images/badges/cr_vasco_g.png",              true},
+    ["51f15d2f4ea16d2299000001"] = {"images/badges/se_palmeiras.png",            true},
+    ["519c26c35ae16dbe35000005"] = {"images/badges/sc_internacional.png",        false},
+    ["519c26c35ae16dbe3500000d"] = {"images/badges/botafogo_fr.png",             false},
+    ["519c26c35ae16dbe3500000f"] = {"images/badges/santos_fc.png",               false},
+    ["519c26c35ae16dbe3500001b"] = {"images/badges/criciuma_esporte_clube.png",  false},
+    ["519c26c35ae16dbe35000027"] = {"images/badges/fluminense_fc.png",           false},
+    ["519c26c35ae16dbe35000009"] = {"images/badges/portuguesa_desportos.png",    false},
+}
+
 local matchesInfoTEST = {
     {
         current_round = 5,
@@ -346,7 +370,7 @@ local function postEnteredMatchOnFB(matchId)
         pelStr = " pela "
     end
 
-    Facebook:post(status .. CurrentMatch:getHomeTeamName() .. " x " ..
+    Facebook:postEnterMatch(status .. CurrentMatch:getHomeTeamName() .. " x " ..
             CurrentMatch:getAwayTeamName() .. pelStr .. championship ..
             "! Dê seu palpite nos lances perigosos e concorra a uma camisa de futebol oficial toda semana.")
 end
@@ -388,6 +412,7 @@ function MatchManager:setCurrentMatch(matchId)
                 end
             end
         end
+        MatchManager.finalResultInfo = nil
     else
         print("No Matches Available Right Now")
     end
@@ -438,8 +463,36 @@ function MatchManager:getChampionshipInfo()
     CurrentMatch.championshipName, logoFileName[CurrentMatch.championshipLogoName]
 end
 
-function MatchManager:updateMatch(onComplete, infoGroup)
+local function onGoal(response, scoringTeam, scoringTeamId, isFavoriteTeamAgainstGoal)
+    if isFavoriteTeamAgainstGoal then -- se o time favorito sofreu o gol
+        AudioManager.playAudio("betWrong")
+        return
+    end
+    Goal:new({
+        scoringTeam = scoringTeam,
+        homeTeam = {
+            name = response.match.home_team.name,
+            score = response.match.home_goals,
+        },
+        awayTeam = {
+            name = response.match.guest_team.name,
+            score = response.match.guest_goals,
+        }
+    })
+    AudioManager.playAudio("betRight")
+end
+
+function MatchManager:updateMatch(onComplete, infoGroup, isFirst)
     Server.getMatchInfo(CurrentMatch.matchInfo.url, function(response, status)
+        if not isFirst then
+            if response.match.home_goals > CurrentMatch.matchInfo.home_goals then
+                --InGameScreen:goal()
+                onGoal(response, "homeTeam", response.match.home_team.id, CurrentMatch.matchInfo.guest_team.id == UserData.attributes.favorite_team_id)
+            end
+            if response.match.guest_goals > CurrentMatch.matchInfo.guest_goals then
+                onGoal(response, "awayTeam", response.match.guest_team.id, CurrentMatch.matchInfo.home_team.id == UserData.attributes.favorite_team_id)
+            end
+        end
         CurrentMatch.matchInfo = response.match
         CurrentMatch.matchInfo.starts_at = date(CurrentMatch.matchInfo.starts_at):tolocal()
         if CurrentMatch.matchInfo.status_updated_at then
@@ -455,8 +508,82 @@ function MatchManager:updateMatch(onComplete, infoGroup)
         if nextUpdateTime >= 30000 then
             nextUpdateTime = 30000
         end
-        infoGroup.timer = timer.performWithDelay(nextUpdateTime, function() MatchManager:updateMatch(onComplete, infoGroup) end)
+        infoGroup.timer = timer.performWithDelay(nextUpdateTime, function() MatchManager:updateMatch(onComplete, infoGroup, false) end)
     end)
+end
+
+local notifications = {
+    matchId = nil,
+    ids = {
+        fifteen = nil,
+        thirty = nil,
+        secondHalf = nil,
+        sixty = nil,
+        seventyFive = nil
+    }
+}
+
+local function prepareNotification(minutesFromNow, text)
+    local soundFile
+    if UserData.attributes.favorite_team_id ~= "" and TeamsAssets[UserData.attributes.favorite_team_id] and TeamsAssets[UserData.attributes.favorite_team_id][2] then
+        soundFile = "sounds/notifications/" .. UserData.attributes.favorite_team_id .. ".m4a"
+    end
+
+    return scheduleLocalNotification(minutesFromNow*60, text, soundFile)
+end
+
+local function checkLocalNotification(period, time)
+    if notifications.matchId and notifications.matchId ~= CurrentMatch.matchInfo.id then
+        for k, v in pairs(notifications.ids) do
+            system.cancelNotification(v)
+            notifications.ids[k] = nil
+        end
+    end
+    notifications.matchId = CurrentMatch.matchInfo.id
+    local scheduleTime
+    local addminutes
+    local text
+    --print("time: ", time, "period: ", period)
+    if period == "scheduled" or period == "first_half" then
+        if not time or time < 13 then
+            -- schedule 15
+            scheduleTime = "fifteen"
+            addminutes = 15 - (time or 0)
+            text = "15 minutos do 1º Tempo"
+        elseif time < 28 then
+            -- schedule 30
+            scheduleTime = "thirty"
+            addminutes = 30 - time
+            text = "30 minutos do 1º Tempo"
+        else
+            -- schedule secondHalf
+            scheduleTime = "secondHalf"
+            addminutes = 62 - time
+            text = "Começo do 2º Tempo"
+        end
+    elseif period == "break" then
+        -- schedule secondHalf
+        scheduleTime = "secondHalf"
+        addminutes = 8
+        text = "Começo do 2º Tempo"
+    elseif period == "second_half" then
+        if time < 13 then
+            -- schedule 60
+            scheduleTime = "sixty"
+            addminutes = 15 - time
+            text = "15 minutos do 2º Tempo"
+        elseif time < 28 then
+            -- schedule 75
+            scheduleTime = "seventyFive"
+            addminutes = 30 - time
+            text = "30 minutos do 2º Tempo"
+        end
+    end
+    if scheduleTime and notifications.ids[scheduleTime] == nil then
+        notifications.ids[scheduleTime] = prepareNotification(addminutes, text)
+    end
+    --print("scheduleTime: ", scheduleTime, "addminutes: ", addminutes)
+    --printTable(notifications)
 end
 
 function MatchManager:getMatchTimeStatus()
@@ -497,7 +624,16 @@ function MatchManager:getMatchTimeStatus()
     end
     CurrentMatch.period = period
 
+    checkLocalNotification(period, time)
+
     return status, time
+end
+
+function MatchManager:onExitMatch()
+    for k, v in pairs(notifications.ids) do
+        system.cancelNotification(v)
+        notifications.ids[k] = nil
+    end
 end
 
 function MatchManager:getMatchId()
@@ -532,6 +668,20 @@ function MatchManager:getTeamLogoImg(isHome, size)
 end
 
 function MatchManager:getChampionshipsList()
+    for i = #nextMatchesInfo, 1, -1 do
+        local championship = nextMatchesInfo[i]
+        for j = #championship.incoming_matches, 1, -1 do
+            local currentDate = getCurrentDate()
+            local daysDiff = currentDate:getyearday() - championship.incoming_matches[j].starts_at:getyearday()
+            if daysDiff > 0 then
+                table.remove(championship.incoming_matches, j)
+            end
+        end
+        if #championship.incoming_matches == 0 then
+            table.remove(nextMatchesInfo, i)
+        end
+    end
+
     return nextMatchesInfo
 end
 
@@ -626,8 +776,8 @@ function MatchManager:scheduleNextFavoriteTeamMatch()
                         }
 
                         local soundFile = "sounds/aif/16.aif"
-                        if favoriteTeamId == "519c26c35ae16dbe3500000b" then -- id Corinthians
-                            soundFile = "sounds/notifications/519c26c35ae16dbe3500000b.m4a"
+                        if TeamsAssets[favoriteTeamId] and TeamsAssets[favoriteTeamId][2] then
+                            soundFile = "sounds/notifications/" .. favoriteTeamId .. ".m4a"
                         end
 
                         scheduleLocalNotification(convertedStartsAt,
@@ -709,34 +859,11 @@ function Teams:load(listener)
 
     Server.getTeamsList(function(response)
         --printTable(response)
-        local badgesList = {
-            ["519c26c35ae16dbe35000019"] = "images/badges/sao_paulo_fc.png",
-            ["519c26c35ae16dbe3500000b"] = "images/badges/sc_corinthians_paulista.png",
-            ["519c26c35ae16dbe35000025"] = "images/badges/ca_mineiro.png",
-            ["519c26c35ae16dbe35000003"] = "images/badges/ec_vitoria.png",
-            ["519c26c35ae16dbe35000011"] = "images/badges/cr_flamengo.png",
-            ["519c26c35ae16dbe35000013"] = "images/badges/gremio_fbpa.png",
-            ["519c26c35ae16dbe35000015"] = "images/badges/c_nautico_c.png",
-            ["519c26c35ae16dbe35000017"] = "images/badges/aa_ponte_preta.png",
-            ["519c26c35ae16dbe3500001d"] = "images/badges/ec_bahia.png",
-            ["519c26c35ae16dbe35000023"] = "images/badges/coritiba_fc.png",
-            ["519c26c35ae16dbe3500001f"] = "images/badges/cruzeiro_ec.png",
-            ["519c26c35ae16dbe35000021"] = "images/badges/goias_ec.png",
-            ["519c26c35ae16dbe35000029"] = "images/badges/ca_paranaense.png",
-            ["519c26c35ae16dbe35000007"] = "images/badges/cr_vasco_g.png",
-            ["51f15d2f4ea16d2299000001"] = "images/badges/se_palmeiras.png",
-            ["519c26c35ae16dbe35000005"] = "images/badges/sc_internacional.png",
-            ["519c26c35ae16dbe3500000d"] = "images/badges/botafogo_fr.png",
-            ["519c26c35ae16dbe3500000f"] = "images/badges/santos_fc.png",
-            ["519c26c35ae16dbe3500001b"] = "images/badges/criciuma_esporte_clube.png",
-            ["519c26c35ae16dbe35000027"] = "images/badges/fluminense_fc.png",
-            ["519c26c35ae16dbe35000009"] = "images/badges/portuguesa_desportos.png",
-        }
         local teamsList = {}
         for i, team in ipairs(response.teams) do
             teamsList[team.name] = {
                 id = team.id,
-                badge = badgesList[team.id],
+                badge = TeamsAssets[team.id] and TeamsAssets[team.id][1] or "",
                 mini_logo_url = team.mini_logo_urls[getImagePrefix()],
                 medium_logo_url = team.medium_logo_urls[getImagePrefix()],
                 big_logo_url = team.big_logo_urls[getImagePrefix()],

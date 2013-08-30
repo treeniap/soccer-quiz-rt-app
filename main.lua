@@ -81,6 +81,9 @@ local function load()
 
             Server:getAppStatus(onAppStatusReceived)
 
+            --if systemControl then
+            --    systemControl.setBrightness(0)
+            --end
         elseif event.type == "applicationExit" then
             if system.getInfo("platformName") == "iPhone OS" then
                 --require("engine.quiz_data_user").closeDatabase()

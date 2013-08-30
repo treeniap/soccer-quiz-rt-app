@@ -52,6 +52,11 @@ function AudioManager.init()
     audio.reserveChannels(1)
 end
 
+function AudioManager.playTeamAnthem(soundName)
+    local anthem = audio.loadSound(soundName)
+    audio.play(anthem, {onComplete = function() audio.dispose(anthem) end})
+end
+
 function AudioManager.playAudio(soundName, delay, loops)
     --print("PLAY", soundName)
     if delay then

@@ -67,42 +67,30 @@ local function createMatchView(match, matchesGroup, yPos)
     teamsNames.y = 0
     teamsNames:setTextColor(135)
 
-    local time
-    local status
-    local currentDate = getCurrentDate()
-    local daysDiff = currentDate:getyearday() - match.starts_at:getyearday()
-    if daysDiff > 0 then
-        time = display.newText(matchGroup, match.home_goals .. " - " .. match.guest_goals, 0, 0, "MyriadPro-BoldCond", 24)
-        status = display.newText(matchGroup, "ENCERRADO", 0, 0, "MyriadPro-BoldCond", 14)
-        status:setTextColor(135)
-    elseif daysDiff < 0 then
-        time = display.newText(matchGroup, match.starts_at:fmt("%H:%M"), 0, 0, "MyriadPro-BoldCond", 24)
-        status = display.newText(matchGroup, "AGUARDANDO", 0, 0, "MyriadPro-BoldCond", 14)
-        status:setTextColor(135)
-    elseif daysDiff == 0 then
-        local c = date.diff(currentDate, match.starts_at)
-        local minutesToMatch = c:spanminutes()
-        --if minutesToMatch > 110 then
-        --    time = display.newText(matchGroup, match.home_goals .. " - " .. match.guest_goals, 0, 0, "MyriadPro-BoldCond", 24)
-        --    status = display.newText(matchGroup, "ENCERRADO", 0, 0, "MyriadPro-BoldCond", 14)
-        --    status:setTextColor(135)
-        if minutesToMatch >= -5 then
-            time = display.newText(matchGroup, match.home_goals .. " - " .. match.guest_goals, 0, 0, "MyriadPro-BoldCond", 24)
-            status = display.newText(matchGroup, "JOGUE AGORA", 0, 0, "MyriadPro-BoldCond", 16)
-            status:setTextColor(0)
-            matchGroup.touchHandler = createTouchHandler(matchesGroup, yPos)
+    local time = display.newText(matchGroup, match.starts_at:fmt("%H:%M"), 0, 0, "MyriadPro-BoldCond", 24)
+    local status = display.newText(matchGroup, "AGUARDANDO", 0, 0, "MyriadPro-BoldCond", 14)
+    status:setTextColor(135)
 
-            if match.home_team.id == UserData.attributes.favorite_team_id or
-                    match.guest_team.id == UserData.attributes.favorite_team_id then
-                Server:claimFavoriteTeamCoins(match.id)
-            end
-        else
-            time = display.newText(matchGroup, match.starts_at:fmt("%H:%M"), 0, 0, "MyriadPro-BoldCond", 24)
-            status = display.newText(matchGroup, "AGUARDANDO", 0, 0, "MyriadPro-BoldCond", 14)
-            status:setTextColor(135)
+    if match.status == "finished" then
+        time.text = match.home_goals .. " - " .. match.guest_goals
+        status.text = "ENCERRADO"
+    elseif match.status == "scheduled" then
+        local c = date.diff(getCurrentDate(), match.starts_at)
+        local minutesToMatch = c:spanminutes()
+        if minutesToMatch >= -5 then
+            time.text = match.home_goals .. " - " .. match.guest_goals
+            status.text = "JOGUE AGORA"
+            status.size = 16
+            status:setTextColor(0)
         end
+    else
+        time.text = match.home_goals .. " - " .. match.guest_goals
+        status.text = "JOGUE AGORA"
+        status.size = 16
+        status:setTextColor(0)
     end
 
+    time:setReferencePoint(display.CenterReferencePoint)
     time.x = display.contentCenterX
     time.y = 24
     time:setTextColor(0)

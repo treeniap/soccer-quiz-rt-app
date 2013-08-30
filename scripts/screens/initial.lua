@@ -97,36 +97,40 @@ end
 local function createMatchView(match, y, currentDate)
     local matchGroup = display.newGroup()
 
-    local time
-    local daysDiff = currentDate:getyearday() - match.starts_at:getyearday()
-    if daysDiff > 0 then
-        time = display.newText("ENCERRADO", 0, 0, "MyriadPro-BoldCond", 16)
-    elseif daysDiff < -1 then
-        time = display.newText(string.utf8upper(match.starts_at:fmt("%a %d %b %Y - %H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
-    elseif daysDiff == 0 then
-        local c = date.diff(currentDate, match.starts_at)
-        --print(c:spanminutes())
-        local minutesToMatch = c:spanminutes()
-        --if minutesToMatch > 110 then
-        --    time = display.newText("ENCERRADO", 0, 0, "MyriadPro-BoldCond", 16)
-        if minutesToMatch >= -5 then
-            time = display.newText("JOGUE AGORA", 0, 0, "MyriadPro-BoldCond", 16)
-            local touchHandler = createTouchHandler(y)
-            matchesGroup:insert(touchHandler)
-            matchGroup.touchHandler = touchHandler
+    local function setPlayNow()
+        local touchHandler = createTouchHandler(y)
+        matchesGroup:insert(touchHandler)
+        matchGroup.touchHandler = touchHandler
 
-            if match.home_team.id == UserData.attributes.favorite_team_id or
-                    match.guest_team.id == UserData.attributes.favorite_team_id then
-                Server:claimFavoriteTeamCoins(match.id)
-            end
-            hasPlayNow = true
-        else
-            time = display.newText("HOJE - " .. string.utf8upper(match.starts_at:fmt("%H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
+        if match.home_team.id == UserData.attributes.favorite_team_id or
+                match.guest_team.id == UserData.attributes.favorite_team_id then
+            Server:claimFavoriteTeamCoins(match.id)
         end
-    elseif daysDiff == -1 then
-        time = display.newText("AMANHÃ - " .. string.utf8upper(match.starts_at:fmt("%H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
+        hasPlayNow = true
     end
-    --print(daysDiff, string.utf8upper(match.starts_at:fmt("%a %d %b %Y - %H:%M")), time.text)
+
+    local time = display.newText(string.utf8upper(match.starts_at:fmt("%a %d %b %Y - %H:%M")), 0, 0, "MyriadPro-BoldCond", 16)
+    if match.status == "finished" then
+        time.text = "ENCERRADO"
+    elseif match.status == "scheduled" then
+        local c = date.diff(currentDate, match.starts_at)
+        local minutesToMatch = c:spanminutes()
+        local daysDiff = currentDate:getyearday() - match.starts_at:getyearday()
+        if minutesToMatch >= -5 then
+            time.text = "JOGUE AGORA"
+            setPlayNow()
+        elseif daysDiff == -1 then
+            time.text = "AMANHÃ - " .. string.utf8upper(match.starts_at:fmt("%H:%M"))
+        elseif daysDiff == 0 then
+            time.text = "HOJE - " .. string.utf8upper(match.starts_at:fmt("%H:%M"))
+        end
+    else
+        time.text = "JOGUE AGORA"
+        setPlayNow()
+    end
+
+    --- test setPlayNow()
+
     time:setReferencePoint(display.TopCenterReferencePoint)
     time.x = -66
     time.y = 0
@@ -324,7 +328,9 @@ local function createMatchesFoil(onComplete)
     function matchesFoil:showUp(onComplete)
         self.isVisible = true
         transition.from(self, {time = 1000, x = SCREEN_RIGHT + self.width, transition = easeOutQuad, onComplete = function()
-            matchesGroup:scrollTo("bottom", {time = 1000})
+            if matchesGroup.insert then
+                matchesGroup:scrollTo("bottom", {time = 1000})
+            end
             onComplete()
         end})
         AudioManager.playAudio("showNextMatches", 300)

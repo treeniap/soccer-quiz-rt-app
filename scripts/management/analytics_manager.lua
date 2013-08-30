@@ -89,7 +89,10 @@ end
 ---//////-- Monetization --/////
 --/////////////////////////////
 function AnalyticsManager.clickedMoreCoins(_screen)
-    analytics.logEvent("MoreCoins", {Screen = _screen})
+    analytics.logEvent("MoreCoins", {
+        SessionCounter = UserData.session,
+        Screen = _screen
+    })
 end
 
 local hasBetEverything
@@ -116,11 +119,13 @@ end
 ----/////////////////////////////
 ---//-- Actions in the Game --//
 --/////////////////////////////
-function AnalyticsManager.question(_result, _betValue, _answer)
-    analytics.logEvent("Question", {
+local eventTimeInSeconds
+function AnalyticsManager.question(type, _result, _betValue, _answer)
+    analytics.logEvent(type .. "Question", {
         Result   = _result,
         BetValue = _betValue,
-        Answer   = _answer
+        Answer   = _answer,
+        TimeInSeconds = eventTimeInSeconds or 0
     })
 end
 
@@ -187,10 +192,26 @@ function AnalyticsManager.post(eventName)
     analytics.logEvent(eventName)
 end
 
+function AnalyticsManager.postFacebook(eventName)
+    analytics.logEvent("PostFacebook", {
+        Type           = eventName,
+        SessionCounter = UserData.session,
+        ChosenTeam     = MatchManager:getTeamName(UserData.attributes.favorite_team_id)
+    })
+end
+
+function AnalyticsManager.postTwitter(eventName)
+    analytics.logEvent("PostTwitter", {
+        Type           = eventName,
+        SessionCounter = UserData.session,
+        ChosenTeam     = MatchManager:getTeamName(UserData.attributes.favorite_team_id)
+    })
+end
+
 function AnalyticsManager.TweetLinkClick()
     analytics.logEvent("TweetLinkClick", {
-        SessionCounter   = UserData.session,
-        ChosenTeam = MatchManager:getTeamName(UserData.attributes.favorite_team_id)
+        SessionCounter = UserData.session,
+        ChosenTeam     = MatchManager:getTeamName(UserData.attributes.favorite_team_id)
     })
 end
 
@@ -199,6 +220,7 @@ end
 --/////////////////////////////
 function AnalyticsManager.eventToDisplay(_timeInSeconds, MIN_USER_BET_TIME)
     local connectionType = Server.connectionName
+    eventTimeInSeconds = _timeInSeconds
     if _timeInSeconds < 0 then
         analytics.logEvent("EventNotDisplayedAppSuspended", {
             ConnectionType = connectionType
