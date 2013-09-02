@@ -84,6 +84,7 @@ local function load()
             --if systemControl then
             --    systemControl.setBrightness(0)
             --end
+            native.setProperty("applicationIconBadgeNumber", 0)
         elseif event.type == "applicationExit" then
             if system.getInfo("platformName") == "iPhone OS" then
                 --require("engine.quiz_data_user").closeDatabase()

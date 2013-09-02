@@ -544,7 +544,7 @@ local function checkLocalNotification(period, time)
     local addminutes
     local text
     --print("time: ", time, "period: ", period)
-    if period == "scheduled" or period == "first_half" then
+    if period == "first_half" then
         if not time or time < 13 then
             -- schedule 15
             scheduleTime = "fifteen"
@@ -567,12 +567,12 @@ local function checkLocalNotification(period, time)
         addminutes = 8
         text = "Começo do 2º Tempo"
     elseif period == "second_half" then
-        if time < 13 then
+        if time and time < 13 then
             -- schedule 60
             scheduleTime = "sixty"
             addminutes = 15 - time
             text = "15 minutos do 2º Tempo"
-        elseif time < 28 then
+        elseif time and time < 28 then
             -- schedule 75
             scheduleTime = "seventyFive"
             addminutes = 30 - time
@@ -584,6 +584,17 @@ local function checkLocalNotification(period, time)
     end
     --print("scheduleTime: ", scheduleTime, "addminutes: ", addminutes)
     --printTable(notifications)
+end
+
+local function sanitizeStatus(matchInfo, status)
+    --print(date.diff(getCurrentDate(), matchInfo.starts_at):spanminutes(), getCurrentDate(), matchInfo.starts_at)
+    if matchInfo.status == "scheduled" and getCurrentDate() > matchInfo.starts_at then
+        status = " "
+    elseif matchInfo.status == "break" and date.diff(getCurrentDate(), matchInfo.starts_at):spanminutes() > 62 then
+        status = " "
+    end
+
+    return status
 end
 
 function MatchManager:getMatchTimeStatus()
@@ -625,6 +636,8 @@ function MatchManager:getMatchTimeStatus()
     CurrentMatch.period = period
 
     checkLocalNotification(period, time)
+
+    status = sanitizeStatus(CurrentMatch.matchInfo, status)
 
     return status, time
 end

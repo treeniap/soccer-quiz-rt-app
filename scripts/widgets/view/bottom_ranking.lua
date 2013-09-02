@@ -357,22 +357,27 @@ function BottomRanking:updateRankingPositions(ranking)
         TouchHandler.setSlideListener(rectTouchHandler, 458)
         self.rectTouchHandler = rectTouchHandler
     else
-        inviteBtn.touch = function(button, event)
-            local phase = event.phase
-            if "began" == phase then
-                -- Subsequent touch events will target button even if they are outside the stageBounds of button
-                display.getCurrentStage():setFocus(button)
-                button.isFocus = true
-            elseif button.isFocus then
-                if "ended" == phase or "cancelled" == phase then
-                    button.onRelease()
-                    -- Allow touch events to be sent normally to the objects they "hit"
-                    display.getCurrentStage():setFocus(button, nil)
-                    button.isFocus = false
+        for i = 1, playersRankingGroup.numChildren do
+            local player = playersRankingGroup[i]
+            if player.onRelease then
+                player.touch = function(button, event)
+                    local phase = event.phase
+                    if "began" == phase then
+                        -- Subsequent touch events will target button even if they are outside the stageBounds of button
+                        display.getCurrentStage():setFocus(button)
+                        button.isFocus = true
+                    elseif button.isFocus then
+                        if "ended" == phase or "cancelled" == phase then
+                            button.onRelease()
+                            -- Allow touch events to be sent normally to the objects they "hit"
+                            display.getCurrentStage():setFocus(button, nil)
+                            button.isFocus = false
+                        end
+                    end
                 end
+                player:addEventListener("touch", player)
             end
         end
-        inviteBtn:addEventListener("touch", inviteBtn)
     end
 end
 

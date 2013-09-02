@@ -82,7 +82,11 @@ local function createMatchTimer()
     function InGameScore:updateTime()
         local status, time = MatchManager:getMatchTimeStatus()
         if time then
-            matchMinutes.text = time .. "'"
+            if time > 45 then
+                matchMinutes.text = "45'+"
+            else
+                matchMinutes.text = time .. "'"
+            end
         else
             matchMinutes.text = ""
         end

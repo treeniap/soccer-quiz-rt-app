@@ -129,7 +129,7 @@ local function createMatchView(match, y, currentDate)
         setPlayNow()
     end
 
-    --- test setPlayNow()
+    if DEBUG_MODE then setPlayNow() end
 
     time:setReferencePoint(display.TopCenterReferencePoint)
     time.x = -66
@@ -328,10 +328,12 @@ local function createMatchesFoil(onComplete)
     function matchesFoil:showUp(onComplete)
         self.isVisible = true
         transition.from(self, {time = 1000, x = SCREEN_RIGHT + self.width, transition = easeOutQuad, onComplete = function()
-            if matchesGroup.insert then
-                matchesGroup:scrollTo("bottom", {time = 1000})
-            end
-            onComplete()
+            pcall(function()
+                if matchesGroup.insert then
+                    matchesGroup:scrollTo("bottom", {time = 1000})
+                end
+                onComplete()
+            end)
         end})
         AudioManager.playAudio("showNextMatches", 300)
     end

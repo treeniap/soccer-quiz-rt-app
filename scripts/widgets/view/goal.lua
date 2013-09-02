@@ -261,6 +261,12 @@ function Goal:new(goalData)
     end
     local goalGroup = display.newGroup()
 
+    local bg = display.newRect(goalGroup, 0, 0, CONTENT_WIDTH, CONTENT_HEIGHT*2)
+    bg.x = 0
+    bg.y = 0
+    bg:setFillColor(0, 192)
+    bg:addEventListener("touch", function() return true end)
+
     local logoGroup = display.newGroup()
     local mainBarBgCenter = TextureManager.newImageRect("images/goal/bar_gol_B.png", 208, 111, logoGroup)
     local mainBarBgBorder = TextureManager.newImageRect("images/goal/bar_gol_A.png", 42, 111, logoGroup)

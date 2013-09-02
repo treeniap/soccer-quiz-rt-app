@@ -18,10 +18,10 @@ local networkStatusChangeListeners
 local getUserInventoryUrl
 
 local KB_URL          = "http://api.kb.soccer.welovequiz.com/1/"
-local LEADERBOARD_URL = "http://api.leaderboards.welovequiz.com/v1/"
-local USERS_URL       = "http://api.users.welovequiz.com/v1/"
-local INVENTORY_URL   = "http://api.inventory.welovequiz.com/v1/users/"
-local QUESTIONS_URL   = "http://api.questions.soccer.welovequiz.com/"
+local LEADERBOARD_URL = DEBUG_MODE and "http://leaderboards-api-test.herokuapp.com/v1/"    or "http://api.leaderboards.welovequiz.com/v1/"
+local USERS_URL       = DEBUG_MODE and "http://users-api-test.herokuapp.com/v1/"           or "http://api.users.welovequiz.com/v1/"
+local INVENTORY_URL   = DEBUG_MODE and "http://inventory-api-test.herokuapp.com/v1/users/" or "http://api.inventory.welovequiz.com/v1/users/"
+local QUESTIONS_URL   = DEBUG_MODE and "http://soccer-questions-api-test.herokuapp.com/"   or "http://api.questions.soccer.welovequiz.com/"
 local CLOUD_URL       = "http://d1a6cxe4fj6xw1.cloudfront.net/"
 
 --

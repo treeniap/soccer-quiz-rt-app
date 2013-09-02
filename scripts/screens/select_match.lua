@@ -40,7 +40,7 @@ local function displaceCloseChampBtns()
     end
 end
 
-local function createTouchHandler(matchGroup, yPos)
+local function createTouchHandler(yPos)
     local touchHandler = display.newRect(display.screenOriginX + 1, yPos - 3, CONTENT_WIDTH - 2, 74)
     touchHandler.strokeWidth = 2
     touchHandler:setStrokeColor(0, 0, 0, 64)
@@ -50,7 +50,6 @@ local function createTouchHandler(matchGroup, yPos)
         "down" )
     touchHandler:setFillColor( g )
     touchHandler.alpha = 0.01
-    matchGroup:insert(touchHandler)
     return touchHandler
 end
 
@@ -67,6 +66,17 @@ local function createMatchView(match, matchesGroup, yPos)
     teamsNames.y = 0
     teamsNames:setTextColor(135)
 
+    local function setPlayNow()
+        local touchHandler = createTouchHandler(yPos)
+        matchesGroup:insert(touchHandler)
+        matchGroup.touchHandler = touchHandler
+
+        if match.home_team.id == UserData.attributes.favorite_team_id or
+                match.guest_team.id == UserData.attributes.favorite_team_id then
+            Server:claimFavoriteTeamCoins(match.id)
+        end
+    end
+
     local time = display.newText(matchGroup, match.starts_at:fmt("%H:%M"), 0, 0, "MyriadPro-BoldCond", 24)
     local status = display.newText(matchGroup, "AGUARDANDO", 0, 0, "MyriadPro-BoldCond", 14)
     status:setTextColor(135)
@@ -82,13 +92,17 @@ local function createMatchView(match, matchesGroup, yPos)
             status.text = "JOGUE AGORA"
             status.size = 16
             status:setTextColor(0)
+            setPlayNow()
         end
     else
         time.text = match.home_goals .. " - " .. match.guest_goals
         status.text = "JOGUE AGORA"
         status.size = 16
         status:setTextColor(0)
+        setPlayNow()
     end
+
+    if DEBUG_MODE then setPlayNow() end
 
     time:setReferencePoint(display.CenterReferencePoint)
     time.x = display.contentCenterX
