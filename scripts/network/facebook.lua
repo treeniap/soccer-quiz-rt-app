@@ -23,6 +23,7 @@ local REQUEST_TYPE_INVITE = "invite"
 local REQUEST_TYPE_POST_FRIEND = "postfriend"
 local REQUEST_TYPE_POST_GOAL = "postgoal"
 local REQUEST_TYPE_POST = "post"
+local REQUEST_TYPE_POST_RANKING_SCORE = "rankingscore"
 local acceptedPublishStream = true
 
 local function getPictureSize(size)
@@ -74,7 +75,7 @@ local function listener(event)
             if "clicked" == event.action then
                 if requestType == REQUEST_TYPE_LOGIN then
                     if not loginListener then
-                        facebook.login(appId, listener, {"publish_stream"})
+                        facebook.login(appId, listener, {"publish_stream", "publish_actions"})
                     end
                 else
                     request(requestType)
@@ -186,6 +187,13 @@ local function listener(event)
     end
 end
 
+function Facebook:postFacebookScore(score)
+    local params = {}
+    params.body = "&score="..tostring(score).."&access_token="..access_token
+    network.request("https://graph.facebook.com/"..UserData.info.facebook_profile.id.."/scores", "POST", function(event)
+    end, params)
+end
+
 function Facebook:invite(message)
     --print(message)
     requestType = REQUEST_TYPE_INVITE
@@ -277,36 +285,7 @@ function Facebook:init(_listener)
     end
     loginListener = _listener
     requestType = REQUEST_TYPE_LOGIN
-    facebook.login(appId, listener, {"publish_stream"})
+    facebook.login(appId, listener, {"publish_stream", "publish_actions"})
 end
 
 return Facebook
-
---[[
- data
-    1
-       id = 521949372
-       name = Paulo Ribeiro
-    2
-       id = 527268622
-       name = Ioná Viana
-    3
-       id = 613734940
-       name = Alex Zani Canduçço
-    4
-       id = 628482685
-       name = Ivan Garde
-    5
-       id = 651178362
-       name = Leonardo Fontoura
-    6
-       id = 665321945
-       name = Wesley Alves
-    7
-       id = 739841333
-       installed = true
-       name = Gabriel Ochsenhofer
-    8
-       id = 780080590
-       installed = true
-]]

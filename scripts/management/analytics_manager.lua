@@ -53,6 +53,11 @@ end
 ---/////-- Screen:InGame --/////
 --/////////////////////////////
 local matchEnteredCounter = {}
+local fromScreen = ""
+
+function AnalyticsManager.setFromScreen(screenName)
+    fromScreen = screenName
+end
 
 function AnalyticsManager.enteredInGameScreen()
     local enteredMatchId = MatchManager:getMatchId()
@@ -64,7 +69,8 @@ function AnalyticsManager.enteredInGameScreen()
     analytics.logEvent("Screen:InGame", {
         SessionCounter  = UserData.session,
         NumberOfFriends = #UserData.info.friendsIds,
-        SameGameCounter = matchEnteredCounter[enteredMatchId]
+        SameGameCounter = matchEnteredCounter[enteredMatchId],
+        From = fromScreen
     })
 end
 
@@ -105,6 +111,10 @@ function AnalyticsManager.emptyCoins(_hasBetEverything, _lostItAll)
     end
 end
 
+function AnalyticsManager.offerCoins()
+    analytics.logEvent("OfferCoins")
+end
+
 ----/////////////////////////////
 ---////////-- Settings --///////
 --/////////////////////////////
@@ -140,6 +150,10 @@ function AnalyticsManager.changedGamePeriod(period)
     if periods[period] then
         analytics.logEvent(periods[period])
     end
+end
+
+function AnalyticsManager.selectedInGameScreen(_screenName)
+    analytics.logEvent("SelectInGameScreen", {ScreenName = _screenName})
 end
 
 ----/////////////////////////////

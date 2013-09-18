@@ -66,7 +66,7 @@ local function createPlayerView(player, playersGroup, yPos, rankingPosition)
     local playerGroup = display.newGroup()
 
     if player.isPlayer then
-        local bg = TextureManager.newImageRect("images/stru_ranking_user.png", CONTENT_WIDTH, 64, playerGroup)
+        local bg = TextureManager.newImageRect("images/stretchable/stru_ranking_user.png", CONTENT_WIDTH, 64, playerGroup)
         bg.x = display.contentCenterX + (-display.screenOriginX) + 4
         bg.y = 0
     end
@@ -98,7 +98,7 @@ local function createPlayerView(player, playersGroup, yPos, rankingPosition)
     end
     createBadge()
 
-    local playerName = display.newText(playerGroup, string.utf8upper(createNameText(player.first_name .. " " .. player.last_name)), 0, 0, "MyriadPro-BoldCond", 18)
+    local playerName = display.newText(playerGroup, string.utf8upper(createNameText((player.first_name or " ") .. " " .. (player.last_name or " "))), 0, 0, "MyriadPro-BoldCond", 18)
     playerName:setReferencePoint(display.CenterLeftReferencePoint)
     --if playerName.width > 175 then
     --    local scale = 175/ playerName.width
@@ -140,8 +140,9 @@ local function createPlayersView(playersList, topY)
         {
             width = SCREEN_RIGHT,
             height = scrollSize,
-            maskFile = "images/menuranking_mask.png",
+            maskFile = "images/masks/menuranking_mask.png",
             hideBackground = true,
+            hideScrollBar = true,
             horizontalScrollDisabled = true,
             verticalScrollDisabled = #playersList < 6
         }
@@ -175,7 +176,7 @@ local function createOpenMenuLine(isBottom)
     else
         line:setColor(135, 224)
     end
-    local lineShadow = TextureManager.newImageRect("images/stru_shadow.png", CONTENT_WIDTH, 20, lineGroup)
+    local lineShadow = TextureManager.newImageRect("images/stretchable/stru_shadow.png", CONTENT_WIDTH, 20, lineGroup)
     lineShadow.x = display.contentCenterX
     lineShadow.y = display.screenOriginY + (isBottom and -10 or 10)
     lineShadow.yScale = isBottom and -lineShadow.yScale or lineShadow.yScale
@@ -187,15 +188,15 @@ end
 local function createBG()
     bgGroup = display.newGroup()
 
-    local bgTop = TextureManager.newImageRect("images/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, bgGroup)
+    local bgTop = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, bgGroup)
     bgTop.x = display.contentCenterX
     bgTop.y = display.contentCenterY
-    local menuMask = graphics.newMask("images/menuselectmatch_mask.png")
+    local menuMask = graphics.newMask("images/masks/menuselectmatch_mask.png")
     bgTop:setMask(menuMask)
-    local bgBottom = TextureManager.newImageRect("images/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, bgGroup)
+    local bgBottom = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, bgGroup)
     bgBottom.x = display.contentCenterX
     bgBottom.y = display.contentCenterY
-    local menuMask = graphics.newMask("images/menuselectmatch_mask.png")
+    local menuMask = graphics.newMask("images/masks/menuselectmatch_mask.png")
     bgBottom:setMask(menuMask)
 
     local CENTER_MASK_Y = 282.5
@@ -339,8 +340,8 @@ local function getPlayersInTheRanking(button, ranking)
             for i, player in ipairs(ranking) do
                 --print(user.id, friend.user_id)
                 if user.id == player.user_id then
-                    ranking[i].first_name = user.first_name
-                    ranking[i].last_name = user.last_name
+                    ranking[i].first_name = user.first_name or " "
+                    ranking[i].last_name = user.last_name or " "
                     ranking[i].photo = getPictureFileName(user.id)
                     local isPlayer = (user.id == UserData.info.user_id)
                     ranking[i].isPlayer = isPlayer

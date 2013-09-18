@@ -45,7 +45,7 @@ end
 local function createButtons()
     local buttonGroup = display.newGroup()
 
-    local buttonBg = TextureManager.newImageRect("images/stru_bar_gold_mid.png", CONTENT_WIDTH, 47, buttonGroup)
+    local buttonBg = TextureManager.newImageRect("images/stretchable/stru_bar_gold_mid.png", CONTENT_WIDTH, 47, buttonGroup)
     buttonBg.x = display.contentCenterX
     buttonBg.y = display.contentCenterY
 
@@ -181,6 +181,7 @@ local function createMatchesView(x, y)
             bottomPadding = 40, -- -1550 - display.screenOriginY*5.5,
             maskFile = _maskFile,
             hideBackground = true,
+            hideScrollBar = true,
             horizontalScrollDisabled = true,
             verticalScrollDisabled = #matches < 4,
             friction = 0.8,
@@ -215,6 +216,7 @@ local function createMatchesView(x, y)
                 button.group.x = button.group.x - 1
                 button.group.y = button.group.y - 1
                 display.getCurrentStage():setFocus(nil)
+                AnalyticsManager.setFromScreen("HomeScreen")
                 MatchManager:setCurrentMatch(button.matchId)
                 isOpeningMatch = true
                 button:removeEventListener("touch", button)

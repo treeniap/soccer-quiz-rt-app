@@ -257,7 +257,7 @@ local function createScreen5()
     if CONTENT_HEIGHT > 480 then -- iPhone 5 and Android
         width, height = 428, 570
     end
-    local bg = TextureManager.newImageRect("images/stru_menu_bg.png", width, height)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", width, height)
     bg.x = display.contentCenterX
     bg.y = display.contentCenterY
     screenGroup:insert(bg)
@@ -269,6 +269,7 @@ local function createScreen5()
             height = 200,
             maskFile = "images/tutorial_mask.png",
             hideBackground = true,
+            hideScrollBar = true,
             horizontalScrollDisabled = true
         }
     local teamsBtns = {}
@@ -313,19 +314,19 @@ local function createScreen5()
     teamsGroup.y = 148 + (display.screenOriginY*-0.25)
     screenGroup:insert(teamsGroup)
 
-    local top = TextureManager.newImageRect("images/stru_menu_bg.png", width, 145 + (display.screenOriginY*-1.25))
+    local top = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", width, 145 + (display.screenOriginY*-1.25))
     top.x = display.contentCenterX
     top.y = display.screenOriginY + (145 + (display.screenOriginY*-1.25))*0.5
     screenGroup:insert(top)
-    local lineShadow = TextureManager.newImageRect("images/stru_shadow.png", CONTENT_WIDTH, 20, screenGroup)
+    local lineShadow = TextureManager.newImageRect("images/stretchable/stru_shadow.png", CONTENT_WIDTH, 20, screenGroup)
     lineShadow.x = display.contentCenterX
     lineShadow.y = top.y + (145 + (display.screenOriginY*-1.25))*0.5 + 10
 
-    local bottom = TextureManager.newImageRect("images/stru_menu_bg.png", width, 134 + (display.screenOriginY*-0.75))
+    local bottom = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", width, 134 + (display.screenOriginY*-0.75))
     bottom.x = display.contentCenterX
     bottom.y = SCREEN_BOTTOM - (134 + (display.screenOriginY*-0.75))*0.5
     screenGroup:insert(bottom)
-    local lineShadow = TextureManager.newImageRect("images/stru_shadow.png", CONTENT_WIDTH, 20, screenGroup)
+    local lineShadow = TextureManager.newImageRect("images/stretchable/stru_shadow.png", CONTENT_WIDTH, 20, screenGroup)
     lineShadow.x = display.contentCenterX
     lineShadow.y = bottom.y - (134 + (display.screenOriginY*-0.75))*0.5 - 10
     lineShadow.yScale = -lineShadow.yScale
@@ -357,14 +358,14 @@ local function createScreen5()
     text.x = display.contentCenterX
     text.y = TEXT_Y + 22
 
-    local function onStartApp(button)
+    local function onStartApp(button) --TODO bug pos criacao de usuario
         local function completeTutorial()
             if UserData:updateAttributes(pushNotificationOn, favoriteTeamId) then
                 UserData:setTutorialCompleted()
                 ScreenManager.init()
                 AnalyticsManager.finishedTutorial()
             else
-                timer.performWithDelay(300, completeTutorial)
+                timer.performWithDelay(1000, completeTutorial)
             end
         end
         TutorialScreen:hide(completeTutorial)

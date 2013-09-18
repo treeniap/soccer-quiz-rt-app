@@ -16,7 +16,7 @@ function Chronometer:createView()
     cover.x = 0
     cover.y = 1
 
-    local timerMask = graphics.newMask("images/timer_mask.png")
+    local timerMask = graphics.newMask("images/masks/timer_mask.png")
     self.bar:setMask(timerMask)
     self.bar.maskX = -82
 end

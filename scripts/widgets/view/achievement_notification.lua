@@ -8,7 +8,7 @@ AchievementNotification = {}
 function AchievementNotification:new(medalFileName, text)
     local notificationGroup = display.newGroup()
 
-    local bg = TextureManager.newImageRect("images/stru_bar_mid.png", 100, 40, notificationGroup)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_bar_mid.png", 100, 40, notificationGroup)
     bg.x = 0
     bg.y = 0
     local medal = TextureManager.newImageRect(medalFileName, 39, 53, notificationGroup)

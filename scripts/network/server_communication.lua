@@ -121,6 +121,66 @@ function Server:downloadFilesList(filesList, listener)
     end
 end
 
+
+local function getSizeName(size)
+    if size <= 1 then
+        return "mini"
+    elseif size == 2 then
+        return "medium"
+    end
+    return "big"
+end
+
+function Server:downloadTeamsLogos(params)
+    local logosList = {}
+    if params.sizes == "medium" then
+        for i, match in ipairs(params.matches) do
+            local homeUrl = match.home_team.medium_logo_urls[getImagePrefix()]
+            if homeUrl then
+                logosList[#logosList + 1] = {
+                    url = homeUrl,
+                    fileName = getLogoFileName(match.home_team.id, 2)
+                }
+            end
+            local awayUrl = match.guest_team.medium_logo_urls[getImagePrefix()]
+            if awayUrl then
+                logosList[#logosList + 1] = {
+                    url = awayUrl,
+                    fileName = getLogoFileName(match.guest_team.id, 2)
+                }
+            end
+        end
+    elseif params.sizes == "mini" then
+        for i, team in ipairs(MatchManager:getTeamsList()) do
+            local url = team.mini_logo_url
+            if url then
+                logosList[#logosList + 1] = {
+                    url = url,
+                    fileName = getLogoFileName(team.id, 1)
+                }
+            end
+        end
+    elseif type(params.sizes) == "table" then
+        for i, size in ipairs(params.sizes) do
+            local homeUrl = MatchManager:getTeamLogoUrl(true, getSizeName(size))
+            if homeUrl then
+                logosList[#logosList + 1] = {
+                    url = homeUrl,
+                    fileName = MatchManager:getTeamLogoImg(true, size)
+                }
+            end
+            local awayUrl = MatchManager:getTeamLogoUrl(false, getSizeName(size))
+            if awayUrl then
+                logosList[#logosList + 1] = {
+                    url = awayUrl,
+                    fileName = MatchManager:getTeamLogoImg(false, size)
+                }
+            end
+        end
+    end
+    Server:downloadFilesList(logosList, params.listener)
+end
+
 ---============================================================---
 ---///////////////////////// REQUESTS /////////////////////////---
 ---============================================================--
@@ -210,6 +270,8 @@ function serverResponseHandler(_request)
             end
         elseif event.response == " " then
             callListener(_request.listener, jsonContent, status)
+        else
+            print("JSON Decode Error: ", noError, jsonContent)
         end
     end
 end
@@ -264,6 +326,40 @@ function Server.getTeamsList(listener)
         listener = listener,
         retries_number = RETRIES_NUMBER,
         on_no_response = TRY_AGAIN_ON_NO_RESPONSE
+    }
+end
+
+function Server.getTeamsLineups(listener)
+    networkRequest{
+        name = "getTeamsLineups",
+        url = "http://pw-games.com/chutepremiado/lineups_b.json",
+        method = "GET",
+        listener = listener,
+        retries_number = RETRIES_NUMBER,
+        on_no_response = listener
+    }
+end
+
+function Server.getTeamsStatistics(listener)
+    networkRequest{
+        name = "getTeamsStatistics",
+        url = "http://pw-games.com/chutepremiado/statistics_a.json",
+        method = "GET",
+        listener = listener,
+        retries_number = RETRIES_NUMBER,
+        on_no_response = listener,
+    }
+end
+
+function Server.getMatchDetails(url, listener)
+    networkRequest{
+        name = "getMatchDetails",
+        url = url, --"http://pw-games.com/chutepremiado/match_details.json",
+        method = "GET",
+        listener = listener,
+        retries_number = RETRIES_NUMBER,
+        on_client_error = listener,
+        on_no_response = listener,
     }
 end
 

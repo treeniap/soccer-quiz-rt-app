@@ -105,8 +105,8 @@ end
 local function createFinalFoil(finalResultInfo)
     local foilGroup = display.newGroup()
     -- scalable menu background
-    --local menuFoilCenter = TextureManager.newImageRect("images/stru_foil_center.png", 150 + display.screenOriginX*-2, 404, foilGroup)
-    local menuFoilCenter = TextureManager.newImageRect("images/stru_foil_center.png", 141 + display.screenOriginX*-2 + display.screenOriginY*-0.25, 450, foilGroup)
+    --local menuFoilCenter = TextureManager.newImageRect("images/stretchable/stru_foil_center.png", 150 + display.screenOriginX*-2, 404, foilGroup)
+    local menuFoilCenter = TextureManager.newImageRect("images/stretchable/stru_foil_center.png", 141 + display.screenOriginX*-2 + display.screenOriginY*-0.25, 450, foilGroup)
     menuFoilCenter.x = 0
     menuFoilCenter.y = 0
 
@@ -178,10 +178,10 @@ local function createRightSide(totalCoupons, championshipName, position)
     --awardImg.x = SCREEN_RIGHT - awardImg.width*0.5 + 20
     --awardImg.y = display.contentCenterY + awardImg.height*0.5 - 48 + (display.screenOriginY*-0.5)
     local barSize = 94
-    local bg = TextureManager.newImageRect("images/stru_bar_mid.png", barSize, 40, rightSideGroup)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_bar_mid.png", barSize, 40, rightSideGroup)
     bg.x = SCREEN_RIGHT - bg.width*0.5
     bg.y = display.contentCenterY - 50 + (display.screenOriginY*-0.5)
-    local bgBorder = TextureManager.newImageRect("images/stru_bar_left.png", 15, 40, rightSideGroup)
+    local bgBorder = TextureManager.newImageRect("images/stretchable/stru_bar_left.png", 15, 40, rightSideGroup)
     bgBorder.x = bg.x - bg.width*0.5 - bgBorder.width*0.5
     bgBorder.y = bg.y
     local trophy = TextureManager.newImage("stru_trophy", rightSideGroup)
@@ -228,7 +228,7 @@ local function createBanner()
                 if noError and banner then
                     banner.x = 0
                     banner.y = 0
-                    local bannerMask = graphics.newMask("images/banner_results_mask.png")
+                    local bannerMask = graphics.newMask("images/masks/banner_results_mask.png")
                     banner:setMask(bannerMask)
                     banner.maskX = 24
                     bannerGroup.touch = function(self, event)

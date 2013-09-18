@@ -64,7 +64,7 @@ end
 function TextureManager.newLogo(logoFileName, size, group)
     local noError, result = pcall(display.newImageRect, logoFileName, system.DocumentsDirectory, size, size)
     if not noError or not result then
-        result = TextureManager.newImageRect("images/clubes_empty.png", size, size)
+        result = TextureManager.newImageRect("images/badges/clubes_empty.png", size, size)
     end
     if group then
         group:insert(result)

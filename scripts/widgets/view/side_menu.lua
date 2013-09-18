@@ -25,6 +25,7 @@ local function showHideMenu(btn, event)
         btn.isOpen = true
         btn.isLocked = true
         AnalyticsManager.OpenedSideMenu()
+        SideMenu:onResume()
     end
     return true
 end
@@ -57,20 +58,51 @@ local function createOptions()
         AnalyticsManager.clickedAudioSetting(UserData.soundOn and "AudioOn" or "AudioOff")
     end
 
-    -- AUDIO TITLE
-    local audioTitleTxt = display.newEmbossedText(optionsGroup, "ÁUDIO", lineX, lineY, "MyriadPro-BoldCond", 14)
+    -- CONFIGURAÇÕES TITLE
+    local audioTitleTxt = display.newEmbossedText(optionsGroup, "CONFIGURAÇÕES", lineX, lineY, "MyriadPro-BoldCond", 14)
     audioTitleTxt:setTextColor(192)
     audioTitleTxt:setEmbossColor(color)
     optionsGroup:insert(TextureManager.newHorizontalLine(104, lineY + 18, 220 + display.screenOriginX*-2))
 
-    -- SONS
+    -- BRILHO
     lineY = lineY + 28
+    local brilhoTxt = display.newText(optionsGroup, "BRILHO", lineX, lineY, "MyriadPro-BoldCond", 18)
+    brilhoTxt:setTextColor(0)
+    local brightLess = TextureManager.newSpriteRect("icon_brilho_baixo", 18, 18, optionsGroup)
+    brightLess.x = 84
+    brightLess.y = lineY + 8
+    local brightMore = TextureManager.newSpriteRect("icon_brilho_alto", 20, 20, optionsGroup)
+    brightMore.x = 238
+    brightMore.y = lineY + 8
+    -- BRILHO slider
+    local function sliderListener( event )
+        BrightnessManager.setBrightness(event.value)
+    end
+
+    local brightnessSlider = widget.newSlider
+        {
+            top = lineY - 8,
+            left = 96,
+            width = 130,
+            listener = sliderListener,
+            value = BrightnessManager.getBrightness()
+        }
+    optionsGroup:insert(brightnessSlider)
+
+    function SideMenu:onResume()
+        if brightnessSlider and brightnessSlider.setValue then
+            brightnessSlider:setValue(BrightnessManager.getBrightness())
+        end
+    end
+
+    -- SONS
+    lineY = lineY + 44
     local sonsTxt = display.newText(optionsGroup, "SONS", lineX, lineY, "MyriadPro-BoldCond", 18)
     sonsTxt:setTextColor(0)
     -- SONS on/off switch
     local soundsOnOffSwitch = widget.newSwitch
         {
-            left = 120,
+            left = 75,
             top = lineY - 8,
             initialSwitchState = UserData.soundOn,
             onPress = onSwitchPress,
@@ -153,7 +185,7 @@ local function createOptions()
                 body = "Minha dúvida ou sugestão é:\n\n\n\n\n\n" ..
                         "................................\n" ..
                         "Meus dados:" ..
-                        "\nMeu nome: " ..             UserData.info.first_name .. " " .. UserData.info.last_name ..
+                        "\nMeu nome: " ..             UserData.info.first_name .. " " .. (UserData.info.last_name or " ") ..
                         "\nTime escolhido: " ..       MatchManager:getTeamName(UserData.attributes.favorite_team_id) ..
                         "\nQuantidade de fichas: " .. UserData.inventory.coins ..
                         "\nMeu ID no Facebook: " ..   UserData.info.facebook_profile.id
@@ -211,20 +243,52 @@ local function createMenuOptions()
         UserData:switchSound(switch.isOn)
     end
 
-    -- AUDIO TITLE
-    local audioTitleTxt = display.newEmbossedText(optionsGroup, "ÁUDIO", lineX, lineY, "MyriadPro-BoldCond", 14)
+    -- CONFIGURAÇÕES TITLE
+    local audioTitleTxt = display.newEmbossedText(optionsGroup, "CONFIGURAÇÕES", lineX, lineY, "MyriadPro-BoldCond", 14)
     audioTitleTxt:setTextColor(192)
     audioTitleTxt:setEmbossColor(color)
     optionsGroup:insert(TextureManager.newHorizontalLine(104, lineY + 18, 220 + display.screenOriginX*-2))
 
-    -- SONS
+    -- BRILHO
     lineY = lineY + 28
+    local brilhoTxt = display.newText(optionsGroup, "BRILHO", lineX, lineY, "MyriadPro-BoldCond", 18)
+    brilhoTxt:setTextColor(0)
+
+    local brightLess = TextureManager.newSpriteRect("icon_brilho_baixo", 18, 18, optionsGroup)
+    brightLess.x = 84
+    brightLess.y = lineY + 8
+    local brightMore = TextureManager.newSpriteRect("icon_brilho_alto", 20, 20, optionsGroup)
+    brightMore.x = 238
+    brightMore.y = lineY + 8
+    -- BRILHO slider
+    local function sliderListener( event )
+        BrightnessManager.setBrightness(event.value)
+    end
+
+    local brightnessSlider = widget.newSlider
+        {
+            top = lineY - 8,
+            left = 96,
+            width = 130,
+            listener = sliderListener,
+            value = BrightnessManager.getBrightness()
+        }
+    optionsGroup:insert(brightnessSlider)
+
+    function SideMenu:onResume()
+        if brightnessSlider and brightnessSlider.setValue then
+            brightnessSlider:setValue(BrightnessManager.getBrightness())
+        end
+    end
+
+    -- SONS
+    lineY = lineY + 44
     local sonsTxt = display.newText(optionsGroup, "SONS", lineX, lineY, "MyriadPro-BoldCond", 18)
     sonsTxt:setTextColor(0)
     -- SONS on/off switch
     local soundsOnOffSwitch = widget.newSwitch
         {
-            left = 120,
+            left = 75,
             top = lineY - 8,
             initialSwitchState = UserData.soundOn,
             onPress = onSwitchPress,
@@ -232,6 +296,7 @@ local function createMenuOptions()
         }
     optionsGroup:insert(soundsOnOffSwitch)
 
+    lineY = lineY + 36
     -- RECURSOS E MENUS
     lineY = lineY + 44 + (display.screenOriginY*-0.5)
     local recursosTitleTxt = display.newEmbossedText(optionsGroup, "RECURSOS E MENUS", lineX, lineY, "MyriadPro-BoldCond", 14)
@@ -258,7 +323,7 @@ local function createView(isMenu)
         return true
     end
     --scalable menu background
-    local menuFoilCenter = TextureManager.newImageRect("images/stru_menufoil_center.png", 140 + display.screenOriginX*-2, 570, menuFoilGroup)
+    local menuFoilCenter = TextureManager.newImageRect("images/stretchable/stru_menufoil_center.png", 140 + display.screenOriginX*-2, 570, menuFoilGroup)
     menuFoilCenter.x = SCREEN_LEFT + menuFoilCenter.width*0.5
     menuFoilCenter.y = 0
     menuFoilCenter:addEventListener("touch", blockTouch)
@@ -276,8 +341,8 @@ local function createView(isMenu)
     menuFoilGroup:insert(menuFoilBtn)
 
     -- menu title
-    local title = display.newEmbossedText(menuFoilGroup, isMenu and "CONFIGURAÇÕES" or "MENU DA PARTIDA",
-        display.contentCenterX - 96, -menuFoilCenter.height*0.5 + 4,
+    local title = display.newEmbossedText(menuFoilGroup, isMenu and "OPÇÕES" or "MENU DA PARTIDA",
+        display.contentCenterX - 80, -menuFoilCenter.height*0.5 + 4,
         "MyriadPro-BoldCond", 24)
     title:setTextColor(255)
 
@@ -287,7 +352,7 @@ local function createView(isMenu)
     touchBlocker:addEventListener("touch", menuFoilBtn)
     touchBlocker.alpha = 0.01
     touchBlocker.isVisible = false
-    local mask = graphics.newMask("images/stru_menufoil_touch_mask.png")
+    local mask = graphics.newMask("images/masks/stru_menufoil_touch_mask.png")
     touchBlocker:setMask(mask)
     touchBlocker.isHitTestMasked = true
     touchBlocker.maskX = -50 - display.screenOriginX
@@ -323,6 +388,10 @@ local function createView(isMenu)
     else
         menuFoilGroup:insert(createMenuOptions())
     end
+end
+
+function SideMenu:onResume()
+
 end
 
 function SideMenu:new(isMenu)

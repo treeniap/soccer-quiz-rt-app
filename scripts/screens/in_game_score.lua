@@ -5,6 +5,10 @@
 ==============]]--
 InGameScore = {}
 
+InGameScore.screenName = "Score"
+InGameScore.imgName = "icon_jogo_"
+InGameScore.defaultState = true
+
 local function createChampionshipInfo()
     local championshipRound, championshipName, championshipBadge = MatchManager:getChampionshipInfo()
     local championshipGroup = display.newGroup()
@@ -104,27 +108,65 @@ function InGameScore:update()
     InGameScore:updateTime()
 end
 
-function InGameScore:showUp()
-    if self.transitionHandler or self.alpha == 1 then
+local function onGoal(response, scoringTeam, scoringTeamId, isFavoriteTeamAgainstGoal)
+    if isFavoriteTeamAgainstGoal then -- se o time favorito sofreu o gol
+        AudioManager.playAudio("betWrong")
         return
     end
-    self.transitionHandler = transition.to(self, {delay = 500, time = 1000, alpha = 1, onComplete = function() self.transitionHandler = nil end})
+    Goal:new({
+        scoringTeam = scoringTeam,
+        homeTeam = {
+            name = response.match.home_team.name,
+            score = response.match.home_goals,
+        },
+        awayTeam = {
+            name = response.match.guest_team.name,
+            score = response.match.guest_goals,
+        }
+    })
+    AudioManager.playAudio("betRight")
 end
 
-function InGameScore:hide(onComplete)
-    if self.transitionHandler or self.alpha == 0 then
-        --transition.cancel(self.transitionHandler)
-        if onComplete then
-            onComplete()
+function InGameScore:updateMatch(isFirst)
+    local currentMatchInfo = MatchManager:getCurrentMatchInfo()
+    Server.getMatchInfo(currentMatchInfo.url, function(response, status)
+        if self.isDestroyed then
+            return
         end
-        return
-    end
-    self.transitionHandler = transition.to(self, {time = 400, alpha = 0, onComplete = function()
-        self.transitionHandler = nil
-        if onComplete then
-            onComplete()
+        if not isFirst then
+            if response.match.home_goals > currentMatchInfo.home_goals then
+                --InGameScreen:goal()
+                onGoal(response, "homeTeam", response.match.home_team.id, currentMatchInfo.guest_team.id == UserData.attributes.favorite_team_id)
+            end
+            if response.match.guest_goals > currentMatchInfo.guest_goals then
+                onGoal(response, "awayTeam", response.match.guest_team.id, currentMatchInfo.home_team.id == UserData.attributes.favorite_team_id)
+            end
         end
-    end})
+        currentMatchInfo = response.match
+        currentMatchInfo.starts_at = date(currentMatchInfo.starts_at):tolocal()
+        if currentMatchInfo.status_updated_at then
+            currentMatchInfo.status_updated_at = date(currentMatchInfo.status_updated_at):tolocal()
+        else
+            currentMatchInfo.status_updated_at = getCurrentDate():addseconds(-math.floor(system.getTimer()/1000))
+        end
+        self:update()
+
+        local elapsedTime = date.diff(getCurrentDate(), currentMatchInfo.status_updated_at):spanminutes()
+        local nextUpdateTime = elapsedTime - math.floor(elapsedTime)
+        nextUpdateTime = math.floor(60000 - 60000*nextUpdateTime)
+        if nextUpdateTime >= 30000 then
+            nextUpdateTime = 30000
+        end
+        self.timer = timer.performWithDelay(nextUpdateTime, function() self:updateMatch(false) end)
+    end)
+end
+
+function InGameScore:toFront()
+    self.isVisible = true
+end
+
+function InGameScore:toBack()
+    self.isVisible = false
 end
 
 function InGameScore:create()
@@ -158,11 +200,18 @@ function InGameScore:create()
     matchTimer.y = 270 + (display.screenOriginY*-0.5)
     infoGroup:insert(matchTimer)
 
-    infoGroup.alpha = 0
-
-    MatchManager:updateMatch(infoGroup.update, infoGroup, true)
+    infoGroup:updateMatch(true)
 
     return infoGroup
+end
+
+function InGameScore:destroy()
+    Goal:close()
+    if self.timer then
+        timer.cancel(self.timer)
+    end
+    self:removeSelf()
+    self.isDestroyed = true
 end
 
 return InGameScore

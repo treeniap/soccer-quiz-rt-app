@@ -25,7 +25,8 @@ end
 
 local function newLockableText(group, text, x, y, size)
     local _text = display.newText(group, text, 0, 0, "MyriadPro-BoldCond", size)
-    _text.x = x - _text.width*0.5
+    _text:setReferencePoint(display.CenterLeftReferencePoint)
+    _text.x = x
     _text.y = y
     _text:setTextColor(0)
     function _text:lock(isLock)
@@ -91,8 +92,7 @@ function BtnHexaVote:createAlternativePicture(question)
     self:insert(pic)
     pic.x = -18
     pic.y = -30
-    --local label = newLockableText(self, question.text, -2, 10, 16) -- float mode
-    local label = newLockableText(self, question.text, 4, 10, 16)
+    local label = newLockableText(self, question.text, -38, 10, 16) -- float mode
 end
 
 function BtnHexaVote:createAlternativeText(question)
@@ -101,9 +101,26 @@ end
 
 function BtnHexaVote:createMultiplier(value)
     self.multiplierValue = value
-    --self.multiplierTxt = newLockableText(self, string.format("%.1f", value), 34, 9, 24) -- float mode
-    self.multiplierTxt = newLockableText(self, value, 28, 9, 24)
-    newLockableText(self, "x", 34, 10, 16)
+    local multiplierTxt = display.newGroup()
+    self:insert(multiplierTxt)
+    newLockableText(multiplierTxt, "0", 14, 9, 24)
+    newLockableText(multiplierTxt, ".0", 25, 11, 14)
+
+    function multiplierTxt:setValue(_value)
+        local floor = math.floor(_value)
+        local float = string.format("%.1f", _value):sub((floor .. " "):len())
+
+        self[1].text = floor
+        self[2].text = float
+    end
+    function multiplierTxt:lock(isLock)
+        self[1]:lock(isLock)
+        self[2]:lock(isLock)
+    end
+    multiplierTxt:setValue(value)
+
+    self.multiplierTxt = multiplierTxt
+    newLockableText(self, "x", 36, 10, 16)
 end
 
 function BtnHexaVote:showFriendVoted(friend)
@@ -146,7 +163,7 @@ function BtnHexaVote:resetButton(multiplier)
         end
         self.friendView = nil
     end
-    self.multiplierTxt.text = string.format("%.1f", multiplier)
+    self.multiplierTxt:setValue(multiplier)
 end
 
 function BtnHexaVote:addCoin()

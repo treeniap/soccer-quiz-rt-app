@@ -1,9 +1,9 @@
 -- Version: 3.4.0
 -- www.pubnub.com - PubNub realtime push service in the cloud.
--- https://github.com/pubnub/pubnub-api/tree/master/lua lua-Corona Push API
+-- https://github.com/pubnub/lua lua-Corona Push API
 
 -- PubNub Real Time Push APIs and Notifications Framework
--- Copyright (c) 2010 Stephen Blum
+-- Copyright (c) 2013 Stephen Blum
 -- http://www.pubnub.com/
 
 -- -----------------------------------
@@ -137,8 +137,11 @@ function pubnub.base(init)
                 table.insert(params, k .. "=" .. v)
             end
         end
+        local query = table.concat(params, '&')
 
-        url = url .. "?" .. table.concat(params, '&')
+        if (query and string.len(query) > 0) then
+            url = url .. "?" .. query
+        end
 
         return url
     end
@@ -149,6 +152,23 @@ function pubnub.base(init)
 
     function self:get_auth_key(key)
         return self.auth_key
+    end
+
+    function self:leave(channel)
+        if not (channel) then
+            return print("Missing Channel")
+        end
+
+        self:_request({
+            callback = function() end,
+            fail = function() end,
+            url  = build_url({
+                'v2',
+                'presence',
+                'sub_key', self.subscribe_key,
+                'channel', _encode(channel), 'leave'
+            }, { uuid = self.uuid, auth = self.auth_key })
+        })
     end
 
     function self:publish(args)
@@ -221,7 +241,9 @@ function pubnub.base(init)
         return count
     end
 
-
+    function self:get_current_channels()
+        return generate_channel_list(CHANNELS)
+    end
 
     function self:subscribe(args)
         local channel       = args.channel
@@ -303,7 +325,7 @@ function pubnub.base(init)
         end
 
         local function _invoke_callback(msg, channel)
-            CHANNELS[channel]['callback'](msg, channel)
+            CHANNELS[channel]['callback'](msg, string.split(channel,"-pnpres")[1])
         end
 
         local function _reset_offline(err)
@@ -321,7 +343,6 @@ function pubnub.base(init)
         end
 
         local function start_poll_online()
-            --print(stop_keepalive)
             if stop_keepalive then
                 stop_keepalive = false
                 _poll_online()
@@ -335,7 +356,7 @@ function pubnub.base(init)
 
             local channels = table.concat(generate_channel_list(CHANNELS), ",")
 
-            if not channels then
+            if not channels or string.len(channels) == 0 then
                 stop_keepalive = true
                 return
             end
@@ -395,7 +416,7 @@ function pubnub.base(init)
                         end
                     else
                         for k,v in next, string.split(messages[3], ',') do
-                            _invoke_callback(messages[1][k], string.split(v,"-pnpres")[1])
+                            _invoke_callback(messages[1][k], v)
                         end
                     end
 
@@ -415,18 +436,14 @@ function pubnub.base(init)
 
     function self:unsubscribe(args)
         local channel = args.channel
-        print(channel)
         if not CHANNELS[channel] then return nil end
-
         -- DISCONNECT
         CHANNELS[channel].connected = nil
         CHANNELS[channel].subscribed = nil
 
-    end
-
-    function self:presence(args)
-        args.channel = args.channel .. '-pnpres'
-        self:subscribe(args)
+        self:unsubscribe({channel = channel .. PRESENCE_SUFFIX})
+        self:leave(channel)
+        methods:CONNECT()
     end
 
     function self:here_now(args)
@@ -556,15 +573,11 @@ function pubnub.new(init)
         params["User-Agent"] = "Corona"
         params.timeout = args.timeout
 
-        --print(args.url)
-
         request_id = network.request( args.url, "GET", function(event)
-        --print(table.tostring(event))
             if (event.isError) then
                 return args.fail(nil)
             end
 
-            --print(event.response)
             status, message = pcall( Json.Decode, event.response )
 
             if status and http_status_lookup[event.status] then

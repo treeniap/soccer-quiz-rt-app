@@ -7,9 +7,10 @@ QuestionsBar = {}
 
 require "scripts.widgets.view.button_open_questions"
 require "scripts.widgets.view.button_next"
+require "scripts.widgets.view.segmented_control"
 
 local questionsBarGroup
-local openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn, waitingGroup
+local openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn, waitingGroup, segmentedControl
 local barTrans
 
 local VER_LINE_1_X = 200 + (-display.screenOriginX)
@@ -48,6 +49,7 @@ local function createScrollGroup()
             height = 160 + OPENED_SIZE + (display.screenOriginY*-2),
             maskFile = "images/questions_mask_" .. OPENED_MASK .. ".png",
             hideBackground = true,
+            hideScrollBar = true,
             horizontalScrollDisabled = true
         }
     scrollView.x = 0
@@ -127,7 +129,7 @@ function QuestionsBar:createView()
     --- Next Button
     nextBtn = BtnNext:new(function() ScreenManager:callNext() end)
     nextBtn.x = 311
-    nextBtn.y = bar.y + 3
+    nextBtn.y = bar.y + 4
     nextBtn.isVisible = false
     self:insert(nextBtn)
 
@@ -160,7 +162,7 @@ function QuestionsBar:createView()
         end
         return true
     end)
-    facebookBtn.x = 31
+    facebookBtn.x = 27
     facebookBtn.y = bar.y - 19
     facebookBtn.isVisible = false
     self:insert(facebookBtn)
@@ -215,11 +217,17 @@ function QuestionsBar:createView()
         end
         return true
     end)
-    twitterBtn.x = 98
-    twitterBtn.y = bar.y - 16
+    twitterBtn.x = 77
+    twitterBtn.y = bar.y - 17
     twitterBtn.isVisible = false
     self:insert(twitterBtn)
     --twitterBtn:addEventListener("touch", dragAndDrop)
+
+    segmentedControl = SegmentedControl:new()
+    segmentedControl.x = display.contentCenterX + 36
+    segmentedControl.y = bar.y + 8
+    segmentedControl.isVisible = false
+    self:insert(segmentedControl)
 
     createWaiting()
     waitingGroup.x = display.contentCenterX
@@ -273,6 +281,7 @@ function QuestionsBar:onGame()
         chronometer.isVisible = false
         facebookBtn.isVisible = true
         twitterBtn.isVisible = true
+        segmentedControl.isVisible = true
         waitingGroup.isVisible = false
         self:showUp()
     end)
@@ -286,6 +295,7 @@ function QuestionsBar:onEventBet(onTimeUp, time)
         chronometer.isVisible = true
         facebookBtn.isVisible = false
         twitterBtn.isVisible = false
+        segmentedControl.isVisible = false
         waitingGroup.isVisible = false
 
         if onTimeUp then
@@ -306,6 +316,7 @@ function QuestionsBar:onWaitingBetResponse()
         chronometer.isVisible = false
         facebookBtn.isVisible = false
         twitterBtn.isVisible = false
+        segmentedControl.isVisible = false
         waitingGroup.isVisible = true
         self:showUp()
     end)
@@ -319,6 +330,7 @@ function QuestionsBar:onEventResult()
         chronometer.isVisible = false
         facebookBtn.isVisible = false
         twitterBtn.isVisible = false
+        segmentedControl.isVisible = false
         waitingGroup.isVisible = false
         self:showUp()
     end)
@@ -333,6 +345,7 @@ function QuestionsBar:onGameOver()
         chronometer.isVisible = false
         facebookBtn.isVisible = true
         twitterBtn.isVisible = true
+        segmentedControl.isVisible = true
         waitingGroup.isVisible = false
         self:showUp()
     end)
@@ -365,9 +378,10 @@ function QuestionsBar:destroy()
     chronometer:removeSelf()
     facebookBtn:removeSelf()
     twitterBtn:removeSelf()
+    segmentedControl:removeSelf()
     waitingGroup:removeSelf()
     questionsBarGroup = nil
-    openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn, waitingGroup = nil, nil, nil, nil, nil, nil, nil
+    openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn, segmentedControl, waitingGroup = nil, nil, nil, nil, nil, nil, nil, nil
 end
 
 return QuestionsBar

@@ -17,10 +17,10 @@ local function createChallengeName(name)
     name.x = 0
     name.y = 0
     local barSize = name.width + 24
-    local bg = TextureManager.newImageRect("images/stru_bar_mid.png", barSize, 40, challengeNameGroup)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_bar_mid.png", barSize, 40, challengeNameGroup)
     bg.x = 0
     bg.y = 0
-    local bgBorder = TextureManager.newImageRect("images/stru_bar_right.png", 15, 40, challengeNameGroup)
+    local bgBorder = TextureManager.newImageRect("images/stretchable/stru_bar_right.png", 15, 40, challengeNameGroup)
     bgBorder.x = bg.width*0.5 + bgBorder.width*0.5
     bgBorder.y = 0
     challengeNameGroup:insert(name)
@@ -35,10 +35,10 @@ local function createChallengeProgress(questionsNumber)
     number.x = 0
     number.y = 0
     local barSize = number.width + 24
-    local bg = TextureManager.newImageRect("images/stru_bar_mid.png", barSize, 40, challengeProgressGroup)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_bar_mid.png", barSize, 40, challengeProgressGroup)
     bg.x = 0
     bg.y = 0
-    local bgBorder = TextureManager.newImageRect("images/stru_bar_left.png", 15, 40, challengeProgressGroup)
+    local bgBorder = TextureManager.newImageRect("images/stretchable/stru_bar_left.png", 15, 40, challengeProgressGroup)
     bgBorder.x = -bg.width*0.5 - bgBorder.width*0.5
     bgBorder.y = 0
     challengeProgressGroup:insert(number)
@@ -52,10 +52,10 @@ local function createRedBar()
     button.x = 0
     button.y = -3
     local barSize = button.width + 12
-    local bg = TextureManager.newImageRect("images/stru_bar_red_mid.png", barSize, 40, redBarGroup)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_bar_red_mid.png", barSize, 40, redBarGroup)
     bg.x = 0
     bg.y = 0
-    local bgBorder = TextureManager.newImageRect("images/stru_bar_red.png", 15, 40, redBarGroup)
+    local bgBorder = TextureManager.newImageRect("images/stretchable/stru_bar_red.png", 15, 40, redBarGroup)
     bgBorder.x = bg.width*0.5 + bgBorder.width*0.5
     bgBorder.y = 0
     redBarGroup:insert(button)
@@ -69,10 +69,10 @@ local function createGoldBar()
     button.x = 0
     button.y = -3
     local barSize = button.width + 12
-    local bg = TextureManager.newImageRect("images/stru_bar_gold_mid.png", barSize, 40, challengeProgressGroup)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_bar_gold_mid.png", barSize, 40, challengeProgressGroup)
     bg.x = 0
     bg.y = 0
-    local bgBorder = TextureManager.newImageRect("images/stru_bar_gold.png", 15, 40, challengeProgressGroup)
+    local bgBorder = TextureManager.newImageRect("images/stretchable/stru_bar_gold.png", 15, 40, challengeProgressGroup)
     bgBorder.x = -bg.width*0.5 - bgBorder.width*0.5
     bgBorder.y = 0
     challengeProgressGroup:insert(button)
@@ -140,7 +140,7 @@ end
 local function createTimerBar()
     local timerBarGroup = display.newGroup()
 
-    local bg = TextureManager.newImageRect("images/stru_bar_mid.png", CONTENT_WIDTH, 40, timerBarGroup)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_bar_mid.png", CONTENT_WIDTH, 40, timerBarGroup)
     bg.x = display.contentCenterX
     bg.y = 0
 

@@ -173,7 +173,7 @@ local function createTweetsBar()
     tweetsGroup.x = display.contentCenterX + 43 - (display.screenOriginX*-0.5)
     tweetsGroup.y = 5
 
-    local tweetMask = graphics.newMask("images/tweets_bar_mask.png")
+    local tweetMask = graphics.newMask("images/masks/tweets_bar_mask.png")
     tweetsGroup:setMask(tweetMask)
 
     local function onTweetsTouch(self, event)
@@ -291,7 +291,7 @@ function BottomRanking:hide(onComplete)
 end
 
 function BottomRanking:createView(playerPhoto, isInitialScreen)
-    self.bg = TextureManager.newImageRect("images/stru_ranking_silver.png", CONTENT_WIDTH, 86, self)
+    self.bg = TextureManager.newImageRect("images/stretchable/stru_ranking_silver.png", CONTENT_WIDTH, 86, self)
     self.bg.x = SCREEN_LEFT - self.bg.width*0.5
     self.bg.y = 0
     self.bg.xScale = 0.1

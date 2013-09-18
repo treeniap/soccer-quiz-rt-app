@@ -137,6 +137,7 @@ function UserData:checkTutorial()
     self.session = 1
     self.rating = 0
     self.lastNotificationDate = getCurrentDate()
+    self.brightness = false
     local path = system.pathForFile("user.txt", system.DocumentsDirectory)
     local file = io.open(path, "r")
     if file then
@@ -154,6 +155,8 @@ function UserData:checkTutorial()
                 self.rating = tonumber(line:sub(8))
             elseif(line:sub(1, 21) == "lastNotificationDate=") then
                 self.lastNotificationDate = date(line:sub(22))
+            elseif(line:sub(1, 11) == "brightness=") then
+                self.brightness = (tonumber(line:sub(12)) == 1)
             end
         end
         self:save()
@@ -177,6 +180,7 @@ function UserData:save()
     file:write("\nsession=" .. self.session or 1)
     file:write("\nrating=" .. self.rating or 0)
     file:write("\nlastNotificationDate=" .. self.lastNotificationDate or getCurrentDate())
+    file:write("\nbrightness=" .. (self.brightness and 1 or 0))
 
     io.close(file)
 end

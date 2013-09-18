@@ -9,19 +9,20 @@ require "scripts.widgets.view.button_facebook"
 require "scripts.widgets.view.button_twitter"
 require "scripts.widgets.view.chronometer"
 require "scripts.widgets.view.questions_bar"
-require "scripts.screens.in_game_questions"
-require "scripts.screens.in_game_score"
 require "scripts.screens.in_game_event"
 require "scripts.screens.in_game_end"
 require "scripts.screens.in_game_period"
+require "scripts.management.in_game_manager"
 
 InGameScreen = {}
 
 local inGameGroup
 local topBar, questionsBar, bottomRanking
 
-local scoreView, eventView, endView
+local stateManager, eventView, endView
 local friendsIdBadgesNames
+
+local lastScore
 
 local function updateBottomRanking(listener)
     local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
@@ -93,6 +94,15 @@ local function updateBottomRanking(listener)
     end)
 end
 
+local function checkScore(response, status)
+    if status == 200 then
+        if lastScore and lastScore ~= response.user_ranking.score then
+            lastScore = response.user_ranking.score
+            Facebook:postFacebookScore(lastScore)
+        end
+    end
+end
+
 function InGameScreen:onPreKickOffQuestions(challengeInfo)
     questionsBar.isVisible = false
     bottomRanking.isVisible = false
@@ -103,10 +113,6 @@ end
 function InGameScreen:onGame()
     display.getCurrentStage():setFocus(nil)
     questionsBar:onGame()
-    if not scoreView then
-        scoreView = InGameScore:create()
-        inGameGroup:insert(1, scoreView)
-    end
     if eventView then
         local oldEventView = eventView
         oldEventView:hide(function()
@@ -117,12 +123,12 @@ function InGameScreen:onGame()
 
         eventView = nil
     end
-    scoreView:showUp()
+    stateManager:showUp()
 end
 
 function InGameScreen:onEventStart(eventInfo)
     display.getCurrentStage():setFocus(nil)
-    scoreView:hide()
+    stateManager:hide()
     if eventView then
         questionsBar:onGame()
         local oldEventView = eventView
@@ -151,6 +157,7 @@ function InGameScreen:onEventEnd(resultInfo)
             end)
         end
     end)
+    Server:getPlayerRanking(nil, checkScore)
 end
 
 function InGameScreen:onGameOver(finalResultInfo)
@@ -169,7 +176,7 @@ function InGameScreen:onGameOver(finalResultInfo)
         end)
         return
     end
-    scoreView:hide()
+    stateManager:hide()
     endView = InGameEnd:create(finalResultInfo)
     inGameGroup:insert(2, endView)
     questionsBar:lock()
@@ -198,14 +205,14 @@ function InGameScreen:onPeriodChange(period)
         end
     end
     display.getCurrentStage():setFocus(nil)
-    scoreView:hide()
+    stateManager:hide()
     local periodView = InGamePeriod:create(period)
     inGameGroup:insert(2, periodView)
     questionsBar:lock()
     periodView:showUp(function()
         timer.performWithDelay(4000, function()
             periodView:hide(function()
-                scoreView:showUp()
+                stateManager:showUp()
                 periodView:removeSelf()
                 AnalyticsManager.changedGamePeriod(period)
             end)
@@ -254,6 +261,7 @@ function InGameScreen:showUp(onComplete)
     end)
 
     topBar:updateMatchTeams(MatchManager:getTeamLogoImg(true, 1), MatchManager:getTeamLogoImg(false, 1))
+    Server:getPlayerRanking(nil, checkScore)
 end
 
 function InGameScreen:hide(onComplete)
@@ -271,12 +279,15 @@ function InGameScreen:hide(onComplete)
     elseif eventView then
         eventView:hide(onHiding)
     else
-        scoreView:hide(onHiding)
+        stateManager:hide(onHiding)
     end
 end
 
 function InGameScreen:new()
     inGameGroup = display.newGroup()
+
+    stateManager = InGameState:init()
+    inGameGroup:insert(stateManager)
 
     questionsBar = QuestionsBar:new()
     inGameGroup:insert(questionsBar)
@@ -292,15 +303,12 @@ function InGameScreen:new()
     AnalyticsManager.enteredInGameScreen()
 
     InGameScreen.group = inGameGroup
-
+    --TODO desenhar escudos após primeiro download
     return inGameGroup
 end
 
 function InGameScreen:destroy()
-    if scoreView.timer then
-        timer.cancel(scoreView.timer)
-    end
-    scoreView:removeSelf()
+    stateManager:stop()
     if eventView then
         eventView:removeSelf()
     end
@@ -315,7 +323,7 @@ function InGameScreen:destroy()
     end
     inGameGroup = nil
     topBar, questionsBar, bottomRanking = nil, nil, nil
-    scoreView, eventView, endView = nil, nil, nil
+    stateManager, eventView, endView = nil, nil, nil
 end
 
 return InGameScreen

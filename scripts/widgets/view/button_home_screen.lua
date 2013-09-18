@@ -9,8 +9,8 @@ function BtnHomeScreen:createView()
     self:insert(TextureManager.newHorizontalLine(-10, 24, CONTENT_WIDTH*0.65))
     self:insert(TextureManager.newHorizontalLine(-10, -23, CONTENT_WIDTH*0.65))
     if self.gold then
-        self.default = TextureManager.newImageRect("images/stru_bar_gold_mid.png", CONTENT_WIDTH*0.7, 47, self)
-        self.over = TextureManager.newImageRect("images/stru_bar_gold_mid.png", CONTENT_WIDTH*0.7, 47, self)
+        self.default = TextureManager.newImageRect("images/stretchable/stru_bar_gold_mid.png", CONTENT_WIDTH*0.7, 47, self)
+        self.over = TextureManager.newImageRect("images/stretchable/stru_bar_gold_mid.png", CONTENT_WIDTH*0.7, 47, self)
         self.over:setFillColor(255, 255)
         self.over.blendMode = "screen"
     else

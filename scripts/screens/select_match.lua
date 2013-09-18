@@ -142,8 +142,9 @@ local function createChampionshipMatchesView(matchesList, topY)
         {
             width = SCREEN_RIGHT,
             height = scrollSize,
-            maskFile = "images/menumatches_mask.png",
+            maskFile = "images/masks/menumatches_mask.png",
             hideBackground = true,
+            hideScrollBar = true,
             horizontalScrollDisabled = true,
             verticalScrollDisabled = #matchesList < 3
         }
@@ -176,6 +177,7 @@ local function createChampionshipMatchesView(matchesList, topY)
                 button.group.x = button.group.x - 1
                 button.group.y = button.group.y - 1
                 display.getCurrentStage():setFocus(nil)
+                AnalyticsManager.setFromScreen("ChooseMatchScreen")
                 MatchManager:setCurrentMatch(button.matchId)
                 isOpeningMatch = true
                 button:removeEventListener("touch", button)
@@ -247,7 +249,7 @@ local function createOpenMenuLine(isBottom)
     else
         line:setColor(135, 224)
     end
-    local lineShadow = TextureManager.newImageRect("images/stru_shadow.png", CONTENT_WIDTH, 20, lineGroup)
+    local lineShadow = TextureManager.newImageRect("images/stretchable/stru_shadow.png", CONTENT_WIDTH, 20, lineGroup)
     lineShadow.x = display.contentCenterX
     lineShadow.y = display.screenOriginY + (isBottom and -10 or 10)
     lineShadow.yScale = isBottom and -lineShadow.yScale or lineShadow.yScale
@@ -259,15 +261,15 @@ end
 local function createBG()
     bgGroup = display.newGroup()
 
-    local bgTop = TextureManager.newImageRect("images/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, bgGroup)
+    local bgTop = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, bgGroup)
     bgTop.x = display.contentCenterX
     bgTop.y = display.contentCenterY
-    local menuMask = graphics.newMask("images/menuselectmatch_mask.png")
+    local menuMask = graphics.newMask("images/masks/menuselectmatch_mask.png")
     bgTop:setMask(menuMask)
-    local bgBottom = TextureManager.newImageRect("images/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, bgGroup)
+    local bgBottom = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, bgGroup)
     bgBottom.x = display.contentCenterX
     bgBottom.y = display.contentCenterY
-    local menuMask = graphics.newMask("images/menuselectmatch_mask.png")
+    local menuMask = graphics.newMask("images/masks/menuselectmatch_mask.png")
     bgBottom:setMask(menuMask)
 
     local CENTER_MASK_Y = 282.5
@@ -374,7 +376,7 @@ local function createChampionshipsList(championshipList)
 
         local spinnerDefault = LoadingBall:createBall(SCREEN_RIGHT - 20, (i - 1)*Y_CHAMPIONSHIP)
         championshipGroup:insert(spinnerDefault)
-        MatchManager:downloadTeamsLogos({sizes = "medium", matches = championship.incoming_matches, listener = function()
+        Server:downloadTeamsLogos({sizes = "medium", matches = championship.incoming_matches, listener = function()
             spinnerDefault:removeSelf()
             arrow:lock(false)
         end})
@@ -395,6 +397,12 @@ function SelectMatchScreen:showUp(onComplete)
         selectMatchGroup[selectMatchGroup.numChildren].isVisible = true
         for i = 1, championshipsListGroup.numChildren do
             transition.from(championshipsListGroup[i], {delay = 300, time = 300, y = 50*-i - 50, transition = easeInQuart})
+            if i == 1 then
+                timer.performWithDelay(900, function()
+                    championshipsListGroup[i][1].isOpen = true
+                    SelectMatchScreen:openBG(championshipsListGroup[i][1], i)
+                end)
+            end
         end
         if championshipsListGroup.numChildren > 0 then
             AudioManager.playAudio("openCloseMenu", 500)

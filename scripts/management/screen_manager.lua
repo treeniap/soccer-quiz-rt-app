@@ -78,23 +78,27 @@ function ScreenManager:callNext()
 end
 
 local function showMatch()
-    if not pcall(function()
+    local error, result = pcall(function()
         currentScreen:showUp(function()
             currentScreen:onGame()
             unlockScreen()
         end)
-    end) then
+    end)
+    --print(result)
+    if not error then
         currentScreen = nil
         ScreenManager:show("initial")
     end
 end
 
 local function prepareMatch()
-    if not pcall(function()
+    local error, result = pcall(function()
         currentScreen = require("scripts.screens.in_game")
         currentScreen:new()
-        MatchManager:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
-    end) then
+        Server:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
+    end)
+    --print(result)
+    if not error then
         currentScreen = nil
         ScreenManager:show("initial")
     end
@@ -178,12 +182,14 @@ function ScreenManager.onAppResume()
     if currentScreen and currentScreen.onAppResume then
         currentScreen.onAppResume()
     end
+    SideMenu:onResume()
 end
 
 function ScreenManager:enterMatch(channel)
     Server.pubnubSubscribe(channel, matchServerListener)
     currentScreen:hide(prepareMatch)
     lockScreen()
+    BrightnessManager.onEnterMatch()
 end
 
 function ScreenManager:exitMatch()

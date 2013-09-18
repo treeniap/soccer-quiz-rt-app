@@ -17,7 +17,7 @@ local isKeyboardOn
 local HEIGHT_DIFF = display.screenOriginY*-0.2
 
 local function createBG()
-    local bg = TextureManager.newImageRect("images/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, profileGroup)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, profileGroup)
     bg.x = display.contentCenterX
     bg.y = display.contentCenterY
     return bg

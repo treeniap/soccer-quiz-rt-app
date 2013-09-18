@@ -24,7 +24,7 @@ end
 
 function LoadingBall:newScreen()
     screenGroup = display.newGroup()
-    local bgTop = TextureManager.newImageRect("images/stru_menu_bg.png", display.contentWidth + (display.screenOriginX*-2), display.contentHeight + (display.screenOriginY*-2))
+    local bgTop = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", display.contentWidth + (display.screenOriginX*-2), display.contentHeight + (display.screenOriginY*-2))
     bgTop.x = display.contentCenterX
     bgTop.y = display.contentCenterY
     local sheetSplashInfo, splashSheet = TextureManager.loadSplashSheet()

@@ -18,7 +18,7 @@ local periods = {
 local function createLeftFoil(periodName)
     local foilGroup = display.newGroup()
     -- scalable menu background
-    local menuFoilCenter = TextureManager.newImageRect("images/stru_foil_center.png", 185 + display.screenOriginX*-2 + display.screenOriginY*-0.25, 450, foilGroup)
+    local menuFoilCenter = TextureManager.newImageRect("images/stretchable/stru_foil_center.png", 185 + display.screenOriginX*-2 + display.screenOriginY*-0.25, 450, foilGroup)
     menuFoilCenter.x = 0
     menuFoilCenter.y = 0
 

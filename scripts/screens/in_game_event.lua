@@ -43,7 +43,7 @@ local alternativeName = {
 local function createEventFoil(eventName, teamBadge, teamName)
     local foilGroup = display.newGroup()
     --scalable menu background
-    local menuFoilCenter = TextureManager.newImageRect("images/stru_foil_center.png", 141 + display.screenOriginX*-2, 450, foilGroup)
+    local menuFoilCenter = TextureManager.newImageRect("images/stretchable/stru_foil_center.png", 141 + display.screenOriginX*-2, 450, foilGroup)
     menuFoilCenter.x = 0
     menuFoilCenter.y = 0
 
@@ -194,15 +194,20 @@ local function createHexaResult(type, voteButtons, photos)
     label.y = 28
     label:setTextColor(0)
 
-    --local value = display.newText(hexaGroup, string.format("%.1f", valueMult), 0, 0, "MyriadPro-BoldCond", 24) -- float mode
-    local value = display.newText(hexaGroup, valueMult, 0, 0, "MyriadPro-BoldCond", 24)
-    --value.x = 34 - value.width*0.5 -- float mode
-    value.x = 24 - value.width*0.5
+    local floor = math.floor(valueMult)
+    local float = string.format("%.1f", valueMult):sub((floor .. " "):len())
+    local value = display.newText(hexaGroup, floor, 0, 0, "MyriadPro-BoldCond", 24) -- float mode
+    value:setReferencePoint(display.CenterLeftReferencePoint)
+    value.x = 16
     value.y = 27
     value:setTextColor(0)
+    local value = display.newText(hexaGroup, float, 0, 0, "MyriadPro-BoldCond", 14) -- float mode
+    value:setReferencePoint(display.CenterLeftReferencePoint)
+    value.x = 24
+    value.y = 29
+    value:setTextColor(0)
     local mult = display.newText(hexaGroup, "x", 0, 0, "MyriadPro-BoldCond", 16)
-    --mult.x = 42 - mult.width*0.5 -- float mode
-    mult.x = 32 - mult.width*0.5
+    mult.x = 42 - mult.width*0.5 -- float mode
     mult.y = 28
     mult:setTextColor(0)
 
@@ -275,9 +280,16 @@ local function createRightBet(prize)
     premioTxt.x = 0
     premioTxt.y = -70
     premioTxt:setTextColor(135)
-    local prizeTxt = display.newText(rightGroup, prize, 0, 0, "MyriadPro-BoldCond", 80)
-    prizeTxt.x = 0
+
+    local floor = math.floor(prize)
+    local float = string.format("%.1f", prize):sub((floor .. " "):len())
+    local prizeTxt = display.newText(rightGroup, floor, 0, 0, "MyriadPro-BoldCond", 80)
+    prizeTxt.x = -14
     prizeTxt.y = -20
+    prizeTxt:setTextColor(0)
+    local prizeTxt = display.newText(rightGroup, float, 0, 0, "MyriadPro-BoldCond", 55)
+    prizeTxt.x = 14
+    prizeTxt.y = -14
     prizeTxt:setTextColor(0)
 
     rightGroup:setReferencePoint(display.CenterRightReferencePoint)
@@ -298,10 +310,10 @@ end
 local function createWhistle()
     local whistleGroup = display.newGroup()
 
-    local bg = TextureManager.newImageRect("images/stru_bar_mid.png", 100, 40, whistleGroup)
+    local bg = TextureManager.newImageRect("images/stretchable/stru_bar_mid.png", 100, 40, whistleGroup)
     bg.x = 0
     bg.y = 0
-    local bgBorder = TextureManager.newImageRect("images/stru_bar_left.png", 15, 40, whistleGroup)
+    local bgBorder = TextureManager.newImageRect("images/stretchable/stru_bar_left.png", 15, 40, whistleGroup)
     bgBorder.x = -bg.width*0.5 - bgBorder.width*0.5
     bgBorder.y = 0
 
@@ -382,7 +394,7 @@ function InGameEvent.betResultListener(message)
         _resultInfo.totalCoins = message.coins.total
         _resultInfo.isRight = isRight
 
-        AnalyticsManager.emptyCoins(nil, message.coins.total == 0)
+        AnalyticsManager.emptyCoins(nil, message.coins.total < 1)
         AnalyticsManager.question(currentEvent, isRight and "guessed" or "missed", currentBet, currentAnswer)
         currentAnswer = nil
     end
@@ -469,8 +481,9 @@ function InGameEvent:create(eventInfo)
     end
     undoBtn.onRelease = pressHandler
 
+    local canShowAlert = true
     local function releaseHandler(button)
-        if UserData.inventory.coins > 0 and button:getBetCoins() < 5 then
+        if UserData.inventory.coins >= 1 and button:getBetCoins() < 5 then
             UserData.inventory.coins = UserData.inventory.coins - 1
             InGameScreen:updateTotalCoins()
             button:addCoin()
@@ -480,6 +493,20 @@ function InGameEvent:create(eventInfo)
                     btn:lock(true)
                 end
             end
+        elseif UserData.inventory.coins < 1 and canShowAlert then
+            canShowAlert = false
+            local function onComplete(event)
+                if "clicked" == event.action then
+                    local i = event.index
+                    if 1 == i then
+                        StoreManager.buyThis("com.ffgfriends.chutepremiado.pacotedemoedas", function()
+                            canShowAlert = true
+                        end)
+                    end
+                end
+            end
+            native.showAlert("Acabaram suas fichas.", "Aproveite nosso pacote de fichas que está em promoção!", {"Ok"}, onComplete)
+            AnalyticsManager.offerCoins()
         end
         return true
     end
@@ -540,10 +567,19 @@ function InGameEvent:create(eventInfo)
         --end
         local function postBet(url, coins)
             local function onClientError(event)
+                local alertText = "Houve um erro de comunicação com nosso servidor. Verifique se o horário de seu " ..
+                        getDeviceName() .. " está sendo ajustado automaticamente e/ou se sua internet está rápida e estável."
+                local noError, jsonContent = pcall(Json.Decode, event.response)
+                if noError and jsonContent then
+                    printTable(jsonContent)
+                    if jsonContent.errors and jsonContent.errors[1] == "ALREADY_ANSWERED" then
+                        alertText = "Evento cancelado."
+                    end
+                end
                 Server:getUserInventory(nil, function()
                     InGameScreen:updateTotalCoins()
                     --native.showAlert("ERRO", "Possíveis causas:\n- O lance pode ter sido cancelado.\n- Você não possui uma boa conexão com a internet.\n- Suas configurações de data e hora estão erradas.", {"Ok"}, ScreenManager.callNext)
-                    native.showAlert("ERRO", "Houve um erro de comunicação com nosso servidor. Verifique se o horário de seu " .. getDeviceName() .. " está sendo ajustado automaticamente e/ou se sua internet está rápida e estável.", {"Ok"}, ScreenManager.callNext)
+                    native.showAlert("ERRO", alertText, {"Ok"}, ScreenManager.callNext)
                 end)
                 AnalyticsManager.conectivity("LateClientResponse")
                 AudioManager.playStopBetAnswerWait()
@@ -565,7 +601,7 @@ function InGameEvent:create(eventInfo)
                 currentAnswer = vB.label
                 currentBet = vB:getBetCoins()
 
-                AnalyticsManager.emptyCoins(UserData.inventory.coins == 0)
+                AnalyticsManager.emptyCoins(UserData.inventory.coins < 1)
             end
             vB:lock(true)
         end
