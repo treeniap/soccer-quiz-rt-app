@@ -21,7 +21,6 @@ local bannerGroup
  ]]
 
 local function createResultLine(resultsGroup, txtString, imgName, txtPoints, yPos, noLine)
-    local IMGS_X = 116
     local PTS_X = 175
 
     local txt = display.newText(resultsGroup, txtString, 0, yPos, "MyriadPro-BoldCond", 16)
@@ -254,12 +253,23 @@ local function createBanner()
 end
 
 local function showScore(onComplete, rightSideView)
-    --local pts = 0
+    local bannerShowTime = 6000
+    local statShowDelayTime = 2000
+    local statShowTime = 1000
+    if not onComplete then
+        bannerShowTime = 1500
+        statShowDelayTime = 500
+        statShowTime = 200
+    end
     local count = 0
+    local PTS_X = 175
     for i, v in ipairs(stats) do
-        transition.to(v, {delay = (i - 1)*2000, time = 1000, x = v.x, transition = easeOutExpo, onComplete = function()
+        transition.to(v, {delay = (i - 1)*statShowDelayTime, time = statShowTime, x = v.x, transition = easeOutExpo, onComplete = function()
             scores[i].isVisible = true
-            transition.from(scores[i], {time = 500, x = scores[i].x - 48, xScale = 0.2, yScale = 0.2, transition = easeOutBack, onComplete = function()
+            scores[i].x = PTS_X - 48
+            scores[i].xScale = 0.2
+            scores[i].yScale = 0.2
+            transition.to(scores[i], {time = 500, x = PTS_X, xScale = 1, yScale = 1, transition = easeOutBack, onComplete = function()
                 --local ptsNum = scores[i].text
                 --ptsNum = tonumber(ptsNum:sub(1, ptsNum:len() - 3))
                 --pts = pts + ptsNum
@@ -270,7 +280,9 @@ local function showScore(onComplete, rightSideView)
                 if count >= 3 then
                     --rightSideView.isVisible = true
                     --transition.from(rightSideView, {delay = 2000, time = 700, x = SCREEN_RIGHT + rightSideView.width, transition = easeOutExpo, onComplete = onComplete})
-                    onComplete()
+                    if onComplete then
+                        onComplete()
+                    end
                 end
                 --stats, scores = nil, nil
                 --finalScore = nil
@@ -279,23 +291,33 @@ local function showScore(onComplete, rightSideView)
         v.x = -100 + display.screenOriginX
         v.isVisible = true
     end
-    timer.performWithDelay(6000, function()
+    timer.performWithDelay(bannerShowTime, function()
         bannerGroup:showUp()
     end)
 end
 
-function InGameEnd:showUp(onComplete)
+function InGameEnd:showUp(onComplete, noWhistle)
     self.isVisible = true
     --self.rightSideView.isVisible = false
 
     transition.from(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = function() showScore(onComplete, self.rightSideView) end})
-    AudioManager.playAudio("finalWhistle")
+    if not noWhistle then
+        AudioManager.playAudio("finalWhistle")
+    end
 end
 
 function InGameEnd:hide(onComplete)
-    --self.rightSideView.isVisible = false
+    for i, v in ipairs(scores) do
+        v.isVisible = false
+    end
 
-    transition.to(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = onComplete})
+    transition.to(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = function()
+        self.isVisible = false
+        self.leftSideView.x = SCREEN_LEFT
+        if onComplete then
+            onComplete()
+        end
+    end})
     bannerGroup:hide()
 end
 

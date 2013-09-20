@@ -128,6 +128,7 @@ local function createDescriptionBar(name, firstStatName, secondStatName, color)
     local blendedBg = createDescriptionBarBG("screen")
     blendedBg.alpha = 0.6
     blendedBg.isVisible = false
+    centerBarGroup.over = blendedBg
     centerBarGroup:insert(normalBg)
     centerBarGroup:insert(blendedBg)
     centerBarGroup:setReferencePoint(display.CenterReferencePoint)
@@ -155,7 +156,7 @@ local function createDescriptionBar(name, firstStatName, secondStatName, color)
         secondStatTxt.y = 14
     end
 
-    return centerBarGroup, blendedBg
+    return centerBarGroup
 end
 
 local function createPlayerName(text, x, y, group)
@@ -288,7 +289,7 @@ local function createButton(scrollView, group, button, statName)
         if event.phase == "began" then
             display.getCurrentStage():setFocus(button)
             button.isFocus = true
-            button.isVisible = true
+            button.over.isVisible = true
             AudioManager.playAudio("btn")
         elseif button.isFocus then
             if event.phase == "moved" then
@@ -296,20 +297,21 @@ local function createButton(scrollView, group, button, statName)
                 -- If our finger has moved more than the desired range
                 if dy > 10 then
                     button.isFocus = nil
-                    button.isVisible = false
+                    button.over.isVisible = false
                     -- Pass the focus back to the scrollView
                     scrollView:takeFocus( event )
                 end
             elseif event.phase == "ended" then
-                button.isVisible = false
+                button.over.isVisible = false
+                button.isFocus = nil
                 display.getCurrentStage():setFocus(nil)
                 createPlayersStats(group, statName)
             end
         end
         return true
     end
-    group.touch = listener
-    group:addEventListener("touch", group)
+    button.touch = listener
+    button:addEventListener("touch", button)
 end
 
 local function getBigger(numbers)
@@ -340,9 +342,9 @@ local function createStatBars(_statistic, scrollView)
     currentStats[_statistic.stat] = {homeValue = homeStat, homeBar = homeBar, awayValue = awayStat, awayBar = awayBar}
 
 
-    local descriptionBar, button = createDescriptionBar(_statistic.name, _statistic.statName, nil, _statistic.statColor)
+    local descriptionBar = createDescriptionBar(_statistic.name, _statistic.statName, nil, _statistic.statColor)
     statsBarGroup:insert(descriptionBar)
-    createButton(scrollView, statsBarGroup, button, _statistic.stat)
+    statsBarGroup.button = createButton(scrollView, statsBarGroup, descriptionBar, _statistic.stat)
     --else
     --    statsBarGroup:insert(createBGBar(false))
     --    local home1Stat = statistics.home_team.stats[_statistic.firstStat].total
@@ -438,8 +440,8 @@ local function createStats(yPos, scrollView)
         if self.isMoving then
             if not self.openTimer then
                 self.openTimer = timer.performWithDelay(200, function()
-                    self:open(group, height, onComplete)
                     self.openTimer = nil
+                    self:open(group, height, onComplete)
                 end)
             end
             return
@@ -491,8 +493,8 @@ local function createStats(yPos, scrollView)
             if self.isMoving then
                 if not self.closeTimer then
                     self.closeTimer = timer.performWithDelay(200, function()
-                        self:close()
                         self.closeTimer = nil
+                        self:close()
                     end)
                 end
                 return
@@ -546,7 +548,14 @@ local function createScrollView()
             isBounceEnabled = false,
             friction = 0.85,
             listener = function(event)
-                if event.phase == "ended" then
+                if event.phase == "moved" then
+                    local dX = math.abs(event.x - event.xStart)
+                    local dY = math.abs(event.y - event.yStart)
+                    -- If our finger has moved more than the desired range
+                    if dY < 25 and dX > 50 then
+                        InGameScreen:getStateManager().touchHandler:takeFocus(event)
+                    end
+                elseif event.phase == "ended" then
                     event.target.statsView:close()
                 end
             end
@@ -616,7 +625,7 @@ function InGameStats:create()
     local statsView = createStats(initialY + badges.height + 8, scrollView)
     lineupsGroup.statsButtons = {}
     for i = 1, statsView.numChildren do
-        lineupsGroup.statsButtons[#lineupsGroup.statsButtons + 1] = statsView[i]
+        lineupsGroup.statsButtons[#lineupsGroup.statsButtons + 1] = statsView[i].button
     end
 
     scrollView.badges = badges
@@ -646,6 +655,7 @@ function InGameStats:destroy()
     end
     self.statsButtons = nil
     self:removeSelf()
+    statistics = nil
 end
 
 return InGameStats

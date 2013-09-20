@@ -90,7 +90,7 @@ end
 local unpackValidProducts = function()
     log("Loading product list")
     if not validProducts then
-        native.showAlert("In App features not available", { "OK" })
+        --native.showAlert("In App features not available", { "OK" })
     else
         log("Product list loaded")
         log("Country: " .. system.getPreference("locale", "country"))

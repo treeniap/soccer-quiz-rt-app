@@ -82,7 +82,7 @@ local function listener(event)
                 end
             end
         end
-        native.showAlert("Erro", "Erro no login do Facebook", { "Ok" }, onComplete)
+        native.showAlert("Facebook", "Falha de comunicação com o Facebook.", { "Tentar novamente" }, onComplete)
         return
     end
     if "session" == event.type then
@@ -136,12 +136,14 @@ local function listener(event)
                 }, function()
                     stepsCount = stepsCount - 1
                     if stepsCount <= 0 then
+                        LoadingBall:newStage() --- 3
                         request(REQUEST_TYPE_USER_FRIENDS)
                     end
                 end)
                 stepsCount = stepsCount + 1
             end
             if stepsCount <= 0 then
+                LoadingBall:newStage() --- 3
                 request(REQUEST_TYPE_USER_FRIENDS)
             end
         elseif requestType == REQUEST_TYPE_USER_FRIENDS then
@@ -176,7 +178,7 @@ local function listener(event)
             end
         elseif requestType == REQUEST_TYPE_POST_SCORE then
             AnalyticsManager.postFacebook("MatchResult")
-            native.showAlert("Facebook", "Pontuação postada.", {"Ok"})
+            native.showAlert("Facebook", "Pontuação compartilhada com seus amigos.", {"Ok"})
         elseif requestType == REQUEST_TYPE_POST_FRIEND then
             AnalyticsManager.postFacebook("PostedOnFriendFacebookWall")
         elseif requestType == REQUEST_TYPE_POST then

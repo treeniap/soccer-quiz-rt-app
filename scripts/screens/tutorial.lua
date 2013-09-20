@@ -358,7 +358,7 @@ local function createScreen5()
     text.x = display.contentCenterX
     text.y = TEXT_Y + 22
 
-    local function onStartApp(button) --TODO bug pos criacao de usuario
+    local function onStartApp(button)
         local function completeTutorial()
             if UserData:updateAttributes(pushNotificationOn, favoriteTeamId) then
                 UserData:setTutorialCompleted()

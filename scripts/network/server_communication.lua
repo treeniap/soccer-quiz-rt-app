@@ -192,8 +192,8 @@ local RETRIES_NUMBER = 3
 
 local function erroTryAgainLater(_request)
     native.showAlert(
-        "Erro no servidor",
-        "Por favor, tente novamente mais tarde.",
+    "Comunicação não estabelecida.",
+        "Encontramos uma falha de comunicação com o nosso serviço. Vamos tentar novamente.",
         { "Ok" },
         function() networkRequest(_request) end)
     AnalyticsManager.serverError(_request.name)
@@ -283,14 +283,14 @@ function networkRequest(_request)
             log("Error (nil url): " .. _request.name)
             return
         end
-        log(_request.name, URL)
+        log(_request.name .. " " .. URL)
         if not _request.retries_count then
             _request.retries_count = _request.retries_number
         end
         network.request(URL, _request.method, serverResponseHandler(_request), _request.post_params)
     else
         Server.addNetworkStatusListener(function() networkRequest(_request) end)
-        native.showAlert("", "Por favor, verifique a sua conexão com a internet.", { "Ok" })
+        native.showAlert("Sem internet!", "Conecte-se a uma boa rede 3G ou Wi-Fi para jogar um jogo inteiro sem interrupções.", { "Tentar novamente" })
     end
 end
 
@@ -372,6 +372,7 @@ function Server:checkUser(userInfo)
         url = USERS_URL .. "facebook_profiles/" .. userInfo.facebook_profile.id,
         method = "GET",
         listener = function(response, status)
+            LoadingBall:newStage() --- 4
             UserData:setUserId(response.user.id)
             Server:getUserInventory(userInfo, ScreenManager.init, TRY_AGAIN_ON_NO_RESPONSE)
             Server:updateUser(userInfo, response.user.id)
@@ -728,7 +729,7 @@ end
 ---/////////////////////////// PUBNUB ///////////////////////////---
 ---==============================================================---
 function Server.pubnubSubscribe(channel, listener)
-    log("pubnubSubscribe", channel)
+    log("pubnubSubscribe - " .. channel or "")
     if weLovePubnub then
         weLovePubnub.subscribe(channel)
     else

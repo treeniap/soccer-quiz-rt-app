@@ -61,15 +61,37 @@ function TextureManager.newAnimatedSprite(sequenceData, getFrames)
     return display.newSprite(mainSheetImage, sequenceData)
 end
 
-function TextureManager.newLogo(logoFileName, size, group)
-    local noError, result = pcall(display.newImageRect, logoFileName, system.DocumentsDirectory, size, size)
-    if not noError or not result then
-        result = TextureManager.newImageRect("images/badges/clubes_empty.png", size, size)
+function TextureManager.newLogo(logoFileName, size, group, provisionalLogo)
+    local hasFile, error = lfs.attributes(system.pathForFile(logoFileName, system.DocumentsDirectory))
+    if hasFile then
+        local logo
+        if provisionalLogo and provisionalLogo.insert then
+            logo = TextureManager.newImageRect(logoFileName, size, size, nil, system.DocumentsDirectory)
+            provisionalLogo[1]:removeSelf()
+            provisionalLogo:insert(logo)
+        elseif group and group.insert then
+            logo = TextureManager.newImageRect(logoFileName, size, size, nil, system.DocumentsDirectory)
+            group:insert(logo)
+        elseif not group then
+            logo = TextureManager.newImageRect(logoFileName, size, size, nil, system.DocumentsDirectory)
+        end
+        return logo
+    else
+        local logo
+        if provisionalLogo then
+            logo = provisionalLogo
+        else
+            logo = display.newGroup()
+            logo:insert(TextureManager.newImageRect("images/badges/clubes_empty.png", size, size))
+            if group and group.insert then
+                group:insert(logo)
+            end
+        end
+        timer.performWithDelay(1000, function()
+            TextureManager.newLogo(logoFileName, size, group, logo)
+        end)
+        return logo
     end
-    if group then
-        group:insert(result)
-    end
-    return result
 end
 
 function TextureManager.newHorizontalLine(x, y, lineWidth)

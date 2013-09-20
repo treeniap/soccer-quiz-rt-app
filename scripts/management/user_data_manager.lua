@@ -99,7 +99,7 @@ function UserData:checkRating()
                 if tonumber(matchPoints) > 0 then
                     native.showAlert(
                         "Parabéns! Você fez " .. matchPoints .. " pontos no 1º tempo!",
-                        "Está gostando do Chute Premiado? Dê 5 estrelas para mais atualizações.",
+                        "Está gostando do Chute Premiado?", --TODO Dê 5 estrelas para mais atualizações.",
                         {"Avaliar", "Mais tarde"},
                         function (event)
                             if "clicked" == event.action then

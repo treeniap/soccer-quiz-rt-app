@@ -305,7 +305,7 @@ local function createMenuOptions()
     optionsGroup:insert(TextureManager.newHorizontalLine(104, lineY + 18, 220 + display.screenOriginX*-2))
     -- SAIR
     lineY = lineY + 28
-    local sairLink = BtnLink:new("SAIR", lineX, lineY, function()
+    local sairLink = BtnLink:new("MENU INICIAL", lineX, lineY, function()
         transition.to(menuFoilGroup, {time = 300, x = menuFoilGroup.hideX, transition = easeOutBack, onComplete = function()
             ScreenManager:exitMatch()
             Goal:close()

@@ -17,15 +17,29 @@ local function createChampionshipInfo()
         cBadge.x = 0
         cBadge.y = 0
     end
-    local cName = display.newText(championshipGroup, championshipName, 0, 0, "MyriadPro-BoldCond", 10)
+    local cName = display.newText(championshipGroup, championshipName .. " - " .. championshipRound, 0, 0, "MyriadPro-BoldCond", 10)
     cName.x = 0
     cName.y = 10 + 9
     cName:setTextColor(128)
-    local cRound = display.newText(championshipGroup, championshipRound, 0, 0, "MyriadPro-BoldCond", 10)
-    cRound.x = 0
-    cRound.y = cName.y + 12
-    cRound:setTextColor(128)
+    --local cRound = display.newText(championshipGroup, championshipRound, 0, 0, "MyriadPro-BoldCond", 10)
+    --cRound.x = 0
+    --cRound.y = cName.y + 12
+    --cRound:setTextColor(128)
     return championshipGroup
+end
+
+local function createLocationAndReferee()
+    local info = MatchManager:getStadiumRefereeInfo()
+    local locationRefereeGroup = display.newGroup()
+    local location = display.newText(locationRefereeGroup, info.stadium .. ", " .. info.city .. " - " .. info.state .. ", " .. info.country, 0, 0, "MyriadPro-BoldCond", 10)
+    location.x = 0
+    location.y = 10 + 9
+    location:setTextColor(128)
+    local referee = display.newText(locationRefereeGroup, "Árbitro: " .. info.referee, 0, 0, "MyriadPro-BoldCond", 10)
+    referee.x = 0
+    referee.y = location.y + 12
+    referee:setTextColor(128)
+    return locationRefereeGroup
 end
 
 local function createScore(homeTeamBadge, awayTeamBadge)
@@ -42,7 +56,7 @@ local function createScore(homeTeamBadge, awayTeamBadge)
     --- Placar
     local placar = display.newText(scoreGroup, "-", 0, 0, "MyriadPro-BoldCond", 72)
     placar.x = 0
-    placar.y = 10
+    placar.y = 20
     placar:setTextColor(0)
     function InGameScore:updateScore()
         placar.text = MatchManager:getTeamScore(true) .. " - " .. MatchManager:getTeamScore(false)
@@ -69,7 +83,7 @@ end
 
 local function createMatchTimer()
     local timerGroup = display.newGroup()
-    local matchMinutes = display.newText(timerGroup, " ", 0, 0, "MyriadPro-BoldCond", 80)
+    local matchMinutes = display.newText(timerGroup, " ", 0, 0, "MyriadPro-BoldCond", 64)
     matchMinutes.x = getFontLettersSize("'")*0.5
     matchMinutes.y = 0
     matchMinutes:setTextColor(0)
@@ -79,9 +93,9 @@ local function createMatchTimer()
     min.y = 0
     min:setTextColor(0)
     --]]
-    local matchTime = display.newText(timerGroup, " ", 0, 0, "MyriadPro-BoldCond", 32)
+    local matchTime = display.newText(timerGroup, " ", 0, 0, "MyriadPro-BoldCond", 24)
     matchTime.x = 0
-    matchTime.y = 42
+    matchTime.y = 27
     matchTime:setTextColor(128)
     function InGameScore:updateTime()
         local status, time = MatchManager:getMatchTimeStatus()
@@ -92,7 +106,7 @@ local function createMatchTimer()
                 matchMinutes.text = time .. "'"
             end
         else
-            matchMinutes.text = ""
+            matchMinutes.text = " "
         end
         matchTime.text = status
         matchMinutes:setReferencePoint(display.CenterReferencePoint)
@@ -149,6 +163,8 @@ function InGameScore:updateMatch(isFirst)
         else
             currentMatchInfo.status_updated_at = getCurrentDate():addseconds(-math.floor(system.getTimer()/1000))
         end
+
+        MatchManager:updateMatchInfo(currentMatchInfo)
         self:update()
 
         local elapsedTime = date.diff(getCurrentDate(), currentMatchInfo.status_updated_at):spanminutes()
@@ -159,6 +175,13 @@ function InGameScore:updateMatch(isFirst)
         end
         self.timer = timer.performWithDelay(nextUpdateTime, function() self:updateMatch(false) end)
     end)
+end
+
+function InGameScore:forceUpdateMatch()
+    if self.timer then
+        timer.cancel(self.timer)
+    end
+    self:updateMatch()
 end
 
 function InGameScore:toFront()
@@ -181,10 +204,16 @@ function InGameScore:create()
     championshioInfo.y = 88 + (display.screenOriginY*0.5)
     infoGroup:insert(championshioInfo)
 
+    --- Location and Referee
+    local locationAndReferee = createLocationAndReferee()
+    locationAndReferee.x = display.contentCenterX
+    locationAndReferee.y = championshioInfo.y + 12
+    infoGroup:insert(locationAndReferee)
+
     --- Score
     local score = createScore(MatchManager:getTeamLogoImg(true, 3), MatchManager:getTeamLogoImg(false, 3))
     score.x = display.contentCenterX
-    score.y = 156
+    score.y = 184
     infoGroup:insert(score)
 
     --- Teams Names
@@ -197,7 +226,7 @@ function InGameScore:create()
     --- Match Timer
     local matchTimer = createMatchTimer()
     matchTimer.x = display.contentCenterX
-    matchTimer.y = 270 + (display.screenOriginY*-0.5)
+    matchTimer.y = 290 + (display.screenOriginY*-0.5)
     infoGroup:insert(matchTimer)
 
     infoGroup:updateMatch(true)

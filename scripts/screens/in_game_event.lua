@@ -21,10 +21,10 @@ local currentEvent
 local lastRanking
 
 local VOTE_BUTTONS_POSITIONS_Y = {
-    display.contentCenterY - 92,
-    display.contentCenterY - 62,
-    display.contentCenterY + 28,
-    display.contentCenterY + 58
+    display.contentCenterY - 92 - (display.screenOriginY*-.33),
+    display.contentCenterY - 62 - (display.screenOriginY*-.16),
+    display.contentCenterY + 28 + (display.screenOriginY*-.16),
+    display.contentCenterY + 58 + (display.screenOriginY*-.33)
 }
 
 local VOTE_BUTTONS_START_POSITIONS_X = {
@@ -283,14 +283,20 @@ local function createRightBet(prize)
 
     local floor = math.floor(prize)
     local float = string.format("%.1f", prize):sub((floor .. " "):len())
-    local prizeTxt = display.newText(rightGroup, floor, 0, 0, "MyriadPro-BoldCond", 80)
-    prizeTxt.x = -14
-    prizeTxt.y = -20
+    local textGroup = display.newGroup()
+    local prizeTxt = display.newText(textGroup, floor, 0, 0, "MyriadPro-BoldCond", 80)
+    prizeTxt:setReferencePoint(display.CenterRightReferencePoint)
+    prizeTxt.x = -4
+    prizeTxt.y = -6
     prizeTxt:setTextColor(0)
-    local prizeTxt = display.newText(rightGroup, float, 0, 0, "MyriadPro-BoldCond", 55)
+    local prizeTxt = display.newText(textGroup, float, 0, 0, "MyriadPro-BoldCond", 55)
     prizeTxt.x = 14
-    prizeTxt.y = -14
+    prizeTxt.y = 0
     prizeTxt:setTextColor(0)
+    textGroup:setReferencePoint(display.CenterReferencePoint)
+    textGroup.x = 0
+    textGroup.y = -14
+    rightGroup:insert(textGroup)
 
     rightGroup:setReferencePoint(display.CenterRightReferencePoint)
     rightGroup.x = SCREEN_RIGHT + rightGroup.width
@@ -567,19 +573,19 @@ function InGameEvent:create(eventInfo)
         --end
         local function postBet(url, coins)
             local function onClientError(event)
-                local alertText = "Houve um erro de comunicação com nosso servidor. Verifique se o horário de seu " ..
+                local alertText = "Houve uma falha de comunicação com nosso serviço. Verifique se o horário de seu " ..
                         getDeviceName() .. " está sendo ajustado automaticamente e/ou se sua internet está rápida e estável."
                 local noError, jsonContent = pcall(Json.Decode, event.response)
                 if noError and jsonContent then
                     printTable(jsonContent)
                     if jsonContent.errors and jsonContent.errors[1] == "ALREADY_ANSWERED" then
-                        alertText = "Evento cancelado."
+                        alertText = "Este evento ocorreu muito rápido e, portanto, foi cancelado. Sua aposta não será considerada."
                     end
                 end
                 Server:getUserInventory(nil, function()
                     InGameScreen:updateTotalCoins()
                     --native.showAlert("ERRO", "Possíveis causas:\n- O lance pode ter sido cancelado.\n- Você não possui uma boa conexão com a internet.\n- Suas configurações de data e hora estão erradas.", {"Ok"}, ScreenManager.callNext)
-                    native.showAlert("ERRO", alertText, {"Ok"}, ScreenManager.callNext)
+                    native.showAlert("Aposta não enviada.", alertText, {"Ok"}, ScreenManager.callNext)
                 end)
                 AnalyticsManager.conectivity("LateClientResponse")
                 AudioManager.playStopBetAnswerWait()

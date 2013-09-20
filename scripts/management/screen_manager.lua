@@ -16,7 +16,7 @@ local currentScreen
 local previousScreen
 local answer
 local tutorial
-local MIN_USER_BET_TIME = 6
+local MIN_USER_BET_TIME = 4
 
 local challengeInfo = {
     name = "DESAFIO DO PRÉ-JOGO",
@@ -109,7 +109,7 @@ local function matchServerListener(message)
     if message.state and message.state == "cancelled" then
         timer.performWithDelay(2000, ScreenManager.callNext)
         InGameScreen:updateTotalCoins()
-        native.showAlert("", "O evento que estavamos aguardando foi cancelado e as fichas apostadas foram devolvidas.", { "Ok" })
+        native.showAlert("", "O evento que estavamos aguardando foi cancelado e suas fichas apostadas foram devolvidas.", { "Ok" })
         return
     end
     local _eventInfo = eventsInfo[message.template.key]
@@ -201,6 +201,7 @@ end
 
 function ScreenManager.init()
     if not tutorial then
+        LoadingBall:newStage() --- 5
         MatchManager:init(function()
             TextureManager.loadMainSheet()
             local bg = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280

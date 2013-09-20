@@ -36,7 +36,7 @@ local function onUpdateNeeded()
             end
         end
     end
-    native.showAlert("Atualização Disponível", "Atualize o aplicativo para continuar jogando", {"Ok", "Mais Tarde"}, onComplete)
+    native.showAlert("Atualização Disponível", "Você precisa atualizar a versão do aplicativo para continuar jogando.", {"Atualizar", "Sair"}, onComplete)
 end
 
 local function load()
@@ -56,6 +56,7 @@ local function load()
     AudioManager.init()
 
     if tutorialCompleted then
+        LoadingBall:newStage() --- 2
         Server.init()
         Facebook:init()
     else
@@ -131,6 +132,7 @@ local function onAppStatusReceived(response, status)
     end
 end
 
+LoadingBall:newStage() --- 1
 Server:getAppStatus(onAppStatusReceived)
 
 --- LOCAL NOTIFICATION

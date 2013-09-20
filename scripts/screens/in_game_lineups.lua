@@ -457,23 +457,25 @@ local function createScrollView()
             hideScrollBar = true,
             horizontalScrollDisabled = true,
             isBounceEnabled = false,
-            friction = 0.85
+            friction = 0.85,
+            listener = function(event)
+                if event.phase == "moved" then
+                    local dX = math.abs(event.x - event.xStart)
+                    local dY = math.abs(event.y - event.yStart)
+                    -- If our finger has moved more than the desired range
+                    if dY < 25 and dX > 50 then
+                        InGameScreen:getStateManager().touchHandler:takeFocus(event)
+                    end
+                end
+            end
         }
     return scrollGroup
 end
 
-function InGameLineups:update(match_details)
-    lineups = match_details
-
-    if self.numChildren > 0 then
-        display.getCurrentStage():setFocus(nil)
-        for i = self.numChildren, 1, -1 do
-            self[i]:removeSelf()
-        end
-    end
+local function createView(lineupsGroup)
     local scrollView = createScrollView()
-    self:insert(scrollView)
-    
+    lineupsGroup:insert(scrollView)
+
     local initialY = SCREEN_TOP + 84
     local timelineView = createViewTimeLine(initialY)
     local lineupView = createViewLineup(initialY + timelineView.height)
@@ -487,6 +489,19 @@ function InGameLineups:update(match_details)
     touchHandler.y = initialY
     touchHandler.alpha = 0.01
     scrollView:insert(1, touchHandler)
+end
+
+function InGameLineups:update(match_details)
+    lineups = match_details
+
+    if self.numChildren > 0 then
+        display.getCurrentStage():setFocus(nil)
+        for i = self.numChildren, 1, -1 do
+            self[i]:removeSelf()
+        end
+    end
+
+    createView(self)
 end
 
 function InGameLineups:toFront()
@@ -503,6 +518,8 @@ function InGameLineups:create()
         lineupsGroup[k] = v
     end
 
+    createView(lineupsGroup)
+
     return lineupsGroup
 end
 
@@ -511,6 +528,7 @@ function InGameLineups:destroy()
         timer.cancel(self.timer)
     end
     self:removeSelf()
+    lineups = nil
 end
 
 return InGameLineups

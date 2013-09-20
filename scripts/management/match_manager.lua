@@ -101,6 +101,7 @@ local function setMatchesDateObj(championships)
     end
 end
 
+local posted
 local function postEnteredMatchOnFB(matchId)
     if MatchManager.enteredMatches then
         for i, id in ipairs(MatchManager.enteredMatches) do
@@ -126,15 +127,20 @@ local function postEnteredMatchOnFB(matchId)
         pelStr = " pela "
     end
 
-    Facebook:postEnterMatch(status .. CurrentMatch:getHomeTeamName() .. " x " ..
-            CurrentMatch:getAwayTeamName() .. pelStr .. championship ..
-            "! Dê seu palpite nos lances perigosos e concorra a uma camisa de futebol oficial toda semana.")
+    if not posted then
+        posted = true
+        Facebook:postEnterMatch(status .. CurrentMatch:getHomeTeamName() .. " x " ..
+                CurrentMatch:getAwayTeamName() .. pelStr .. championship ..
+                "! Dê seu palpite nos lances perigosos e concorra a uma camisa de futebol oficial toda semana.")
+    end
 end
 
 function MatchManager:init(onComplete)
     MatchManager:loadTeamsList(function()
+        LoadingBall:newStage() --- 6
         Server:downloadTeamsLogos({sizes = "mini"})
         MatchManager:resquestMatches(function()
+            LoadingBall:newStage(true) --- 7
             Server:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextEightMatches(), listener = onComplete})
             MatchManager:scheduleNextFavoriteTeamMatch()
         end)
@@ -163,7 +169,7 @@ function MatchManager:setCurrentMatch(matchId)
                     CurrentMatch.championshipName = championshipInfo.name
                     CurrentMatch.championshipLogoName = championshipInfo.machine_friendly_name
                     ScreenManager:enterMatch(matchId)
-                    --timer.performWithDelay(5000, onMatchOver) -- teste: finaliza partida
+                    timer.performWithDelay(5000, onMatchOver) -- teste: finaliza partida
                     postEnteredMatchOnFB(matchId)
                 end
             end
@@ -172,6 +178,16 @@ function MatchManager:setCurrentMatch(matchId)
     else
         print("No Matches Available Right Now")
     end
+end
+
+function MatchManager:getStadiumRefereeInfo()
+    return {
+        referee = CurrentMatch.matchInfo.referee or " ",
+        country = CurrentMatch.matchInfo.country or " ",
+        state = CurrentMatch.matchInfo.state or " ",
+        city = CurrentMatch.matchInfo.city or " ",
+        stadium = CurrentMatch.matchInfo.stadium or " "
+    }
 end
 
 function MatchManager:getChampionshipInfo()
@@ -223,6 +239,10 @@ function MatchManager:getCurrentMatchInfo()
     return CurrentMatch.matchInfo
 end
 
+function MatchManager:updateMatchInfo(currentMatchInfo)
+    CurrentMatch.matchInfo = currentMatchInfo
+end
+
 local notifications = {
     matchId = nil,
     ids = {
@@ -234,16 +254,19 @@ local notifications = {
     }
 }
 
-local function prepareNotification(minutesFromNow, text)
+local function prepareNotification(uctTime, text)
     local soundFile
     if UserData.attributes.favorite_team_id ~= "" and TeamsAssets[UserData.attributes.favorite_team_id] and TeamsAssets[UserData.attributes.favorite_team_id][2] then
         soundFile = "sounds/notifications/" .. UserData.attributes.favorite_team_id .. ".m4a"
     end
 
-    return scheduleLocalNotification(minutesFromNow*60, text, soundFile)
+    return scheduleLocalNotification(uctTime, text, soundFile)
 end
 
-local function checkLocalNotification(period, time)
+local function checkLocalNotification(updatedAt, period, time)
+    if not updatedAt then
+        return
+    end
     if notifications.matchId and notifications.matchId ~= CurrentMatch.matchInfo.id then
         for k, v in pairs(notifications.ids) do
             system.cancelNotification(v)
@@ -252,49 +275,63 @@ local function checkLocalNotification(period, time)
     end
     notifications.matchId = CurrentMatch.matchInfo.id
     local scheduleTime
-    local addminutes
+    local utcTime = updatedAt:copy()
     local text
     --print("time: ", time, "period: ", period)
     if period == "first_half" then
         if not time or time < 13 then
             -- schedule 15
             scheduleTime = "fifteen"
-            addminutes = 15 - (time or 0)
+            utcTime:addminutes(15)
             text = "15 minutos do 1º Tempo"
         elseif time < 28 then
             -- schedule 30
             scheduleTime = "thirty"
-            addminutes = 30 - time
+            utcTime:addminutes(30)
             text = "30 minutos do 1º Tempo"
         else
             -- schedule secondHalf
             scheduleTime = "secondHalf"
-            addminutes = 62 - time
+            utcTime:addminutes(62)
             text = "Começo do 2º Tempo"
         end
     elseif period == "break" then
         -- schedule secondHalf
         scheduleTime = "secondHalf"
-        addminutes = 8
+        utcTime:addminutes(15)
         text = "Começo do 2º Tempo"
     elseif period == "second_half" then
         if time and time < 13 then
             -- schedule 60
             scheduleTime = "sixty"
-            addminutes = 15 - time
+            utcTime:addminutes(15)
             text = "15 minutos do 2º Tempo"
         elseif time and time < 28 then
             -- schedule 75
             scheduleTime = "seventyFive"
-            addminutes = 30 - time
+            utcTime:addminutes(30)
             text = "30 minutos do 2º Tempo"
         end
     end
     if scheduleTime and notifications.ids[scheduleTime] == nil then
-        notifications.ids[scheduleTime] = prepareNotification(addminutes, text)
+        local toNextNotification = date.diff(getCurrentDate(), updatedAt):spanminutes()
+        if toNextNotification < 2 or toNextNotification > 62 then
+            return
+        end
+        utcTime:toutc() -- converts to UTC
+        local convertedUtc = {
+            hour = utcTime:gethours(),
+            min = utcTime:getminutes(),
+            wday = utcTime:getweekday(),
+            day = utcTime:getday(),
+            month = utcTime:getmonth(),
+            year = utcTime:getyear(),
+            sec = utcTime:getseconds(),
+            yday = utcTime:getyearday(),
+            isdst = false,
+        }
+        notifications.ids[scheduleTime] = prepareNotification(convertedUtc, text)
     end
-    --print("scheduleTime: ", scheduleTime, "addminutes: ", addminutes)
-    --printTable(notifications)
 end
 
 local function sanitizeStatus(matchInfo, status)
@@ -346,7 +383,7 @@ function MatchManager:getMatchTimeStatus()
     end
     CurrentMatch.period = period
 
-    checkLocalNotification(period, time)
+    checkLocalNotification(CurrentMatch.matchInfo.status_updated_at, period, time)
 
     status = sanitizeStatus(CurrentMatch.matchInfo, status)
 

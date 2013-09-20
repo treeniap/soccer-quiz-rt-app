@@ -109,11 +109,14 @@ function TopBar:new(isMenu)
     topBarGroup:createView(isMenu)
     topBarGroup:setReferencePoint(display.CenterReferencePoint)
     topBarGroup.y = SCREEN_TOP - topBarGroup.height*0.5 - 1
+    topBarGroup.touch = function() return true end
+    topBarGroup:addEventListener("touch", topBarGroup)
 
     return topBarGroup
 end
 
 function TopBar:destroy()
+    topBarGroup:removeEventListener("touch", topBarGroup)
     totalCoins:destroy()
     if matchTeams then
         matchTeams:removeSelf()

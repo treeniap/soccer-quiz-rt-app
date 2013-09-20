@@ -140,10 +140,10 @@ local function createMatchView(match, y, currentDate)
     vs.x = -59
     vs.y = 48
 
-    local homeTeamBadge = TextureManager.newLogo(getLogoFileName(match.home_team.id, 2), 64)
+    local homeTeamBadge = TextureManager.newLogo(getLogoFileName(match.home_team.id, 2), 64, false)
     homeTeamBadge.x = -110
     homeTeamBadge.y = 50
-    local awayTeamBadge = TextureManager.newLogo(getLogoFileName(match.guest_team.id, 2), 64)
+    local awayTeamBadge = TextureManager.newLogo(getLogoFileName(match.guest_team.id, 2), 64, false)
     awayTeamBadge.x = -25
     awayTeamBadge.y = 50
 

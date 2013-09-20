@@ -157,7 +157,7 @@ function QuestionsBar:createView()
         elseif not button.hasPosted and MatchManager.finalResultInfo and MatchManager.finalResultInfo.matchPoints ~= " " then
             Facebook:postMessage("Meus palpites no jogo " .. MatchManager:getTeamName(true) .. " x " ..
                     MatchManager:getTeamName(false) .. " valeram " .. MatchManager.finalResultInfo.matchPoints ..
-                    " pontos. Estou mais perto de ganhar minha camisa de futebol oficial no prêmio desta semana!")
+                    " pontos.") --TODO Estou mais perto de ganhar minha camisa de futebol oficial no prêmio desta semana!")
             button.hasPosted = true
         end
         return true
@@ -196,7 +196,7 @@ function QuestionsBar:createView()
             local function post()
                 twitter:showPopup("Ganhei " .. MatchManager.finalResultInfo.matchPoints ..
                         " pontos no jogo " .. MatchManager:getTeamName(true) .. " x " ..
-                        MatchManager:getTeamName(false) .. ". Estou perto de ganhar minha camisa oficial no prêmio da semana!", "@chutepremiado")
+                        MatchManager:getTeamName(false) .. ".", "@chutepremiado") --TODO  Estou perto de ganhar minha camisa oficial no prêmio da semana!", "@chutepremiado")
             end
             local listener = function( event )
                 --printTable(event)
@@ -204,7 +204,7 @@ function QuestionsBar:createView()
                     post()
                 else
                     AnalyticsManager.postTwitter("MatchResult")
-                    native.showAlert("Twitter", "Pontuação postada.", {"Ok"})
+                    native.showAlert("Twitter", "Pontuação compartilhada no Twitter.", {"Ok"})
                 end
             end
             twitter = require("scripts.network.GGTwitter"):new("kaO6n7jMhgyNzx9lXhLg", "OY0PBfVKizWKfUutKjwh1gt3W99YOmlqbYtgqzg81I", listener)
@@ -363,11 +363,14 @@ function QuestionsBar:new()
     questionsBarGroup:createView()
     questionsBarGroup:setReferencePoint(display.TopCenterReferencePoint)
     questionsBarGroup.y = SCREEN_BOTTOM
+    questionsBarGroup.touch = function() return true end
+    questionsBarGroup:addEventListener("touch", questionsBarGroup)
 
     return questionsBarGroup
 end
 
 function QuestionsBar:destroy()
+    questionsBarGroup:removeEventListener("touch", questionsBarGroup)
     if barTrans then
         transition.cancel(barTrans)
         barTrans = nil
@@ -380,6 +383,7 @@ function QuestionsBar:destroy()
     twitterBtn:removeSelf()
     segmentedControl:removeSelf()
     waitingGroup:removeSelf()
+    questionsBarGroup:removeSelf()
     questionsBarGroup = nil
     openCloseBtn, nextBtn, undoBtn, chronometer, facebookBtn, twitterBtn, segmentedControl, waitingGroup = nil, nil, nil, nil, nil, nil, nil, nil
 end

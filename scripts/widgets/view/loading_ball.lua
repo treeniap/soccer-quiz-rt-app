@@ -40,21 +40,64 @@ function LoadingBall:newScreen()
     ball.y = display.contentCenterY - 14
     ball.xScale = 2
     ball.yScale = 2
+    local loadingTxt = display.newText("", 0, 0, "MyriadPro-BoldCond", 14)
+    loadingTxt:setTextColor(32)
     screenGroup:insert(bgTop)
     screenGroup:insert(badge)
     screenGroup:insert(ball)
+    screenGroup:insert(loadingTxt)
 
+    local txts = {
+        "Vestindo uniforme...",
+        "Amarrando as chuteiras...",
+        "Fazendo alongamentos...",
+        "Aquecimento com bola...",
+        "Revisando esquema tático...",
+        "Discurso motivacional...",
+        "Rezando uma prece...",
+        "Subindo ao gramado..."
+    }
+    local txtNum = 1
+
+    function screenGroup:changeTxt(last)
+        if screenGroup.timer then
+            timer.cancel(screenGroup.timer)
+        end
+        --print(txts[txtNum], txtNum)
+        if last then
+            loadingTxt.text = txts[#txts]
+        else
+            loadingTxt.text = txts[txtNum]
+            txtNum = txtNum + 1
+            if txtNum > #txts then
+                txtNum = #txts
+            end
+        end
+        loadingTxt:setReferencePoint(display.CenterReferencePoint)
+        loadingTxt.x = display.contentCenterX
+        loadingTxt.y = display.contentCenterY + 128
+        screenGroup.timer = timer.performWithDelay(7500, function() screenGroup:changeTxt() screenGroup.timer = nil end)
+    end
     function screenGroup:kickBall()
         transition.to(ball, {time = 300, xScale = 6, yScale = 6, x = display.contentWidth + (display.screenOriginX*-2), y = -100})
         transition.to(badge, {time = 300, xScale = 2, yScale = 2})
     end
     function screenGroup:hideBg()
         transition.to(screenGroup, {time = 500, alpha = 0, onComplete = function()
+            if screenGroup.timer then
+                timer.cancel(screenGroup.timer)
+            end
             screenGroup:removeSelf()
             screenGroup = nil
             splashSheet = nil
             TextureManager.disposeSplashSheet()
         end})
+    end
+end
+
+function LoadingBall:newStage()
+    if screenGroup then
+        screenGroup:changeTxt()
     end
 end
 

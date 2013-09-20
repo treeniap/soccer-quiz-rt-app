@@ -170,18 +170,19 @@ function InGameScreen:onGameOver(finalResultInfo)
                 eventView = nil
 
                 InGameScreen:updateTotalCoins()
-                native.showAlert("", "O evento que estavamos aguardando foi cancelado e as fichas apostadas foram devolvidas.", { "Ok" })
+                native.showAlert("", "O evento que estavamos aguardando foi cancelado e suas fichas apostadas foram devolvidas.", { "Ok" })
                 InGameScreen:onGameOver(finalResultInfo)
             end)
         end)
         return
     end
-    stateManager:hide()
     endView = InGameEnd:create(finalResultInfo)
+    stateManager:onGameOver(endView)
     inGameGroup:insert(2, endView)
     questionsBar:lock()
     endView:showUp(function()
         questionsBar:onGameOver()
+        stateManager.canChange = true
         AnalyticsManager.changedGamePeriod("match_over")
     end)
 end
@@ -228,6 +229,10 @@ function InGameScreen:callNext()
         self:onGame()
     end
     return true
+end
+
+function InGameScreen:getStateManager()
+    return stateManager
 end
 
 function InGameScreen:updateTotalCoins()
@@ -283,6 +288,12 @@ function InGameScreen:hide(onComplete)
     end
 end
 
+function InGameScreen:onAppResume()
+    if stateManager then
+        stateManager:onResumeUpdate()
+    end
+end
+
 function InGameScreen:new()
     inGameGroup = display.newGroup()
 
@@ -303,7 +314,7 @@ function InGameScreen:new()
     AnalyticsManager.enteredInGameScreen()
 
     InGameScreen.group = inGameGroup
-    --TODO desenhar escudos após primeiro download
+
     return inGameGroup
 end
 

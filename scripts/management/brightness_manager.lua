@@ -42,7 +42,7 @@ function BrightnessManager.onEnterMatch()
                 end
             end
         end
-        native.showAlert("Atenção", "Recomendamos diminuir o brilho da tela para economizar bateria.", {"Ajustar brilho", "Manter brilho atual"}, onComplete)
+        native.showAlert("Ajuste do Brilho", "Recomendamos diminuir o brilho da tela para economizar bateria.", {"Ajustar brilho", "Manter atual"}, onComplete)
         UserData.brightness = true
         UserData:save()
     end

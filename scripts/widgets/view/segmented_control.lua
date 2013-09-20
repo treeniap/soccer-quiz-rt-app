@@ -8,13 +8,18 @@ SegmentedControl = {}
 local buttons
 local listener
 
-local function onScreenChoosed(button)
+function SegmentedControl:onScreenSwiped(state)
     for i, btn in ipairs(buttons) do
-        if btn ~= button then
+        if btn.state == state then
+            btn:switch(true)
+        else
             btn:switch(false)
         end
     end
-    button:switch(true)
+end
+
+local function onScreenChoosed(button)
+    SegmentedControl:onScreenSwiped(button.state)
     listener(button.state)
 end
 
@@ -127,8 +132,8 @@ local function createView(states)
 end
 
 function SegmentedControl:new()
-    listener = InGameState:getListener()
-    return createView(InGameState:getStates())
+    listener = InGameScreen:getStateManager():getListener()
+    return createView(InGameScreen:getStateManager():getStates())
 end
 
 return SegmentedControl
