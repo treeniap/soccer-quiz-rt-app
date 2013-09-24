@@ -199,13 +199,15 @@ local function createOptions()
     local function onLinksReceived(response, status)
         --printTable(response)
         if status == 200 then
-            for i, link in ipairs(response) do
-                lineY = lineY + 28
-                local fanpageLink = BtnLink:new(link.label, lineX, lineY, function()
-                    ScreenManager:showWebView(link.url)
-                    AnalyticsManager.clickedUsefulLink(link.label)
-                end)
-                optionsGroup:insert(fanpageLink)
+            if optionsGroup and optionsGroup.insert then
+                for i, link in ipairs(response) do
+                    lineY = lineY + 28
+                    local fanpageLink = BtnLink:new(link.label, lineX, lineY, function()
+                        ScreenManager:showWebView(link.url)
+                        AnalyticsManager.clickedUsefulLink(link.label)
+                    end)
+                    optionsGroup:insert(fanpageLink)
+                end
             end
         else
             Server:getUsefulLinks(onLinksReceived)
@@ -391,7 +393,6 @@ local function createView(isMenu)
 end
 
 function SideMenu:onResume()
-
 end
 
 function SideMenu:new(isMenu)

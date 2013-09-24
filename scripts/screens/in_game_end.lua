@@ -300,17 +300,22 @@ function InGameEnd:showUp(onComplete, noWhistle)
     self.isVisible = true
     --self.rightSideView.isVisible = false
 
-    transition.from(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = function() showScore(onComplete, self.rightSideView) end})
+    transition.from(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = function()
+        if not noWhistle then
+            showScore(onComplete, self.rightSideView)
+        else
+            if onComplete then
+                onComplete()
+            end
+            bannerGroup:showUp()
+        end
+    end})
     if not noWhistle then
         AudioManager.playAudio("finalWhistle")
     end
 end
 
 function InGameEnd:hide(onComplete)
-    for i, v in ipairs(scores) do
-        v.isVisible = false
-    end
-
     transition.to(self.leftSideView, {time = 300, x = SCREEN_LEFT - self.leftSideView.width, transition = easeOutExpo, onComplete = function()
         self.isVisible = false
         self.leftSideView.x = SCREEN_LEFT

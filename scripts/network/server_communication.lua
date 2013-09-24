@@ -199,12 +199,12 @@ local function erroTryAgainLater(_request)
     AnalyticsManager.serverError(_request.name)
 end
 
-function callListener(_listener, _response, _status)
-    if _listener then
+function callListener(_request, _response, _status)
+    if _request.listener then
         local noError, result
-        noError, result = pcall(_listener, _response, _status)
+        noError, result = pcall(_request.listener, _response, _status)
         if not noError then
-            print("Call Listener Error: "..result)
+            print("Call Listener Error - request: " .. _request.name, result)
             if _response then
                 --printTable(_response)
             end
@@ -264,14 +264,15 @@ function serverResponseHandler(_request)
             --log("-----====RESPONSE START")
             ----printTable(jsonContent)
             --log("-----====RESPONSE END")
-            local result = callListener(_request.listener, jsonContent, status)
+            local result = callListener(_request, jsonContent, status)
             if result == "error" then
                 onError(_request, status)
             end
         elseif event.response == " " then
-            callListener(_request.listener, jsonContent, status)
+            callListener(_request, jsonContent, status)
         else
-            print("JSON Decode Error: ", noError, jsonContent)
+            print("JSON Decode Error - request: ", _request.name, noError, jsonContent)
+            onError(_request)
         end
     end
 end
@@ -717,6 +718,21 @@ function Server:getBanner(listener)
     networkRequest{
         name = "getBanner",
         url = CLOUD_URL .. "banners.json",
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = listener,
+        on_no_response = listener,
+    }
+end
+
+---==============================================================---
+---////////////////////////// MESSAGES //////////////////////////---
+---==============================================================---
+function Server:getMessages(listener)
+    networkRequest{
+        name = "getMessages",
+        url = CLOUD_URL .. "messages_text.json",
         method = "GET",
         retries_number = RETRIES_NUMBER,
         listener = listener,

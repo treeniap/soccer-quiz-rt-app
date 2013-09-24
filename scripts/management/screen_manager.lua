@@ -182,7 +182,6 @@ function ScreenManager.onAppResume()
     if currentScreen and currentScreen.onAppResume then
         currentScreen.onAppResume()
     end
-    SideMenu:onResume()
 end
 
 function ScreenManager:enterMatch(channel)

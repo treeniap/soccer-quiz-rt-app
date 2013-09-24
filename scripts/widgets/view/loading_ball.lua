@@ -76,7 +76,12 @@ function LoadingBall:newScreen()
         loadingTxt:setReferencePoint(display.CenterReferencePoint)
         loadingTxt.x = display.contentCenterX
         loadingTxt.y = display.contentCenterY + 128
-        screenGroup.timer = timer.performWithDelay(7500, function() screenGroup:changeTxt() screenGroup.timer = nil end)
+        screenGroup.timer = timer.performWithDelay(7500, function()
+            if screenGroup and screenGroup.changeTxt then
+                screenGroup:changeTxt()
+                screenGroup.timer = nil
+            end
+        end)
     end
     function screenGroup:kickBall()
         transition.to(ball, {time = 300, xScale = 6, yScale = 6, x = display.contentWidth + (display.screenOriginX*-2), y = -100})

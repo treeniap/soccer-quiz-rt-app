@@ -169,7 +169,9 @@ function MatchManager:setCurrentMatch(matchId)
                     CurrentMatch.championshipName = championshipInfo.name
                     CurrentMatch.championshipLogoName = championshipInfo.machine_friendly_name
                     ScreenManager:enterMatch(matchId)
-                    timer.performWithDelay(5000, onMatchOver) -- teste: finaliza partida
+                    --if DEBUG_MODE then
+                    --    timer.performWithDelay(5000, onMatchOver) -- teste: finaliza partida
+                    --end
                     postEnteredMatchOnFB(matchId)
                 end
             end

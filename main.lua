@@ -135,6 +135,17 @@ end
 LoadingBall:newStage() --- 1
 Server:getAppStatus(onAppStatusReceived)
 
+RatingTxt = " "
+MatchResultPostTxt = " "
+
+local function onMessagesReceived(response, status)
+    if status == 200 and response then
+        RatingTxt = response.rating or " "
+        MatchResultPostTxt = response.match_result_post or " "
+    end
+end
+Server:getMessages(onMessagesReceived)
+
 --- LOCAL NOTIFICATION
 native.setProperty("applicationIconBadgeNumber", 0)
 

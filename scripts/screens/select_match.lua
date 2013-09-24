@@ -10,10 +10,10 @@ require "scripts.widgets.view.button_open_menu"
 SelectMatchScreen = {}
 
 local selectMatchGroup
-local bgGroup
-local championshipsListGroup
-local championshipButtons
+local isBgOpen
 local isOpeningMatch
+local isInTransition
+local championshipButtons
 local updateTimer
 
 local function closeChampionshipButtons(openingButton)
@@ -122,14 +122,17 @@ local function createMatchView(match, matchesGroup, yPos)
     return matchGroup
 end
 
+local openBG
+local closeBG
+
 local function updateMatchesFoil()
     if updateTimer then
         timer.cancel(updateTimer)
         updateTimer = nil
     end
-    if SelectMatchScreen.openButton then
+    if selectMatchGroup.openButton then
         display.getCurrentStage():setFocus(nil)
-        SelectMatchScreen:openBG(SelectMatchScreen.openButton, SelectMatchScreen.openChampNum)
+        openBG(selectMatchGroup.openButton, selectMatchGroup.openChampNum)
     end
 end
 
@@ -241,6 +244,53 @@ local function createChampionshipMatchesView(matchesList, topY)
     return matchesGroup
 end
 
+function closeBG(onClose)
+    selectMatchGroup.openButton = nil
+    selectMatchGroup.openChampNum = nil
+    selectMatchGroup.bg:close(function()
+        selectMatchGroup[1]:removeSelf()
+        isBgOpen = false
+        if onClose then
+            timer.performWithDelay(200, onClose)
+        else
+            isInTransition = false
+            unlockScreen()
+        end
+    end)
+    displaceCloseChampBtns()
+    isInTransition = true
+    lockScreen()
+end
+
+function openBG(button, champNum)
+    local yOpenPart = button.y + SCREEN_TOP + 89
+    local partHeight
+    if isBgOpen then
+        closeBG(function()
+            closeChampionshipButtons(button)
+            openBG(button, champNum)
+        end)
+        return
+    end
+    isBgOpen = true
+    selectMatchGroup.openButton = button
+    selectMatchGroup.openChampNum = champNum
+    selectMatchGroup:insert(1, createChampionshipMatchesView(MatchManager:getChampionshipsList()[champNum].incoming_matches, yOpenPart + 8))
+    local distToBottom = SCREEN_BOTTOM - yOpenPart
+    partHeight = distToBottom < 262 and distToBottom or (selectMatchGroup[1].height < 262 and selectMatchGroup[1].height + 4 or 262)
+    selectMatchGroup.bg:open(yOpenPart, partHeight, function()
+        isInTransition = false
+        unlockScreen()
+    end)
+
+    button:open()
+    button.parent[button.parent.numChildren].isVisible = false
+    displaceOpenChampBtns(button.y, partHeight)
+
+    isInTransition = true
+    lockScreen()
+end
+
 local function createOpenMenuLine(isBottom)
     local lineGroup = display.newGroup()
     local line = display.newLine(lineGroup, SCREEN_LEFT, display.screenOriginY, SCREEN_RIGHT, display.screenOriginY)
@@ -259,7 +309,7 @@ local function createOpenMenuLine(isBottom)
 end
 
 local function createBG()
-    bgGroup = display.newGroup()
+    local bgGroup = display.newGroup()
 
     local bgTop = TextureManager.newImageRect("images/stretchable/stru_menu_bg.png", CONTENT_WIDTH, CONTENT_HEIGHT, bgGroup)
     bgTop.x = display.contentCenterX
@@ -282,21 +332,16 @@ local function createBG()
     local lineBottom = createOpenMenuLine(true)
     bgGroup:insert(lineBottom)
 
-    function SelectMatchScreen:openBG(button, champNum)
-        local yOpenPart = button.y + SCREEN_TOP + 89
-        local partHeight
-        if self.isOpen then
-            SelectMatchScreen:closeBG(function()
-                closeChampionshipButtons(button)
-                SelectMatchScreen:openBG(button, champNum)
-            end)
-            return
-        end
-        self.openButton = button
-        self.openChampNum = champNum
-        selectMatchGroup:insert(1, createChampionshipMatchesView(MatchManager:getChampionshipsList()[champNum].incoming_matches, yOpenPart + 8))
-        local distToBottom = SCREEN_BOTTOM - yOpenPart
-        partHeight = distToBottom < 262 and distToBottom or (selectMatchGroup[1].height < 262 and selectMatchGroup[1].height + 4 or 262)
+    function bgGroup:showUp(onComplete)
+        self.isVisible = true
+        transition.from(self, {time = 500, alpha = 0, onComplete = onComplete})
+    end
+
+    function bgGroup:hide()
+        transition.to(self, {time = 500, alpha = 0, onComplete = SelectMatchScreen.destroy})
+    end
+
+    function bgGroup:open(yOpenPart, partHeight, onComplete)
         lineTop.y = yOpenPart - 1
         lineBottom.y = lineTop.y + 1
         lineBottom.alpha = 0
@@ -304,45 +349,20 @@ local function createBG()
 
         bgTop.maskY = -CENTER_MASK_Y - (display.contentCenterY) + yOpenPart
         bgBottom.maskY = CENTER_MASK_Y - (display.contentCenterY) + yOpenPart
-        transition.to(bgBottom, {time = 200, maskY = CENTER_MASK_Y - (display.contentCenterY) + yOpenPart + partHeight, onComplete = function()
-            self.isOpen = true
-            self.inTransition = false
-            unlockScreen()
-        end})
-
-        button:open()
-        button.parent[button.parent.numChildren].isVisible = false
-        displaceOpenChampBtns(button.y, partHeight)
-
-        self.inTransition = true
-        lockScreen()
+        transition.to(bgBottom, {time = 200, maskY = CENTER_MASK_Y - (display.contentCenterY) + yOpenPart + partHeight, onComplete = onComplete})
     end
 
-    function SelectMatchScreen:closeBG(onClose)
-        self.openButton = nil
-        self.openChampNum = nil
-        transition.to(bgBottom, {time = 200, maskY = CENTER_MASK_Y*2 + bgTop.maskY, onComplete = function()
-            selectMatchGroup[1]:removeSelf()
-            self.isOpen = false
-            if onClose then
-                timer.performWithDelay(200, onClose)
-            else
-                self.inTransition = false
-                unlockScreen()
-            end
-        end})
+    function bgGroup:close(onComplete)
+        transition.to(bgBottom, {time = 200, maskY = CENTER_MASK_Y*2 + bgTop.maskY, onComplete = onComplete})
         lineTop.y = display.screenOriginY
         lineBottom.y = display.screenOriginY
-        displaceCloseChampBtns()
-        self.inTransition = true
-        lockScreen()
     end
 
     return bgGroup
 end
 
 local function createChampionshipsList(championshipList)
-    championshipsListGroup = display.newGroup()
+    local championshipsListGroup = display.newGroup()
     local Y_CHAMPIONSHIP = 50
     for i, championship in ipairs(championshipList) do
         local championshipGroup = display.newGroup()
@@ -351,14 +371,14 @@ local function createChampionshipsList(championshipList)
         title.y = (i - 1)*Y_CHAMPIONSHIP
         title:setTextColor(0)
         local arrow = ButtonOpenMenu:new(function(button, event)
-            if SelectMatchScreen.inTransition then
+            if isInTransition then
                 return true
             end
             button.isOpen = not button.isOpen
             if button.isOpen then
-                SelectMatchScreen:openBG(button, i)
+                openBG(button, i)
             else
-                SelectMatchScreen:closeBG()
+                closeBG()
                 button:close()
                 button.parent[button.parent.numChildren].isVisible = true
             end
@@ -383,6 +403,30 @@ local function createChampionshipsList(championshipList)
 
         championshipsListGroup:insert(championshipGroup)
     end
+
+    championshipsListGroup.isVisible = false
+    function championshipsListGroup:showUp()
+        self.isVisible = true
+        for i = 1, self.numChildren do
+            transition.from(self[i], {delay = 300, time = 300, y = 50*-i - 50, transition = easeInQuart})
+            if i == 1 then
+                timer.performWithDelay(900, function()
+                    self[i][1].isOpen = true
+                    openBG(self[i][1], i)
+                end)
+            end
+        end
+        if self.numChildren > 0 then
+            AudioManager.playAudio("openCloseMenu", 500)
+        end
+    end
+
+    function championshipsListGroup:hide()
+        for i = 1, self.numChildren do
+            transition.to(self[i], {time = 300, y = 50*-i - 50, transition = easeInQuart})
+        end
+    end
+
     return championshipsListGroup
 end
 
@@ -391,45 +435,16 @@ function SelectMatchScreen.onAppResume()
 end
 
 function SelectMatchScreen:showUp(onComplete)
-    bgGroup.isVisible = true
-    transition.from(bgGroup, {time = 500, alpha = 0, onComplete = function()
-        championshipsListGroup.isVisible = true
-        selectMatchGroup[selectMatchGroup.numChildren].isVisible = true
-        for i = 1, championshipsListGroup.numChildren do
-            transition.from(championshipsListGroup[i], {delay = 300, time = 300, y = 50*-i - 50, transition = easeInQuart})
-            if i == 1 then
-                timer.performWithDelay(900, function()
-                    championshipsListGroup[i][1].isOpen = true
-                    SelectMatchScreen:openBG(championshipsListGroup[i][1], i)
-                end)
-            end
-        end
-        if championshipsListGroup.numChildren > 0 then
-            AudioManager.playAudio("openCloseMenu", 500)
-        end
-        transition.from(selectMatchGroup[selectMatchGroup.numChildren], {time = 300, y = SCREEN_TOP - 50, transition = easeInQuart})
+    selectMatchGroup.bg:showUp(function()
+        selectMatchGroup.championshipsList:showUp()
+        selectMatchGroup.topBar.isVisible = true
+        transition.from(selectMatchGroup.topBar, {time = 300, y = SCREEN_TOP - 50, transition = easeInQuart})
         AudioManager.playAudio("showTopBar")
-        timer.performWithDelay(650, onComplete)
-    end})
-end
-
-function SelectMatchScreen:new()
-    isOpeningMatch = false
-    SelectMatchScreen.inTransition = false
-    selectMatchGroup = display.newGroup()
-    championshipButtons = {}
-
-    selectMatchGroup:insert(createBG())
-    selectMatchGroup:insert(createChampionshipsList(MatchManager:getChampionshipsList()))
-    selectMatchGroup:insert(TopBarMenu:new("JOGAR"))
-
-    bgGroup.isVisible = false
-    championshipsListGroup.isVisible = false
-    selectMatchGroup[selectMatchGroup.numChildren].isVisible = false
-
-    AnalyticsManager.enteredSelectMatchScreen()
-
-    return selectMatchGroup
+        timer.performWithDelay(650, function()
+            onComplete()
+            lockScreen()
+        end)
+    end)
 end
 
 function SelectMatchScreen:hide(onComplete)
@@ -438,29 +453,43 @@ function SelectMatchScreen:hide(onComplete)
         updateTimer = nil
     end
     local function hiding()
-        for i = 1, championshipsListGroup.numChildren do
-            transition.to(championshipsListGroup[i], {time = 300, y = 50*-i - 50, transition = easeInQuart})
-        end
-        transition.to(selectMatchGroup[selectMatchGroup.numChildren], {delay = 300, time = 300, y = SCREEN_TOP - 50, transition = easeInQuart, onComplete = function()
-            transition.to(bgGroup, {time = 500, alpha = 0, onComplete = SelectMatchScreen.destroy})
+        selectMatchGroup.championshipsList:hide()
+        transition.to(selectMatchGroup.topBar, {delay = 300, time = 300, y = SCREEN_TOP - 50, transition = easeInQuart, onComplete = function()
+            selectMatchGroup.bg:hide()
             onComplete()
         end})
     end
 
-    if self.isOpen then
-        self:closeBG(hiding)
+    if isBgOpen then
+        closeBG(hiding)
     else
         hiding()
     end
 end
 
+function SelectMatchScreen:new()
+    isBgOpen = false
+    isOpeningMatch = false
+    isInTransition = false
+    selectMatchGroup = display.newGroup()
+    championshipButtons = {}
+
+    selectMatchGroup.bg = createBG()
+    selectMatchGroup:insert(selectMatchGroup.bg)
+    selectMatchGroup.championshipsList = createChampionshipsList(MatchManager:getChampionshipsList())
+    selectMatchGroup:insert(selectMatchGroup.championshipsList)
+    selectMatchGroup.topBar = TopBarMenu:new("JOGAR")
+    selectMatchGroup.topBar.isVisible = false
+    selectMatchGroup:insert(selectMatchGroup.topBar)
+
+    AnalyticsManager.enteredSelectMatchScreen()
+
+    return selectMatchGroup
+end
+
 function SelectMatchScreen:destroy()
-    bgGroup:removeSelf()
-    championshipsListGroup:removeSelf()
     selectMatchGroup:removeSelf()
     selectMatchGroup = nil
-    bgGroup = nil
-    championshipsListGroup = nil
     championshipButtons = nil
 end
 
