@@ -10,8 +10,8 @@ local appId = "371360562986250"
 local access_token
 local requestType
 local userInfo
-local stepsCount
 local loginListener
+local friendsListener
 local REQUEST_TYPE_LOGIN = "login"
 local REQUEST_TYPE_USER_INFO = "me"
 local REQUEST_TYPE_USER_FRIENDS = "me/friends?fields=installed,name"
@@ -25,12 +25,14 @@ local REQUEST_TYPE_POST_GOAL = "postgoal"
 local REQUEST_TYPE_POST = "post"
 local REQUEST_TYPE_POST_RANKING_SCORE = "rankingscore"
 local acceptedPublishStream = true
+local facebookSteps
+local stepsCount
 
 local function getPictureSize(size)
     if type(size) == "number" then
-        if size <= 50 then
+        if size <= 60 then
             return "default"
-        elseif size <= 100 then
+        elseif size <= 110 then
             return "2x"
         end
         return "4x"
@@ -61,6 +63,39 @@ local function request(path, _requestType)
     facebook.request(path)
 end
 
+local function setUserInfo(info)
+    userInfo = {
+        first_name = info.first_name,
+        last_name = info.last_name,
+        facebook_profile = {
+            id =  info.id,
+            username = info.username,
+            access_token = access_token
+        }
+    }
+end
+
+local function setUserPicture(response)
+    local imageSize = getPictureSize(tonumber(response.data.width))
+    userInfo.facebook_profile[getPictureFieldName(imageSize)] = response.data.url
+    facebookSteps[stepsCount](response) ---> 3, 4, 5
+end
+
+local function setUserFriends(response)
+    local friends_ids = {}
+    for i, friend in ipairs(response.data) do
+        if friend.installed then
+            friends_ids[#friends_ids + 1] = friend.id
+        end
+    end
+    if facebookSteps then
+        facebookSteps[stepsCount](friends_ids) ---> 6
+        facebookSteps = nil
+    else
+        UserData:updateFriends(friends_ids, friendsListener)
+    end
+end
+
 -- listener for "fbconnect" events
 local function listener(event)
     if event.isError then
@@ -88,14 +123,14 @@ local function listener(event)
     if "session" == event.type then
         -- upon successful login, request list of friends of the signed in user
         if "loginFailed" == event.phase then
-        elseif "login" == event.phase and event.token then
-            request(REQUEST_TYPE_USER_INFO)
+        elseif "login" == event.phase then
             -- Fetch access token for use in Facebook's API
             access_token = event.token
             --print("login access_token:", access_token)
             if loginListener then
                 loginListener()
             end
+            facebookSteps[stepsCount]() ---> 1
         end
     elseif "request" == event.type then
         -- event.response is a JSON object from the FB server
@@ -103,60 +138,19 @@ local function listener(event)
         response = Json.Decode(event.response)
         --printTable(response)
         if requestType == REQUEST_TYPE_USER_INFO then
-            userInfo = {
-                first_name = response.first_name,
-                last_name = response.last_name,
-                facebook_profile = {
-                    id =  response.id,
-                    username = response.username,
-                    access_token = access_token
-                }
-            }
-            request(getUserPictureUrl(response.username, "default"), REQUEST_TYPE_USER_PIC)
-            request(getUserPictureUrl(response.username, "2x"), REQUEST_TYPE_USER_PIC)
-            request(getUserPictureUrl(response.username, "4x"), REQUEST_TYPE_USER_PIC)
-            stepsCount = 3
+            setUserInfo(response)
 
+            facebookSteps[stepsCount](response) ---> 2
+        elseif requestType == REQUEST_TYPE_USER_PIC then
+            setUserPicture(response)
+        elseif requestType == REQUEST_TYPE_USER_FRIENDS then
+            setUserFriends(response)
         elseif requestType == REQUEST_TYPE_USER_PERM then
             if response.data[1].publish_stream and response.data[1].publish_stream == 1 then
                 AnalyticsManager.acceptedFacebookWritePermission()
             else
                 acceptedPublishStream = false
             end
-        elseif requestType == REQUEST_TYPE_USER_PIC then
-            local imageSize = getPictureSize(tonumber(response.data.width))
-            userInfo.facebook_profile[getPictureFieldName(imageSize)] = response.data.url
-            stepsCount = stepsCount - 1
-            if getImagePrefix() == imageSize then
-                Server:downloadFilesList({
-                    {
-                        url = response.data.url,
-                        fileName = getPictureFileName(userInfo.facebook_profile.id)
-                    }
-                }, function()
-                    stepsCount = stepsCount - 1
-                    if stepsCount <= 0 then
-                        LoadingBall:newStage() --- 3
-                        request(REQUEST_TYPE_USER_FRIENDS)
-                    end
-                end)
-                stepsCount = stepsCount + 1
-            end
-            if stepsCount <= 0 then
-                LoadingBall:newStage() --- 3
-                request(REQUEST_TYPE_USER_FRIENDS)
-            end
-        elseif requestType == REQUEST_TYPE_USER_FRIENDS then
-            --printTable(response)
-            local friends_ids = {}
-            for i, friend in ipairs(response.data) do
-                if friend.installed then
-                    friends_ids[#friends_ids + 1] = friend.id
-                end
-            end
-            UserData:init(userInfo, friends_ids)
-
-            request(REQUEST_TYPE_USER_PERM)
         elseif requestType == REQUEST_TYPE_POST_MATCH then
             AnalyticsManager.post("PostedMatchOnFacebookWall")
         end
@@ -200,6 +194,9 @@ function Facebook:invite(message)
     --print(message)
     requestType = REQUEST_TYPE_INVITE
     facebook.showDialog("apprequests", {message = message})
+    Facebook:requestFriends(function()
+        InGameScreen:updateBottomRanking()
+    end)
 end
 
 function Facebook:postEnterMatch(message)
@@ -250,6 +247,11 @@ function Facebook:post()
     facebook.showDialog("feed")
 end
 
+function Facebook:requestFriends(_friendsListener)
+    friendsListener = _friendsListener
+    request(REQUEST_TYPE_USER_FRIENDS)
+end
+
 function Facebook:init(_listener)
     if IS_SIMULATOR then
         if _listener then
@@ -286,6 +288,59 @@ function Facebook:init(_listener)
         return
     end
     loginListener = _listener
+    facebookSteps = {
+        function() ---> 1
+            request(REQUEST_TYPE_USER_INFO)
+            stepsCount = stepsCount + 1
+        end,
+        function(response) ---> 2
+            request(getUserPictureUrl(response.username, "default"), REQUEST_TYPE_USER_PIC)
+            stepsCount = stepsCount + 1
+        end,
+        function(response) ---> 3
+            request(getUserPictureUrl(response.username, "2x"), REQUEST_TYPE_USER_PIC)
+            stepsCount = stepsCount + 1
+        end,
+        function(response) ---> 4
+            request(getUserPictureUrl(response.username, "4x"), REQUEST_TYPE_USER_PIC)
+            stepsCount = stepsCount + 1
+        end,
+        function() ---> 5
+            local defaultPicUrl = userInfo.facebook_profile.picture_url
+            local x2PicUrl = userInfo.facebook_profile.picture_2x_url
+            local x4PicUrl = userInfo.facebook_profile.picture_4x_url
+            if not defaultPicUrl then
+                if x2PicUrl then
+                    defaultPicUrl = x2PicUrl
+                else
+                    defaultPicUrl = x4PicUrl
+                end
+            end
+            if not x2PicUrl then
+                x2PicUrl = defaultPicUrl
+            end
+            userInfo.facebook_profile.picture_url = defaultPicUrl
+            userInfo.facebook_profile.picture_2x_url = x2PicUrl
+            userInfo.facebook_profile.picture_4x_url = x4PicUrl
+
+            Server:downloadFilesList({
+                {
+                    url = userInfo.facebook_profile[getPictureFieldName(getImagePrefix())],
+                    fileName = getPictureFileName(userInfo.facebook_profile.id)
+                }
+            }, function()
+                LoadingBall:newStage() --- 3
+                request(REQUEST_TYPE_USER_FRIENDS)
+                stepsCount = stepsCount + 1
+            end)
+        end,
+        function(friends_ids) ---> 6
+            UserData:init(userInfo, friends_ids)
+            request(REQUEST_TYPE_USER_PERM)
+            stepsCount = stepsCount + 1
+        end
+    }
+    stepsCount = 1
     requestType = REQUEST_TYPE_LOGIN
     facebook.login(appId, listener, {"publish_stream", "publish_actions"})
 end

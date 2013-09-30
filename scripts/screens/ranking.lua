@@ -331,12 +331,20 @@ local function getPlayersInTheRanking(button, ranking)
             if user.facebook_profile["picture_" .. imageSize .. "url"] then
                 url = user.facebook_profile["picture_" .. imageSize .. "url"]
             else
-                url = user.facebook_profile["picture_url"]
+                if user.facebook_profile["picture_url"] then
+                    url = user.facebook_profile["picture_url"]
+                elseif user.facebook_profile["picture_2x_url"] then
+                    url = user.facebook_profile["picture_2x_url"]
+                else
+                    url = user.facebook_profile["picture_4x_url"]
+                end
             end
-            downloadList[#downloadList + 1] = {
-                url = url,
-                fileName = getPictureFileName(user.id)
-            }
+            if url then
+                downloadList[#downloadList + 1] = {
+                    url = url,
+                    fileName = getPictureFileName(user.id)
+                }
+            end
             for i, player in ipairs(ranking) do
                 --print(user.id, friend.user_id)
                 if user.id == player.user_id then
@@ -376,41 +384,45 @@ local function getPlayersInTheRanking(button, ranking)
 end
 
 local function getAmigosRanking(button)
-    local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
-    local function callback(response, status)
-        --printTable(response)
-        local ranking
-        if status == 200 then
-            ranking = response.scores
-            --check if all friends and the user are in the rank otherwise add then
-            for i, id in ipairs(userAndFriendsIds) do
-                local isInTheRanking
-                for i, player in ipairs(ranking) do
-                    if player.user_id == id then
-                        isInTheRanking = true
+    Facebook:requestFriends(function()
+        local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
+
+        local function callback(response, status)
+            --printTable(response)
+            local ranking
+            if status == 200 then
+                ranking = response.scores
+                --check if all friends and the user are in the rank otherwise add then
+                for i, id in ipairs(userAndFriendsIds) do
+                    local isInTheRanking
+                    for i, player in ipairs(ranking) do
+                        if player.user_id == id then
+                            isInTheRanking = true
+                        end
+                    end
+                    if not isInTheRanking then
+                        ranking[#ranking + 1] = {
+                            user_id = id,
+                            score = 0
+                        }
                     end
                 end
-                if not isInTheRanking then
+            elseif status == 404 then
+                ranking = {}
+                for i, id in ipairs(userAndFriendsIds) do
                     ranking[#ranking + 1] = {
                         user_id = id,
                         score = 0
                     }
                 end
+            else
+                return
             end
-        elseif status == 404 then
-            ranking = {}
-            for i, id in ipairs(userAndFriendsIds) do
-                ranking[#ranking + 1] = {
-                    user_id = id,
-                    score = 0
-                }
-            end
-        else
-            return
+            getPlayersInTheRanking(button, ranking)
         end
-        getPlayersInTheRanking(button, ranking)
-    end
-    Server:getPlayersRank(userAndFriendsIds, nil, callback)
+
+        Server:getPlayersRank(userAndFriendsIds, nil, callback)
+    end)
 end
 
 local function getGlobalRanking(button)

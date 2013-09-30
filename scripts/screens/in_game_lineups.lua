@@ -492,7 +492,9 @@ local function createView(lineupsGroup)
 end
 
 function InGameLineups:update(match_details)
-    lineups = match_details
+    if match_details then
+        lineups = match_details
+    end
 
     if self.numChildren > 0 then
         display.getCurrentStage():setFocus(nil)

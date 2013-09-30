@@ -24,7 +24,7 @@ local friendsIdBadgesNames
 
 local lastScore
 
-local function updateBottomRanking(listener)
+function InGameScreen:updateBottomRanking(listener)
     local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
     Server:getPlayersRank(userAndFriendsIds, MatchManager:getMatchId(), function(response, status)
         --printTable(response)
@@ -148,7 +148,7 @@ end
 
 function InGameScreen:onEventEnd(resultInfo)
     display.getCurrentStage():setFocus(nil)
-    updateBottomRanking(function(ranking)
+    InGameScreen:updateBottomRanking(function(ranking)
         if eventView then
             eventView:showResult(resultInfo, ranking, function()
                 questionsBar:onEventResult()
@@ -260,7 +260,7 @@ function InGameScreen:showUp(onComplete)
     --ranking[playerPos].isPlayer = true
 
     bottomRanking:showUp(function()
-        updateBottomRanking()
+        InGameScreen:updateBottomRanking()
         topBar:showUp()
         onComplete()
     end)

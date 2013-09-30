@@ -91,6 +91,16 @@ function AnalyticsManager.enteredSelectMatchScreen()
     })
 end
 
+----/////////////////////////
+---///-- Screen:Tables --///
+--/////////////////////////
+function AnalyticsManager.enteredTablesScreen()
+    analytics.logEvent("Screen:Tables", {
+        SessionCounter = UserData.session,
+        PlayNowNumber  = numberOfPlayNow()
+    })
+end
+
 ----/////////////////////////////
 ---//////-- Monetization --/////
 --/////////////////////////////
@@ -252,7 +262,9 @@ function AnalyticsManager.eventToDisplay(_timeInSeconds, MIN_USER_BET_TIME)
 end
 
 function AnalyticsManager.conectivity(eventName)
-    analytics.logEvent(eventName, {ConnectionType = Server.connectionName})
+    if analytics then
+        analytics.logEvent(eventName, {ConnectionType = Server.connectionName})
+    end
 end
 
 function AnalyticsManager.serverError(_requestName)

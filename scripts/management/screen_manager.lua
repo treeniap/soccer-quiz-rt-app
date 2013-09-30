@@ -94,7 +94,7 @@ end
 local function prepareMatch()
     local error, result = pcall(function()
         currentScreen = require("scripts.screens.in_game")
-        currentScreen:new()
+        display.getCurrentStage():insert(2, currentScreen:new())
         Server:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
     end)
     --print(result)
@@ -213,6 +213,10 @@ function ScreenManager.init()
         end)
     end
     tutorial = nil
+    -- White Status Bar for iOS7
+    local statusBarBg = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, display.topStatusBarContentHeight)
+    statusBarBg:setFillColor(213)
+    display.getCurrentStage():insert(3, statusBarBg)
 end
 
 function ScreenManager:startTutorial()

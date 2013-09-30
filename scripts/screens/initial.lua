@@ -14,6 +14,7 @@ local matchesFoil
 local logo
 local playBtn
 local rankingBtn
+local tablesBtn
 local adjustScale
 local matchesGroup
 local isOpeningMatch
@@ -348,6 +349,7 @@ local function createMatchesFoil(onComplete)
     matchesFoil:showUp(function()
         playBtn:showUp(onComplete)
         rankingBtn:showUp()
+        tablesBtn:showUp()
     end)
     return matchesFoil
 end
@@ -372,7 +374,7 @@ function InitialScreen:showUp(onComplete)
     bottomRanking:showUp(function()
         topBar:showUp()
         logo:showUp()
-        initialScreenGroup:insert(4, createMatchesFoil(function()
+        initialScreenGroup:insert(5, createMatchesFoil(function()
             isUpdatingMatchesFoil = false
             if onComplete then
                 onComplete()
@@ -397,12 +399,15 @@ function updateMatchesFoil()
         playBtn:hide(function()
             matchesFoil:hide(function()
                 matchesFoil:removeSelf()
-                initialScreenGroup:insert(4, createMatchesFoil(function() isUpdatingMatchesFoil = false end))
+                initialScreenGroup:insert(5, createMatchesFoil(function() isUpdatingMatchesFoil = false end))
             end)
         end)
     end
     if rankingBtn then
         rankingBtn:hide()
+    end
+    if tablesBtn then
+        tablesBtn:hide()
     end
 end
 
@@ -434,6 +439,11 @@ function InitialScreen:new()
         AudioManager.playAudio("hideInitialScreen")
     end)
     initialScreenGroup:insert(rankingBtn)
+    tablesBtn = BtnHomeScreen:new(display.contentCenterY + 94, "CLASSIFICAÇÃO", false, function()
+        ScreenManager:show("tables")
+        AudioManager.playAudio("hideInitialScreen")
+    end)
+    initialScreenGroup:insert(tablesBtn)
 
     bottomRanking = BottomRanking:new(UserData:getUserPicture(), true)
     initialScreenGroup:insert(bottomRanking)
@@ -465,6 +475,7 @@ function InitialScreen:hide(onComplete)
         end)
     end)
     rankingBtn:hide()
+    tablesBtn:hide()
 end
 
 function InitialScreen:destroy()
@@ -475,6 +486,7 @@ function InitialScreen:destroy()
     logo:removeSelf()
     playBtn:removeSelf()
     rankingBtn:removeSelf()
+    tablesBtn:removeSelf()
     if matchesGroup and matchesGroup.removeSelf then
         matchesGroup:removeSelf()
     end
@@ -489,6 +501,7 @@ function InitialScreen:destroy()
     logo = nil
     playBtn = nil
     rankingBtn = nil
+    tablesBtn = nil
 end
 
 return InitialScreen

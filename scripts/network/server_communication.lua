@@ -364,6 +364,18 @@ function Server.getMatchDetails(url, listener)
     }
 end
 
+function Server.getChampionshipTable(url, listener)
+    networkRequest{
+        name = "getChampionshipTable",
+        url = url,
+        method = "GET",
+        listener = listener,
+        retries_number = RETRIES_NUMBER,
+        on_client_error = listener,
+        on_no_response = listener,
+    }
+end
+
 ---============================================================---
 ---/////////////////////////// USER ///////////////////////////---
 ---============================================================---

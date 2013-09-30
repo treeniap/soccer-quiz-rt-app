@@ -44,15 +44,10 @@ function UserData:updateAttributes(pushNotificationEnabled, favoriteTeamId)
     return false
 end
 
-function UserData:init(params, friends_ids)
-    self.info = params
+function UserData:updateFriends(friends_ids, onComplete)
     self.info.friendsIds = {}
     self.info.friendsFacebookIds = {}
     --printTable(params)
-
-    local function checkUser()
-        Server:checkUser(self.info)
-    end
 
     local imageSize = getImagePrefix()
     if imageSize == "default" then
@@ -71,18 +66,28 @@ function UserData:init(params, friends_ids)
                 url = user.facebook_profile["picture_url"]
             end
             downloadList[#downloadList + 1] = {
-                    url = url,
-                    fileName = getPictureFileName(user.id)
-                }
+                url = url,
+                fileName = getPictureFileName(user.id)
+            }
             self.info.friendsIds[#self.info.friendsIds + 1] = user.id
             self.info.friendsFacebookIds[user.id] = user.facebook_profile.id
         end
         Server:downloadFilesList(downloadList, function() end)
 
-        checkUser()
+        if onComplete then
+            onComplete()
+        end
     end
 
-    Server:getUsers(friends_ids, true, listener, checkUser)
+    Server:getUsers(friends_ids, true, listener, onComplete)
+end
+
+function UserData:init(params, friends_ids)
+    self.info = params
+    local function checkUser()
+        Server:checkUser(self.info)
+    end
+    self:updateFriends(friends_ids, checkUser)
 end
 
 function UserData:switchSound(isOn)
