@@ -22,7 +22,18 @@ local function numberOfPlayNow()
     return num
 end
 
+local function checkMatchManager(_listener)
+    if not MatchManager.initialized then
+        MatchManager:addListener(_listener)
+        return false
+    end
+    return true
+end
+
 function AnalyticsManager.enteredHomeScreen()
+    if not checkMatchManager(AnalyticsManager.enteredHomeScreen) then
+        return
+    end
     analytics.logEvent("Screen:Home", {
         ChosenTeam     = MatchManager:getTeamName(UserData.attributes.favorite_team_id),
         CoinsInStash   = UserData.inventory.coins,
@@ -35,6 +46,9 @@ end
 ---/////-- Screen:Ranking --/////
 --//////////////////////////////
 function AnalyticsManager.enteredRankingScreen()
+    if not checkMatchManager(AnalyticsManager.enteredRankingScreen) then
+        return
+    end
     analytics.logEvent("Screen:Ranking", {
         ChosenTeam      = MatchManager:getTeamName(UserData.attributes.favorite_team_id),
         NumberOfFriends = #UserData.info.friendsIds,
@@ -96,8 +110,7 @@ end
 --/////////////////////////
 function AnalyticsManager.enteredTablesScreen()
     analytics.logEvent("Screen:Tables", {
-        SessionCounter = UserData.session,
-        PlayNowNumber  = numberOfPlayNow()
+        SessionCounter = UserData.session
     })
 end
 
@@ -184,6 +197,9 @@ function AnalyticsManager.acceptedFacebookWritePermission()
 end
 
 function AnalyticsManager.finishedTutorial()
+    if not checkMatchManager(AnalyticsManager.finishedTutorial) then
+        return
+    end
     local chosenTeam = "none"
     if UserData.attributes and UserData.attributes.favorite_team_id then
         chosenTeam = MatchManager:getTeamName(UserData.attributes.favorite_team_id)

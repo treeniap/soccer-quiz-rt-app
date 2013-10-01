@@ -369,7 +369,7 @@ local function getPlayersInTheRanking(button, ranking)
         end
         Server:downloadFilesList(downloadList, function()
             button.ranking = ranking
-            if button.spinnerDefault then
+            if button.spinnerDefault and button.spinnerDefault.removeSelf then
                 button.spinnerDefault:removeSelf()
             end
             button:lock(false)

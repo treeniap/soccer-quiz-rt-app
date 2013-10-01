@@ -30,6 +30,7 @@ function BtnHomeScreen:createView()
     buttonTxt.x = -10
     buttonTxt.y = 3
     buttonTxt:setTextColor(0)
+    self.txt = buttonTxt
 
     self.isVisible = false
 end
@@ -52,6 +53,15 @@ function BtnHomeScreen:hide(onComplete)
             onComplete()
         end
     end})
+end
+
+function BtnHomeScreen:lock(isLock)
+    if isLock then
+        self.txt:setTextColor(128, 96)
+    else
+        self.txt:setTextColor(0)
+    end
+    self.isLocked = isLock
 end
 
 function BtnHomeScreen:new(y, title, gold, onRelease)

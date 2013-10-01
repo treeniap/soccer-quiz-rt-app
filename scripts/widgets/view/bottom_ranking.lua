@@ -297,9 +297,18 @@ function BottomRanking:createView(playerPhoto, isInitialScreen)
     self.bg.xScale = 0.1
 
     if isInitialScreen then
-        self.tweets = createTweetsBar()
-        if self.tweets then
-            self:insert(2, self.tweets)
+        local function insertTweets()
+            if self and self.insert then
+                self.tweets = createTweetsBar()
+                if self.tweets then
+                    self:insert(2, self.tweets)
+                end
+            end
+        end
+        if MatchManager.initialized then
+            insertTweets()
+        else
+            MatchManager:addListener(insertTweets)
         end
     end
 

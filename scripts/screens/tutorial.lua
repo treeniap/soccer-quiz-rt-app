@@ -267,7 +267,7 @@ local function createScreen5()
         {
             width = SCREEN_RIGHT,
             height = 200,
-            maskFile = "images/tutorial_mask.png",
+            maskFile = "images/masks/tutorial_mask.png",
             hideBackground = true,
             hideScrollBar = true,
             horizontalScrollDisabled = true

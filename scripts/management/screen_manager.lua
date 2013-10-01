@@ -18,17 +18,6 @@ local answer
 local tutorial
 local MIN_USER_BET_TIME = 4
 
-local challengeInfo = {
-    name = "DESAFIO DO PRÉ-JOGO",
-    matchTime = {hour = 19, min = 15, sec = 0},
-    questions = {
-        "Marcelo Caramelo receberá i cartão amarelo na partida? o cartão amarelo na partida?",
-        "Muricy Ramalho fará substituições no itervalo?",
-        "Ademar fará algum gol no segundo tempo da partida?",
-        "Bragantines fará gol no primeiro tempo?",
-    }
-}
-
 local eventsInfo = {
     penalty = {
         title = "PÊNALTI!",
@@ -201,16 +190,15 @@ end
 function ScreenManager.init()
     if not tutorial then
         LoadingBall:newStage() --- 5
-        MatchManager:init(function()
-            TextureManager.loadMainSheet()
-            local bg = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
-            bg.x = display.contentCenterX
-            bg.y = display.contentCenterY
-            display.getCurrentStage():insert(1, bg)
+        MatchManager:init()
+        TextureManager.loadMainSheet()
+        local bg = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
+        bg.x = display.contentCenterX
+        bg.y = display.contentCenterY
+        display.getCurrentStage():insert(1, bg)
 
-            ScreenManager:show("initial")
-            LoadingBall:dismissScreen()
-        end)
+        ScreenManager:show("initial")
+        LoadingBall:dismissScreen()
     end
     tutorial = nil
     -- White Status Bar for iOS7

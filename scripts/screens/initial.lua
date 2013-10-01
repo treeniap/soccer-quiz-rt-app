@@ -15,6 +15,7 @@ local logo
 local playBtn
 local rankingBtn
 local tablesBtn
+local videosBtn
 local adjustScale
 local matchesGroup
 local isOpeningMatch
@@ -29,7 +30,7 @@ local sawWelcomeAlert
 local function createLogo()
     logo = TextureManager.newImage("stru_logotipo", initialScreenGroup)
     logo.x = logo.width*0.5
-    logo.y = SCREEN_TOP + 130
+    logo.y = SCREEN_TOP + 108 + (display.screenOriginY*-.5)
     logo.isVisible = false
     function logo:showUp(onComplete)
         self.isVisible = true
@@ -95,6 +96,46 @@ local function createTouchHandler(y)
     return touchHandler
 end
 
+local function setPlayButtonText(text)
+    text.text = "TOQUE PARA JOGAR"
+    text.size = 20
+    --local TRANSITION_TIME = 2000
+    --local ITERATION_TIME = 60
+    --local currentTime = 0
+    --local colorTo = 160
+    --local colorFrom = 255
+    --local down = true
+    --local function bling()
+    --    if not text.setTextColor then
+    --        return
+    --    end
+    --    local newColor
+    --    if down then
+    --        newColor = easeInExpo(currentTime, TRANSITION_TIME, colorFrom, colorTo - colorFrom)
+    --        if newColor <= colorTo + 1 then
+    --            down = false
+    --            currentTime = 0
+    --            colorTo = 255
+    --            colorFrom = newColor
+    --        end
+    --    else
+    --        newColor = easeOutExpo(currentTime, TRANSITION_TIME, colorFrom, colorTo - colorFrom)
+    --        if newColor >= colorTo - 1 then
+    --            down = true
+    --            currentTime = 0
+    --            colorTo = 160
+    --            colorFrom = newColor
+    --        end
+    --    end
+    --    text:setTextColor(newColor)
+    --    --print(newColor, currentTime)
+    --    currentTime = currentTime + ITERATION_TIME
+    --    timer.performWithDelay(ITERATION_TIME, bling)
+    --end
+    --bling()
+    return text
+end
+
 local function createMatchView(match, y, currentDate)
     local matchGroup = display.newGroup()
 
@@ -118,7 +159,7 @@ local function createMatchView(match, y, currentDate)
         local minutesToMatch = c:spanminutes()
         local daysDiff = currentDate:getyearday() - match.starts_at:getyearday()
         if minutesToMatch >= -5 then
-            time.text = "JOGUE AGORA"
+            time = setPlayButtonText(time)
             setPlayNow()
         elseif daysDiff == -1 then
             time.text = "AMANHÃ - " .. string.utf8upper(match.starts_at:fmt("%H:%M"))
@@ -126,7 +167,7 @@ local function createMatchView(match, y, currentDate)
             time.text = "HOJE - " .. string.utf8upper(match.starts_at:fmt("%H:%M"))
         end
     else
-        time.text = "JOGUE AGORA"
+        time = setPlayButtonText(time)
         setPlayNow()
     end
 
@@ -317,6 +358,21 @@ local function createMatchesView(x, y)
     return matchesGroup
 end
 
+local function showWelcomeAlert()
+    if not sawWelcomeAlert then
+        if not hasScheduledMatches then
+            native.showAlert("Bem-vindo ao Chute Premiado!",
+                "Não encontramos nenhum jogo agendado. Por favor, retorne mais tarde.",
+                {"Ok"})
+        elseif not hasPlayNow then
+            native.showAlert("Bem-vindo ao Chute Premiado!",
+                "Neste momento, não há nenhum jogo em andamento. Por favor, retorne no horário do jogo.",
+                {"Ok"})
+        end
+        sawWelcomeAlert = true
+    end
+end
+
 local function createMatchesFoil(onComplete)
     matchesFoil = display.newGroup()
     local matchesFoilCenter = TextureManager.newImageRect("images/matches_foil/stru_mainfoil_center.png", 72 + (-display.screenOriginX), 421, matchesFoil) --88 420
@@ -325,14 +381,29 @@ local function createMatchesFoil(onComplete)
     local matchesFoilBorder = TextureManager.newImageRect("images/matches_foil/stru_mainfoil_border.png", 88, 421, matchesFoil) --88 420
     matchesFoilBorder.x = matchesFoilCenter.x - matchesFoilCenter.width*0.5 - matchesFoilBorder.width*0.5
     matchesFoilBorder.y = display.contentCenterY
-    local matchesGroup = createMatchesView(SCREEN_RIGHT - (160 + (-display.screenOriginX))*0.5, display.contentCenterY - 210)
-    matchesFoil:insert(matchesGroup)
+
+    if MatchManager.initialized then
+        matchesFoil:insert(createMatchesView(SCREEN_RIGHT - (160 + (-display.screenOriginX))*0.5, display.contentCenterY - 210))
+        showWelcomeAlert()
+    else
+        isUpdatingMatchesFoil = false
+        MatchManager:addListener(updateMatchesFoil)
+        local widget = require( "widget" )
+        local spinnerDefault = widget.newSpinner()
+        spinnerDefault.x = SCREEN_RIGHT - matchesFoilCenter.width*0.75
+        spinnerDefault.y = display.contentCenterY
+        spinnerDefault:start()
+        matchesFoil:insert(spinnerDefault)
+        matchesFoil.spinnerDefault = spinnerDefault
+    end
     matchesFoil.isVisible = false
     function matchesFoil:showUp(onComplete)
         self.isVisible = true
         transition.from(self, {time = 1000, x = SCREEN_RIGHT + self.width, transition = easeOutQuad, onComplete = function()
             pcall(function()
-                if matchesGroup.insert then
+                if matchesGroup and matchesGroup.insert and not matchesGroup.scrolling then
+                    matchesGroup.scrolling = true
+                    timer.performWithDelay(1000, function() matchesGroup.scrolling = false end)
                     matchesGroup:scrollTo("bottom", {time = 1000})
                 end
                 onComplete()
@@ -350,23 +421,9 @@ local function createMatchesFoil(onComplete)
         playBtn:showUp(onComplete)
         rankingBtn:showUp()
         tablesBtn:showUp()
+        videosBtn:showUp()
     end)
     return matchesFoil
-end
-
-local function showWelcomeAlert()
-    if not sawWelcomeAlert then
-        if not hasScheduledMatches then
-            native.showAlert("Bem-vindo ao Chute Premiado!",
-                "Não encontramos nenhum jogo agendado. Por favor, retorne mais tarde.",
-                {"Ok"})
-        elseif not hasPlayNow then
-            native.showAlert("Bem-vindo ao Chute Premiado!",
-                "Neste momento, não há nenhum jogo em andamento. Por favor, retorne no horário do jogo.",
-                {"Ok"})
-        end
-        sawWelcomeAlert = true
-    end
 end
 
 function InitialScreen:showUp(onComplete)
@@ -374,20 +431,20 @@ function InitialScreen:showUp(onComplete)
     bottomRanking:showUp(function()
         topBar:showUp()
         logo:showUp()
-        initialScreenGroup:insert(5, createMatchesFoil(function()
+        initialScreenGroup:insert(6, createMatchesFoil(function()
             isUpdatingMatchesFoil = false
             if onComplete then
                 onComplete()
             end
-            showWelcomeAlert()
         end))
     end)
 end
 
 function updateMatchesFoil()
-    if isUpdatingMatchesFoil then
+    if isUpdatingMatchesFoil or not initialScreenGroup then
         return
     end
+    lockScreen()
     isUpdatingMatchesFoil = true
     if updateTimer then
         timer.cancel(updateTimer)
@@ -395,20 +452,47 @@ function updateMatchesFoil()
     end
     Runtime:removeEventListener("enterFrame", adjustScale)
     display.getCurrentStage():setFocus(nil)
-    if playBtn then
-        playBtn:hide(function()
-            matchesFoil:hide(function()
-                matchesFoil:removeSelf()
-                initialScreenGroup:insert(5, createMatchesFoil(function() isUpdatingMatchesFoil = false end))
+    if matchesFoil.spinnerDefault and matchesFoil.spinnerDefault.removeSelf then
+        matchesFoil.spinnerDefault:stop()
+        matchesFoil.spinnerDefault:removeSelf()
+        matchesFoil.spinnerDefault = nil
+    end
+
+    local function newMatchesGroup()
+        matchesFoil:insert(createMatchesView(SCREEN_RIGHT - (160 + (-display.screenOriginX))*0.5, display.contentCenterY - 210))
+        showWelcomeAlert()
+        matchesGroup.scrolling = true
+        transition.from(matchesGroup, {delay = 500, time = 500, alpha = 0, onComplete = function()
+            timer.performWithDelay(1000, function()
+                matchesGroup.scrolling = false
+                unlockScreen()
             end)
-        end)
+            matchesGroup:scrollTo("bottom", {time = 1000})
+            isUpdatingMatchesFoil = false
+        end})
     end
-    if rankingBtn then
-        rankingBtn:hide()
+
+    if matchesGroup then
+        transition.to(matchesGroup, {time = 500, alpha = 0, onComplete = function()
+            matchesGroup:removeSelf()
+            newMatchesGroup()
+        end})
+    else
+        newMatchesGroup()
     end
-    if tablesBtn then
-        tablesBtn:hide()
-    end
+
+    --if playBtn then
+    --    playBtn:hide(function()
+    --        matchesFoil:hide(function()
+    --            matchesFoil:removeSelf()
+    --            initialScreenGroup:insert(6, createMatchesFoil(function() isUpdatingMatchesFoil = false end))
+    --            showWelcomeAlert()
+    --        end)
+    --    end)
+    --end
+    --if rankingBtn then rankingBtn:hide() end
+    --if tablesBtn then tablesBtn:hide() end
+    --if videosBtn then videosBtn:hide() end
 end
 
 function InitialScreen:updateTotalCoins()
@@ -428,22 +512,28 @@ function InitialScreen:new()
 
     createLogo()
 
-    playBtn = BtnHomeScreen:new(display.contentCenterY, "JOGAR", true, function()
+    videosBtn = BtnHomeScreen:new(display.contentCenterY - 30, "VÍDEOS", true, function()
+    end)
+    initialScreenGroup:insert(videosBtn)
+
+    tablesBtn = BtnHomeScreen:new(display.contentCenterY + 17, "CLASSIFICAÇÃO", false, function()
+        ScreenManager:show("tables")
+        AudioManager.playAudio("hideInitialScreen")
+    end)
+    initialScreenGroup:insert(tablesBtn)
+
+    playBtn = BtnHomeScreen:new(display.contentCenterY + 64, "PARTIDAS", false, function()
         MatchManager:resquestMatches()
         ScreenManager:show("select_match")
         AudioManager.playAudio("hideInitialScreen")
     end)
     initialScreenGroup:insert(playBtn)
-    rankingBtn = BtnHomeScreen:new(display.contentCenterY + 47, "RANKING", false, function()
+
+    rankingBtn = BtnHomeScreen:new(display.contentCenterY + 111, "RANKING", false, function()
         ScreenManager:show("ranking")
         AudioManager.playAudio("hideInitialScreen")
     end)
     initialScreenGroup:insert(rankingBtn)
-    tablesBtn = BtnHomeScreen:new(display.contentCenterY + 94, "CLASSIFICAÇÃO", false, function()
-        ScreenManager:show("tables")
-        AudioManager.playAudio("hideInitialScreen")
-    end)
-    initialScreenGroup:insert(tablesBtn)
 
     bottomRanking = BottomRanking:new(UserData:getUserPicture(), true)
     initialScreenGroup:insert(bottomRanking)
@@ -455,6 +545,15 @@ function InitialScreen:new()
     InitialScreen.group = initialScreenGroup
 
     AnalyticsManager.enteredHomeScreen()
+
+    if not MatchManager.initialized then
+        tablesBtn:lock(true)
+        playBtn:lock(true)
+        MatchManager:addListener(function()
+            tablesBtn:lock(false)
+            playBtn:lock(false)
+        end)
+    end
 
     return initialScreenGroup
 end
@@ -476,6 +575,7 @@ function InitialScreen:hide(onComplete)
     end)
     rankingBtn:hide()
     tablesBtn:hide()
+    videosBtn:hide()
 end
 
 function InitialScreen:destroy()
@@ -487,6 +587,7 @@ function InitialScreen:destroy()
     playBtn:removeSelf()
     rankingBtn:removeSelf()
     tablesBtn:removeSelf()
+    videosBtn:removeSelf()
     if matchesGroup and matchesGroup.removeSelf then
         matchesGroup:removeSelf()
     end
@@ -502,6 +603,7 @@ function InitialScreen:destroy()
     playBtn = nil
     rankingBtn = nil
     tablesBtn = nil
+    videosBtn = nil
 end
 
 return InitialScreen

@@ -144,7 +144,7 @@ local function onMessagesReceived(response, status)
         MatchResultPostTxt = response.match_result_post or " "
     end
 end
-Server:getMessages(onMessagesReceived)
+timer.performWithDelay(12000, function() Server:getMessages(onMessagesReceived) end)
 
 --- LOCAL NOTIFICATION
 native.setProperty("applicationIconBadgeNumber", 0)

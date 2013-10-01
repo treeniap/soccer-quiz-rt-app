@@ -209,11 +209,11 @@ local function createOptions()
                     optionsGroup:insert(fanpageLink)
                 end
             end
-        else
-            Server:getUsefulLinks(onLinksReceived)
         end
     end
-    Server:getUsefulLinks(onLinksReceived)
+    timer.performWithDelay(4000, function()
+        Server:getUsefulLinks(onLinksReceived)
+    end)
 
     return optionsGroup
 end

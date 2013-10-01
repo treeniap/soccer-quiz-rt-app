@@ -29,8 +29,12 @@ local CLOUD_URL       = "http://d1a6cxe4fj6xw1.cloudfront.net/"
 --
 local pubnubObj
 
-local function log(...)
-    --print("SERVER - ", ...)
+local function log(txt, startTime)
+    --if startTime then
+    --    print("SERVER - ", txt, string.format("|||TIME = %.3fs|||", (system.getTimer() - startTime)/1000))
+    --else
+    --    print("SERVER - ", txt)
+    --end
     --io.output():flush()
 end
 
@@ -244,7 +248,7 @@ function serverResponseHandler(_request)
 
     return function(event)
         local status = event.status
-        log("Result " .. _request.name .. " " .. status)
+        log("Result " .. _request.name .. " " .. status, _request.startTime)
         --Server Error
         if event.isError or status >= 500  or status == -1 then
             printTable(event)
@@ -288,6 +292,7 @@ function networkRequest(_request)
         if not _request.retries_count then
             _request.retries_count = _request.retries_number
         end
+        _request.startTime = system.getTimer()
         network.request(URL, _request.method, serverResponseHandler(_request), _request.post_params)
     else
         Server.addNetworkStatusListener(function() networkRequest(_request) end)

@@ -135,13 +135,32 @@ local function postEnteredMatchOnFB(matchId)
     end
 end
 
-function MatchManager:init(onComplete)
+function MatchManager:addListener(_listener)
+    MatchManager.initListeners[#MatchManager.initListeners + 1] = _listener
+end
+
+function MatchManager:callListener()
+    for i, _listener in ipairs(MatchManager.initListeners) do
+        _listener()
+    end
+    for i = #MatchManager.initListeners, 1, -1 do
+        MatchManager.initListeners[i] = nil
+    end
+    MatchManager.initListeners = nil
+end
+
+function MatchManager:init()
+    MatchManager.initListeners = {}
     MatchManager:loadTeamsList(function()
-        LoadingBall:newStage() --- 6
+    --LoadingBall:newStage() --- 6
         Server:downloadTeamsLogos({sizes = "mini"})
         MatchManager:resquestMatches(function()
-            LoadingBall:newStage(true) --- 7
-            Server:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextEightMatches(), listener = onComplete})
+        --LoadingBall:newStage(true) --- 7
+            Server:downloadTeamsLogos({sizes = "medium", matches = MatchManager:getNextEightMatches(),
+                listener = function()
+                    MatchManager.initialized = true
+                    MatchManager:callListener()
+                end})
             MatchManager:scheduleNextFavoriteTeamMatch()
         end)
     end)
@@ -449,6 +468,9 @@ function MatchManager:getChampionshipsList()
 end
 
 function MatchManager:getNextEightMatches()
+    if not nextMatchesInfo then
+        return {}
+    end
     local nextMatches = {}
     local currentDate = getCurrentDate()
     for i, championship in ipairs(nextMatchesInfo) do
@@ -668,9 +690,11 @@ function Teams:load(listener)
 end
 
 function Teams:getTeamById(id)
-    for i, team in pairs(self.list) do
-        if team.id == id then
-            return team
+    if self.list then
+        for i, team in pairs(self.list) do
+            if team.id == id then
+                return team
+            end
         end
     end
 end
