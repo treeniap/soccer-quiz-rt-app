@@ -143,23 +143,48 @@ local function createScreen3(loadImage)
     --textGroup:setReferencePoint(display.CenterReferencePoint)
     textGroup.x = display.contentCenterX
 
-    screenGroup.isLocked = true
-    local button = BtnTutorial:new(function()
+    local function onFBBtnTouch()
         Facebook:init(function()
             screenGroup.isLocked = false
             Server.init()
             slideView:goToNextImage()
+            AnalyticsManager.chosenMode(false)
         end)
-    end, tutorialSheetImage, tutorialSheetInfo, {
+    end
+
+    screenGroup.isLocked = true
+    local button = BtnTutorial:new(onFBBtnTouch, tutorialSheetImage, tutorialSheetInfo, {
         bg = "tuto_bt_fb",
-        text = "CADASTRE-SE",
+        text = "CADASTRO AUTOMÁTICO",
         topText = true,
+        bottomText = true
+    })
+    button:setReferencePoint(display.CenterReferencePoint)
+    button.x = display.contentCenterX
+    button.y = SCREEN_BOTTOM - 160
+    screenGroup:insert(button)
+
+    local function onDemoModeTouch()
+        UserData:initDemoMode()
+        screenGroup.isLocked = false
+        Server.init()
+        slideView:goToNextImage()
+        AnalyticsManager.chosenMode(true)
+    end
+
+    local button = BtnTutorial:new(onDemoModeTouch, tutorialSheetImage, tutorialSheetInfo, {
+        bg = "tuto_bt_grey",
+        text = "MODO DE TESTE",
+        textX = 0,
+        textSize = 16,
+        topText = false,
         bottomText = false
     })
     button:setReferencePoint(display.CenterReferencePoint)
     button.x = display.contentCenterX
-    button.y = SCREEN_BOTTOM - 72
+    button.y = SCREEN_BOTTOM - 64
     screenGroup:insert(button)
+
     screenGroup.isVisible = false
 
     return screenGroup
@@ -402,8 +427,6 @@ function TutorialScreen:new()
     local slideScreens = require("scripts.widgets.view.slide_screens")
     slideView = slideScreens.new(screens, tutorialSheetImage, tutorialSheetInfo)
 
-    tutorialSheetInfo, tutorialSheetImage = nil, nil
-
     AnalyticsManager.enteredTutorialScreen()
 end
 
@@ -417,6 +440,7 @@ end
 function TutorialScreen:destroy()
     slideView:cleanUp()
     slideView = nil
+    tutorialSheetInfo, tutorialSheetImage = nil, nil
     TextureManager.disposeTutorialSheet()
 end
 

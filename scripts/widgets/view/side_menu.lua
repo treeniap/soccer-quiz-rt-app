@@ -188,7 +188,7 @@ local function createOptions()
                         "\nMeu nome: " ..             UserData.info.first_name .. " " .. (UserData.info.last_name or " ") ..
                         "\nTime escolhido: " ..       MatchManager:getTeamName(UserData.attributes.favorite_team_id) ..
                         "\nQuantidade de fichas: " .. UserData.inventory.coins ..
-                        "\nMeu ID no Facebook: " ..   UserData.info.facebook_profile.id
+                        "\nMeu ID no Facebook: " ..   UserData.info.facebook_profile.id or " "
             }
             native.showPopup("mail", options)
             AnalyticsManager.clickedUsefulLink("SUPORTE E SUGESTÕES")

@@ -157,7 +157,7 @@ function InGameScreen:onEventEnd(resultInfo)
             end)
         end
     end)
-    Server:getPlayerRanking(nil, checkScore)
+    --Server:getPlayerRanking(nil, checkScore)
 end
 
 function InGameScreen:onGameOver(finalResultInfo)
@@ -266,7 +266,7 @@ function InGameScreen:showUp(onComplete)
     end)
 
     topBar:updateMatchTeams(MatchManager:getTeamLogoImg(true, 1), MatchManager:getTeamLogoImg(false, 1))
-    Server:getPlayerRanking(nil, checkScore)
+    --Server:getPlayerRanking(nil, checkScore)
 end
 
 function InGameScreen:hide(onComplete)
@@ -303,7 +303,7 @@ function InGameScreen:new()
     questionsBar = QuestionsBar:new()
     inGameGroup:insert(questionsBar)
 
-    bottomRanking = BottomRanking:new(UserData:getUserPicture())
+    bottomRanking = BottomRanking:new()
 
     inGameGroup:insert(bottomRanking)
 

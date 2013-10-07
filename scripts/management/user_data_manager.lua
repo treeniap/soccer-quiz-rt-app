@@ -6,11 +6,13 @@
 UserData = {}
 
 function UserData:getUserPicture()
-    return getPictureFileName(self.info.facebook_profile.id)
+    return getPictureFileName(self.info.facebook_profile.id or "demo")
 end
 
 function UserData:setUserId(userId)
     self.info.user_id = userId
+    self.userId = userId
+    self:save()
     Server.pubnubSubscribe(self.info.user_id, require("scripts.screens.in_game_event").betResultListener)
 end
 
@@ -32,11 +34,16 @@ function UserData:setInventory(response)
     self.attributes = {}
     self.attributes.favorite_team_id = response.inventory.attributes.favorite_team_id
     self.attributes.push_notifications_enabled = response.inventory.attributes.push_notifications_enabled
+    if not self.attributes.favorite_team_id or self.attributes.favorite_team_id == "" or self.attributes.favorite_team_id == " " then
+        self.attributes.favorite_team_id = self.favoriteTeamId
+    end
 end
 
 function UserData:updateAttributes(pushNotificationEnabled, favoriteTeamId)
     if self.attributes then
         self.attributes.favorite_team_id = favoriteTeamId
+        self.favoriteTeamId = favoriteTeamId
+        self:save()
         self.attributes.push_notifications_enabled = pushNotificationEnabled
         Server:updateAttributes(self.attributes, self.info.user_id)
         return true
@@ -82,12 +89,30 @@ function UserData:updateFriends(friends_ids, onComplete)
     Server:getUsers(friends_ids, true, listener, onComplete)
 end
 
+function UserData:reset()
+    ScreenManager:hideCurrentScreen(function()
+        LoadingBall:newScreen()
+        Facebook:init()
+    end)
+end
+
 function UserData:init(params, friends_ids)
     self.info = params
-    local function checkUser()
-        Server:checkUser(self.info)
+
+    if self.demoModeOn and params.facebook_profile.id and self.userId ~= "empty" then
+        local function updateUser()
+            Server:updateUser(self.info, self.userId, function()
+                Server:checkUser(self.info)
+                UserData:shutOffDemoMode()
+            end)
+        end
+        self:updateFriends(friends_ids, updateUser)
+    else
+        local function checkUser()
+            Server:checkUser(self.info)
+        end
+        self:updateFriends(friends_ids, checkUser)
     end
-    self:updateFriends(friends_ids, checkUser)
 end
 
 function UserData:switchSound(isOn)
@@ -113,15 +138,7 @@ function UserData:checkRating()
                                     AnalyticsManager.rating(true)
                                     self.rating = 3
                                     self:save()
-                                    local url
-                                    if IS_ANDROID then
-                                        url = "market://details?id="
-                                    else
-                                        url = "itms-apps://ax.itunes.apple.com/WebObjects/MZStore.woa"
-                                        url = url .. "/wa/viewContentsUserReviews?"
-                                        url = url .. "type=Purple+Software&id="
-                                    end
-                                    url = url .. Params.rateId
+                                    local url = "https://itunes.apple.com/us/app/chute-premiado-create-stake/id670063656?mt=8"
 
                                     system.openURL(url)
                                 elseif 2 == i then
@@ -143,6 +160,9 @@ function UserData:checkTutorial()
     self.rating = 0
     self.lastNotificationDate = getCurrentDate()
     self.brightness = false
+    self.demoModeOn = false
+    self.userId = "empty"
+    self.favoriteTeamId = " "
     local path = system.pathForFile("user.txt", system.DocumentsDirectory)
     local file = io.open(path, "r")
     if file then
@@ -162,9 +182,16 @@ function UserData:checkTutorial()
                 self.lastNotificationDate = date(line:sub(22))
             elseif(line:sub(1, 11) == "brightness=") then
                 self.brightness = (tonumber(line:sub(12)) == 1)
+            elseif(line:sub(1, 11) == "demoModeOn=") then
+                self.demoModeOn = (tonumber(line:sub(12)) == 1)
+            elseif(line:sub(1, 7) == "userId=") then
+                self.userId = line:sub(8)
+            elseif(line:sub(1, 15) == "favoriteTeamId=") then
+                self.favoriteTeamId = line:sub(16)
             end
         end
         self:save()
+
         return true
     end
     AudioManager.setVolume(true)
@@ -186,8 +213,46 @@ function UserData:save()
     file:write("\nrating=" .. self.rating or 0)
     file:write("\nlastNotificationDate=" .. self.lastNotificationDate or getCurrentDate())
     file:write("\nbrightness=" .. (self.brightness and 1 or 0))
+    file:write("\ndemoModeOn=" .. (self.demoModeOn and 1 or 0))
+    file:write("\nuserId=" .. (self.userId or "empty"))
+    file:write("\nfavoriteTeamId=" .. (self.favoriteTeamId or " "))
 
     io.close(file)
+end
+
+---//////////////////////////---
+---//////// DEMO MODE ///////---
+---//////////////////////////---
+
+function UserData:initDemoMode()
+    self.demoModeOn = true
+    self:save()
+
+    local userInfo = {
+        first_name = "Sem",
+        last_name = "Cadastro",
+        facebook_profile = {}--[[{
+            id =  nil,
+            username = "",
+            access_token = "",
+            picture_url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif",
+            picture_2x_url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif",
+            picture_4x_url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif"
+        } ]]
+    }
+    Server:downloadFilesList({
+        {
+            url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif",
+            fileName = getPictureFileName("demo")
+        }
+    }, function()
+        UserData:init(userInfo, {})
+    end)
+end
+
+function UserData:shutOffDemoMode()
+    self.demoModeOn = false
+    self:save()
 end
 
 return UserData

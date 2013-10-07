@@ -98,21 +98,30 @@ local function createInviteFriends()
     inviteTxt:setTextColor(0)
 
     playerGroup.onRelease = function()
-        local status = MatchManager:getMatchTimeStatus()
-        if status == "AQUECIMENTO" then
-            status = "Vai começar "
+        if UserData.demoModeOn then
+            local function onComplete(event)
+                if "clicked" == event.action and 2 == event.index then
+                    UserData:reset()
+                end
+            end
+            native.showAlert("Ganhe prêmios!", "Cadastre-se no Facebook e dispute pelo prêmio semanal junto com seus amigos.", {"Mais tarde.", "Cadastrar."}, onComplete)
         else
-            status = "Começou "
+            local status = MatchManager:getMatchTimeStatus()
+            if status == "AQUECIMENTO" then
+                status = "Vai começar "
+            else
+                status = "Começou "
+            end
+            Facebook:invite(status .. MatchManager:getTeamName(true) .. " x " ..
+                    MatchManager:getTeamName(false) ..
+                    ", venha jogar comigo!")
         end
-        Facebook:invite(status .. MatchManager:getTeamName(true) .. " x " ..
-                MatchManager:getTeamName(false) ..
-                ", venha jogar comigo!")
     end
 
     return playerGroup
 end
 
-local function createPlayerOneView(playerPhoto, isInitialScreen)
+local function createPlayerOneView(isInitialScreen)
     local PHOTO_SIZE = 67
 
     local playerGroup = display.newGroup()
@@ -125,11 +134,24 @@ local function createPlayerOneView(playerPhoto, isInitialScreen)
     notch.x = -12
     notch.y = 9
 
-    if playerPhoto then
-        local noError, photo = pcall(TextureManager.newImageRect, playerPhoto, PHOTO_SIZE, PHOTO_SIZE, playerGroup, system.DocumentsDirectory)
-        if noError and photo then
-            photo.x = notch.x - 0.5
-            photo.y = notch.y - 0.5
+    local noError, photo = pcall(TextureManager.newImageRect, UserData:getUserPicture(), PHOTO_SIZE, PHOTO_SIZE, playerGroup, system.DocumentsDirectory)
+    if noError and photo then
+        photo.x = notch.x - 0.5
+        photo.y = notch.y - 0.5
+        if UserData.demoModeOn then
+            local rect = display.newRect(playerGroup, 0, 0, photo.width, 12)
+            rect.x = photo.x
+            rect.y = photo.y + photo.height*0.5 - 6
+            rect:setFillColor(16, 24, 192, 128)
+            local editTxt = display.newText(playerGroup, "EDITAR", 0, 0, "MyriadPro-BoldCond", 12)
+            editTxt.x = rect.x
+            editTxt.y = rect.y
+
+            photo:addEventListener("touch", function(event)
+                if event.phase == "ended" then
+                    require("scripts.screens.profile"):newPopUp()
+                end
+            end)
         end
     end
 
@@ -290,7 +312,7 @@ function BottomRanking:hide(onComplete)
     end
 end
 
-function BottomRanking:createView(playerPhoto, isInitialScreen)
+function BottomRanking:createView(isInitialScreen)
     self.bg = TextureManager.newImageRect("images/stretchable/stru_ranking_silver.png", CONTENT_WIDTH, 86, self)
     self.bg.x = SCREEN_LEFT - self.bg.width*0.5
     self.bg.y = 0
@@ -312,7 +334,7 @@ function BottomRanking:createView(playerPhoto, isInitialScreen)
         end
     end
 
-    self.leftBar = createPlayerOneView(playerPhoto, isInitialScreen)
+    self.leftBar = createPlayerOneView(isInitialScreen)
     self:insert(self.leftBar)
     self.leftBar.x = SCREEN_LEFT - self.leftBar.width*0.5
     self.leftBar.y = -7
@@ -390,13 +412,13 @@ function BottomRanking:updateRankingPositions(ranking)
     end
 end
 
-function BottomRanking:new(playerPhoto, isInitialScreen)
+function BottomRanking:new(isInitialScreen)
     local bottomRankingGroup = display.newGroup()
     for k, v in pairs(BottomRanking) do
         bottomRankingGroup[k] = v
     end
 
-    bottomRankingGroup:createView(playerPhoto, isInitialScreen)
+    bottomRankingGroup:createView(isInitialScreen)
     bottomRankingGroup:setReferencePoint(display.CenterReferencePoint)
     bottomRankingGroup.y = SCREEN_BOTTOM - bottomRankingGroup.height*0.5 + 1
 

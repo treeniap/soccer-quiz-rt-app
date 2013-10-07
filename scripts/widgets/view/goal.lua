@@ -144,7 +144,16 @@ local function createFacebookBtn(goalData)
 
     return PressRelease:new(BtnFacebook, function(self, event)
         self:hide()
-        Facebook:postMessage(createText(goalData))
+        if UserData.demoModeOn then
+            local function onComplete(event)
+                if "clicked" == event.action and 2 == event.index then
+                    UserData:reset()
+                end
+            end
+            native.showAlert("Ganhe prêmios!", "Cadastre-se no Facebook e dispute pelo prêmio semanal junto com seus amigos.", {"Mais tarde.", "Cadastrar."}, onComplete)
+        else
+            Facebook:postMessage(createText(goalData))
+        end
     end)
 end
 

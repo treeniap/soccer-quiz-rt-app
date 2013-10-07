@@ -385,9 +385,29 @@ end
 ---/////////////////////////// USER ///////////////////////////---
 ---============================================================---
 function Server:checkUser(userInfo)
+    if UserData.demoModeOn then
+        if UserData.userId == "empty" then
+            Server:createUser(userInfo)
+        else
+            LoadingBall:newStage() --- 4
+            UserData:setUserId(UserData.userId)
+            Server:getUserInventory(userInfo, ScreenManager.init, TRY_AGAIN_ON_NO_RESPONSE)
+        end
+        return
+    end
+    local url
+    if UserData.userId then
+        url = USERS_URL .. "users/" .. UserData.userId
+    elseif userInfo.facebook_profile.id then
+        url = USERS_URL .. "facebook_profiles/" .. userInfo.facebook_profile.id
+    else
+        Server:createUser(userInfo)
+        return
+    end
+
     networkRequest{
         name = "checkUser",
-        url = USERS_URL .. "facebook_profiles/" .. userInfo.facebook_profile.id,
+        url = url,
         method = "GET",
         listener = function(response, status)
             LoadingBall:newStage() --- 4
@@ -431,7 +451,7 @@ function Server:createUser(userInfo)
     }
 end
 
-function Server:updateUser(userInfo, userId)
+function Server:updateUser(userInfo, userId, listener)
     local payload = {}
     payload.user = {
         first_name = userInfo.first_name,
@@ -449,8 +469,7 @@ function Server:updateUser(userInfo, userId)
         name = "updateUser",
         url = USERS_URL .. "users/" .. userId,
         method = "PUT",
-        listener = function(response, status)
-        end,
+        listener = listener or function(response, status) end,
         retries_number = RETRIES_NUMBER,
         post_params = encode(payload)
     }
@@ -759,6 +778,21 @@ function Server:getMessages(listener)
 end
 
 ---==============================================================---
+---/////////////////////////// VIDEOS ///////////////////////////---
+---==============================================================---
+function Server:getVideos(listener)
+    networkRequest{
+        name = "getVideos",
+        url = "http://api.videos.movile.com/api/application/999/category/249/tag/368?locale=pt_BR",
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = listener,
+        on_no_response = listener,
+    }
+end
+
+---==============================================================---
 ---/////////////////////////// PUBNUB ///////////////////////////---
 ---==============================================================---
 function Server.pubnubSubscribe(channel, listener)
@@ -829,6 +863,7 @@ function Server.init()
 
     AssetsManager:createFolder("logos")
     AssetsManager:createFolder("pictures")
+    --Server:getVideos(function(response) printTable(response) end)
 end
 
 return Server

@@ -12,6 +12,7 @@ require "util.utf8"
 
 ScreenManager = {}
 
+local mainBackground
 local currentScreen
 local previousScreen
 local answer
@@ -43,6 +44,18 @@ function ScreenManager:show(screenName)
         previousScreen = currentScreen
     else
         showScreen(screenName)
+    end
+    lockScreen()
+end
+
+function ScreenManager:hideCurrentScreen(listener)
+    if currentScreen then
+        currentScreen:hide(function()
+            currentScreen = nil
+            if listener then
+                listener()
+            end
+        end)
     end
     lockScreen()
 end
@@ -192,10 +205,12 @@ function ScreenManager.init()
         LoadingBall:newStage() --- 5
         MatchManager:init()
         TextureManager.loadMainSheet()
-        local bg = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
-        bg.x = display.contentCenterX
-        bg.y = display.contentCenterY
-        display.getCurrentStage():insert(1, bg)
+        if not mainBackground then
+            mainBackground = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
+            mainBackground.x = display.contentCenterX
+            mainBackground.y = display.contentCenterY
+            display.getCurrentStage():insert(1, mainBackground)
+        end
 
         ScreenManager:show("initial")
         LoadingBall:dismissScreen()
@@ -203,7 +218,7 @@ function ScreenManager.init()
     tutorial = nil
     -- White Status Bar for iOS7
     local statusBarBg = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, display.topStatusBarContentHeight)
-    statusBarBg:setFillColor(213)
+    statusBarBg:setFillColor(0)
     display.getCurrentStage():insert(3, statusBarBg)
 end
 

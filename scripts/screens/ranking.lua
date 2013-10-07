@@ -328,15 +328,19 @@ local function getPlayersInTheRanking(button, ranking)
         --printTable(response)
         for i, user in ipairs(response.users) do
             local url
-            if user.facebook_profile["picture_" .. imageSize .. "url"] then
-                url = user.facebook_profile["picture_" .. imageSize .. "url"]
+            if not user.facebook_profile then
+                url = "https://fbstatic-a.akamaihd.net/rsrc.php/v2/yo/r/UlIqmHJn-SK.gif"
             else
-                if user.facebook_profile["picture_url"] then
-                    url = user.facebook_profile["picture_url"]
-                elseif user.facebook_profile["picture_2x_url"] then
-                    url = user.facebook_profile["picture_2x_url"]
+                if user.facebook_profile["picture_" .. imageSize .. "url"] then
+                    url = user.facebook_profile["picture_" .. imageSize .. "url"]
                 else
-                    url = user.facebook_profile["picture_4x_url"]
+                    if user.facebook_profile["picture_url"] then
+                        url = user.facebook_profile["picture_url"]
+                    elseif user.facebook_profile["picture_2x_url"] then
+                        url = user.facebook_profile["picture_2x_url"]
+                    else
+                        url = user.facebook_profile["picture_4x_url"]
+                    end
                 end
             end
             if url then

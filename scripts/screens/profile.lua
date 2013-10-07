@@ -264,4 +264,191 @@ function ProfileScreen:new()
     return profileGroup
 end
 
+
+local function createCloseBtn(x, y, listener)
+    local BtnClose = {}
+    function BtnClose:createView()
+        self.default = TextureManager.newImageRect("images/goal/bt_fechar.png", 75, 41, self)
+        self.default.x = 0
+        self.default.y = 0
+        self.over = TextureManager.newImageRect("images/goal/bt_fechar.png", 75, 41, self)
+        self.over.x = 0
+        self.over.y = 0
+        self.over.blendMode = "multiply"
+        self.over.isVisible = false
+
+        self.x = x
+        self.y = y
+        self.isVisible = true
+    end
+
+    return PressRelease:new(BtnClose, listener)
+end
+
+local function createTextField(panel, x, y, text)
+    local textField
+
+    local function textListener(target, event)
+
+        if event.phase == "began" then
+            target.text = ""
+            if panel.y >= display.contentCenterY then
+                panel.y = panel.y - 60
+                panel.firstNameTextField.y = panel.firstNameTextField.y - 60
+                panel.lastNameTextField.y = panel.lastNameTextField.y - 60
+            end
+        elseif event.phase == "ended" then
+            -- textField/Box loses focus
+            if target.text == "" then
+                target.text = text
+            end
+        elseif event.phase == "submitted" then
+            if target == panel.firstNameTextField then
+                native.setKeyboardFocus(panel.lastNameTextField)
+            elseif target == panel.lastNameTextField then
+                if panel.firstNameTextField.text ~= "NOME" and panel.firstNameTextField.text ~= "" and panel.firstNameTextField.text ~= " " then
+                    panel.demoLogin(panel.firstNameTextField.text, panel.lastNameTextField.text)
+                end
+            end
+        end
+    end
+
+    -- Create our Text Field
+    textField = native.newTextField( 0, 0, 196, 24 )
+    --textFieldGroup:insert(textField)
+    textField.userInput = textListener
+    textField:addEventListener("userInput", textField)
+    textField.text = text
+    --local defaultTxt = display.newText(textFieldGroup, text, x + 3, y + 4, "MyriadPro-BoldCond", 18)
+    --defaultTxt:setTextColor(200)
+    textField.defaultTxt = defaultTxt
+    textField.font = native.newFont("MyriadPro-BoldCond", 18)
+    textField:setTextColor(200, 200, 200)
+    textField.hasBackground = true
+    --textFieldGroup:insert(textField)
+    textField:setReferencePoint(display.TopLeftReferencePoint)
+    textField.x = x
+    textField.y = y
+
+    return textField
+end
+
+local function createPanel()
+    local panel = display.newGroup()
+
+    local panelBg = display.newRect(panel, SCREEN_LEFT, SCREEN_TOP, 298, 300)
+    panelBg.x = 0
+    panelBg.y = -50
+    panelBg:setFillColor(graphics.newGradient({ 200, 200, 200 }, { 255, 255, 255 }, "down"))
+
+    local desc = display.newText("ESTE JOGO CONTÉM PRÊMIOS REAIS. VOCÊ PRECISA SE CADASTRAR PELO FACEBOOK PARA CONCORRER.", 0, 0, 290, 0, "MyriadPro-BoldCond", 16)
+    desc.x = 0
+    desc.y = -165
+    desc:setTextColor(0)
+    panel:insert(desc)
+
+    panel:insert(TextureManager.newHorizontalLine(0, desc.y + 30, CONTENT_WIDTH))
+
+    local fbDesc = display.newText("PREENCHIMENTO PELO FACEBOOK", 0, 0, 290, 0, "MyriadPro-BoldCond", 14)
+    fbDesc.x = 0
+    fbDesc.y = desc.y + 50
+    fbDesc:setTextColor(64)
+    panel:insert(fbDesc)
+
+    local button = BtnProfile:new(function()
+        panel.facebookLogin()
+    end, {
+        bg = "stru_button_import",
+        text = "CADASTRO AUTOMÁTICO"
+    })
+    button:setReferencePoint(display.CenterReferencePoint)
+    button.x = 0
+    button.y = fbDesc.y + 55
+    panel:insert(button)
+
+    panel:insert(TextureManager.newHorizontalLine(-CONTENT_WIDTH*0.225, button.y + 55, CONTENT_WIDTH*0.4))
+    panel:insert(TextureManager.newHorizontalLine(CONTENT_WIDTH*0.225, button.y + 55, CONTENT_WIDTH*0.4))
+    local ouTxt = display.newText("OU", 0, 0, "MyriadPro-BoldCond", 16)
+    ouTxt.x = 0
+    ouTxt.y = button.y + 55
+    ouTxt:setTextColor(135)
+    panel:insert(ouTxt)
+
+    local otDesc = display.newText("PREENCHIMENTO MANUAL", 0, 0, 290, 0, "MyriadPro-BoldCond", 14)
+    otDesc.x = 0
+    otDesc.y = ouTxt.y + 20
+    otDesc:setTextColor(64)
+    panel:insert(otDesc)
+
+    panel.x = display.contentCenterX
+    panel.y = display.contentCenterY
+
+    local salvarperfilBtn = BtnProfile:new(function()
+        if panel.firstNameTextField.text ~= "NOME" and panel.firstNameTextField.text ~= "" and panel.firstNameTextField.text ~= " " then
+            panel.demoLogin(panel.firstNameTextField.text, panel.lastNameTextField.text)
+        end
+    end, {
+        bg = "stru_button_save",
+    })
+    salvarperfilBtn:setReferencePoint(display.CenterRightReferencePoint)
+    salvarperfilBtn.x = 140
+    salvarperfilBtn.y = otDesc.y + 37
+    panel:insert(salvarperfilBtn)
+    panel.salvarperfilBtn = salvarperfilBtn
+
+    timer.performWithDelay(300, function()
+        panel.firstNameTextField = createTextField(panel, display.contentCenterX - 140, display.contentCenterY + otDesc.y + 10, "NOME")
+        panel.lastNameTextField = createTextField(panel, display.contentCenterX - 140, display.contentCenterY + otDesc.y + 39, "SOBRENOME")
+    end)
+
+    return panel
+end
+
+function ProfileScreen:newPopUp()
+    local popUpGroup = display.newGroup()
+
+    local bg = display.newRect(popUpGroup, SCREEN_LEFT, SCREEN_TOP, CONTENT_WIDTH, CONTENT_HEIGHT)
+    bg:setFillColor(0, 192)
+    local function bgTouch(event)
+        return true
+    end
+    bg.touch = bgTouch
+    bg:addEventListener("touch", bg)
+
+    local panel
+    local closeBtn
+
+    local function close()
+        bg:removeEventListener("touch", bg)
+        bg:removeSelf()
+        panel.firstNameTextField:removeSelf()
+        panel.lastNameTextField:removeSelf()
+        panel:removeSelf()
+        closeBtn:removeSelf()
+        popUpGroup:removeSelf()
+    end
+
+    panel = createPanel()
+    panel.facebookLogin = function()
+        close()
+        UserData:reset()
+    end
+    panel.demoLogin = function(firstName, lastName)
+        close()
+        local userInfo = {
+            first_name = firstName,
+            last_name = lastName,
+            facebook_profile = {}
+        }
+        Server:updateUser(userInfo, UserData.userId)
+    end
+    popUpGroup:insert(panel)
+    closeBtn = createCloseBtn(panel.x + panel.width*0.5 - 22, panel.y - panel.height*0.5 - 50, close)
+    popUpGroup:insert(closeBtn)
+
+    transition.from(bg, {time = 200, alpha = 0})
+    transition.from(panel, {time = 300, y = panel.y + 150, xScale = 0.1, yScale = 0.1})
+    transition.from(closeBtn, {delay = 300, time = 300, xScale = 0.1, yScale = 0.1})
+end
+
 return ProfileScreen

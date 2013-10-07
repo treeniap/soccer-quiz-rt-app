@@ -6,52 +6,51 @@
 BtnProfile = {}
 
 function BtnProfile:createView()
-    self.default = TextureManager.newSpriteRect("stru_button_profile", 60, 60, self)
-    self.default.x = 0
-    self.default.y = 0
-    self.over = TextureManager.newSpriteRect("stru_button_profile", 60, 60, self)
-    self.over.x = 1
-    self.over.y = 1
-    --self.over.xScale = 0.99
-    --self.over.yScale = 0.99
-    self.over:setFillColor(255, 255)
-    self.over.blendMode = "screen"
-    self.over.isVisible = false
-
-    self.label1 = display.newEmbossedText(self, " ", 0, 0, 49, 21, "MyriadPro-BoldCond", 18)
-    self.label1:setTextColor(255)
-    self.label2 = display.newEmbossedText(self, " ", 0, 0, 49, 21, "MyriadPro-BoldCond", 18)
-    self.label2:setTextColor(255)
-    local color =
-    {
-        highlight =
-        {
-            r =255, g = 171, b = 173, a = 128
-        },
-        shadow =
-        {
-            r = 111, g = 30, b = 33, a = 128
-        }
-    }
-    self.label1:setEmbossColor(color)
-    self.label2:setEmbossColor(color)
 end
 
-function BtnProfile:setLabel(label1, label2)
-    self.label1:setText(label1)
-    self.label1:setReferencePoint(display.BottomCenterReferencePoint)
-    self.label1.x = 0
-    self.label1.y = 4
-    self.label2:setText(label2)
-    self.label2:setReferencePoint(display.TopCenterReferencePoint)
-    self.label2.x = 2
-    self.label2.y = -2
+local function createView(button, params)
+    button.default = TextureManager.newImage(params.bg, button)
+    button.default.x = 0
+    button.default.y = 0
+    button.over = TextureManager.newImage(params.bg, button)
+    button.over.x = 0
+    button.over.y = 1
+    button.over.xScale = 0.99
+    button.over.yScale = 0.99
+    button.over:setFillColor(255, 255)
+    button.over.blendMode = "screen"
+    button.over.isVisible = false
+
+    if params.text then
+        local text = display.newEmbossedText(button, params.text, 0, 0, "MyriadPro-BoldCond", params.textSize or 22)
+        text:setEmbossColor({
+            highlight = {r =128, g = 128, b = 128, a = 128},
+            shadow = {r = 32, g = 32, b = 32, a = 128}
+        })
+        text:setTextColor(255)
+        text.x = params.textX or 30
+        text.y = 0
+    end
+
+    button.off = TextureManager.newImage(params.bg, button)
+    button.off:setFillColor(128, 192)
+    button.off.blendMode = "multiply"
+    button.off.x = 0
+    button.off.y = 0
+    button.off.isVisible = false
+
+    return button
 end
 
-function BtnProfile:new(label1, label2, onRelease)
+function BtnProfile:lock(isLock)
+    self.off.isVisible = isLock
+    self.isLocked = isLock
+end
+
+function BtnProfile:new(onRelease, params)
     local profileBtnGroup = PressRelease:new(BtnProfile, onRelease)
-    profileBtnGroup:setLabel(label1, label2)
-    return profileBtnGroup
+
+    return createView(profileBtnGroup, params)
 end
 
 return BtnProfile

@@ -110,7 +110,7 @@ local function listener(event)
             if "clicked" == event.action then
                 if requestType == REQUEST_TYPE_LOGIN then
                     if not loginListener then
-                        facebook.login(appId, listener, {"publish_stream", "publish_actions"})
+                        facebook.login(appId, listener)
                     end
                 else
                     request(requestType)
@@ -184,10 +184,10 @@ local function listener(event)
 end
 
 function Facebook:postFacebookScore(score)
-    local params = {}
-    params.body = "&score="..tostring(score).."&access_token="..access_token
-    network.request("https://graph.facebook.com/"..UserData.info.facebook_profile.id.."/scores", "POST", function(event)
-    end, params)
+    --local params = {}
+    --params.body = "&score="..tostring(score).."&access_token="..access_token
+    --network.request("https://graph.facebook.com/"..UserData.info.facebook_profile.id.."/scores", "POST", function(event)
+    --end, params)
 end
 
 function Facebook:invite(message)
@@ -254,14 +254,11 @@ end
 
 function Facebook:init(_listener)
     if IS_SIMULATOR then
-        if _listener then
-            _listener()
-        end
         userInfo = {
             first_name = "John",
             last_name = "Smithwitz",
             facebook_profile = {
-                id =  "100006337952512",
+                id =  "100006769958286",
                 username = "",
                 access_token = "",
                 picture_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c5.5.65.65/s50x50/1006257_1375577609330158_216697327_t.jpg",
@@ -285,6 +282,9 @@ function Facebook:init(_listener)
             friends_ids[5] = "100006460237951"
             UserData:init(userInfo, friends_ids)
         end)
+        if _listener then
+            _listener()
+        end
         return
     end
     loginListener = _listener
@@ -342,7 +342,7 @@ function Facebook:init(_listener)
     }
     stepsCount = 1
     requestType = REQUEST_TYPE_LOGIN
-    facebook.login(appId, listener, {"publish_stream", "publish_actions"})
+    facebook.login(appId, listener)
 end
 
 return Facebook

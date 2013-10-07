@@ -58,7 +58,12 @@ local function load()
     if tutorialCompleted then
         LoadingBall:newStage() --- 2
         Server.init()
-        Facebook:init()
+        if UserData.demoModeOn then
+            UserData.showFacebookLogin = true
+            UserData:initDemoMode(" ", " ")
+        else
+            Facebook:init()
+        end
     else
         ScreenManager:startTutorial()
     end

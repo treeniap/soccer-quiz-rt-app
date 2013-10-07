@@ -38,6 +38,7 @@ function AnalyticsManager.enteredHomeScreen()
         ChosenTeam     = MatchManager:getTeamName(UserData.attributes.favorite_team_id),
         CoinsInStash   = UserData.inventory.coins,
         SessionCounter = UserData.session,
+        DemoModeOn     = UserData.demoModeOn and "true" or "false",
         PlayNowNumber  = numberOfPlayNow()
     })
 end
@@ -49,9 +50,13 @@ function AnalyticsManager.enteredRankingScreen()
     if not checkMatchManager(AnalyticsManager.enteredRankingScreen) then
         return
     end
+    local numFriends = -1
+    if UserData.info and UserData.info.friendsIds then
+        numFriends = #UserData.info.friendsIds
+    end
     analytics.logEvent("Screen:Ranking", {
         ChosenTeam      = MatchManager:getTeamName(UserData.attributes.favorite_team_id),
-        NumberOfFriends = #UserData.info.friendsIds,
+        NumberOfFriends = numFriends,
         SessionCounter  = UserData.session
     })
 end
@@ -80,9 +85,13 @@ function AnalyticsManager.enteredInGameScreen()
     else
         matchEnteredCounter[enteredMatchId] = 1
     end
+    local numFriends = -1
+    if UserData.info and UserData.info.friendsIds then
+        numFriends = #UserData.info.friendsIds
+    end
     analytics.logEvent("Screen:InGame", {
         SessionCounter  = UserData.session,
-        NumberOfFriends = #UserData.info.friendsIds,
+        NumberOfFriends = numFriends,
         SameGameCounter = matchEnteredCounter[enteredMatchId],
         From = fromScreen
     })
@@ -93,6 +102,10 @@ end
 --/////////////////////////////
 function AnalyticsManager.enteredTutorialScreen()
     analytics.logEvent("Screen:Tutorial")
+end
+
+function AnalyticsManager.chosenMode(demoMode)
+    analytics.logEvent("TutorialChosenMode", {Mode = demoMode and "Demo" or "Logged"})
 end
 
 ----/////////////////////////////

@@ -85,7 +85,7 @@ local function createMatchTimer()
     local timerGroup = display.newGroup()
     local matchMinutes = display.newText(timerGroup, " ", 0, 0, "MyriadPro-BoldCond", 64)
     matchMinutes.x = getFontLettersSize("'")*0.5
-    matchMinutes.y = 0
+    matchMinutes.y = -5
     matchMinutes:setTextColor(0)
     --[[
     local min = display.newText(timerGroup, "'", 0, 0, "MyriadPro-BoldCond", 80)

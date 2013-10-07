@@ -580,7 +580,7 @@ function MatchManager:scheduleNextFavoriteTeamMatch()
         end
         UserData:save()
     else
-        timer.performWithDelay(1000, function() MatchManager:getNextFavoriteTeamMatch() end)
+        timer.performWithDelay(1000, function() MatchManager:scheduleNextFavoriteTeamMatch() end)
     end
 end
 

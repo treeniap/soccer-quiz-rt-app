@@ -107,8 +107,10 @@ function LoadingBall:newStage()
 end
 
 function LoadingBall:dismissScreen()
-    screenGroup:kickBall()
-    screenGroup:hideBg()
+    if screenGroup then
+        screenGroup:kickBall()
+        screenGroup:hideBg()
+    end
 end
 
 function LoadingBall:createBall(x, y)

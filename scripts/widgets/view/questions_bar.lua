@@ -150,15 +150,25 @@ function QuestionsBar:createView()
     --chronometer:addEventListener("touch", dragAndDrop)
 
     facebookBtn = BtnFacebook:new(function(button, event)
-        if not button.hasPosted and not MatchManager.finalResultInfo then
-            Facebook:post()
-            button.hasPosted = true
-            timer.performWithDelay(2000, function() button.hasPosted = false end)
-        elseif not button.hasPosted and MatchManager.finalResultInfo and MatchManager.finalResultInfo.matchPoints ~= " " then
-            Facebook:postMessage("Meus palpites no jogo " .. MatchManager:getTeamName(true) .. " x " ..
-                    MatchManager:getTeamName(false) .. " valeram " .. MatchManager.finalResultInfo.matchPoints ..
-                    " pontos. " .. (MatchResultPostTxt or " "))
-            button.hasPosted = true
+
+        if UserData.demoModeOn then
+            local function onComplete(event)
+                if "clicked" == event.action and 2 == event.index then
+                    UserData:reset()
+                end
+            end
+            native.showAlert("Ganhe prêmios!", "Cadastre-se no Facebook e dispute pelo prêmio semanal junto com seus amigos.", {"Mais tarde.", "Cadastrar."}, onComplete)
+        else
+            if not button.hasPosted and not MatchManager.finalResultInfo then
+                Facebook:post()
+                button.hasPosted = true
+                timer.performWithDelay(2000, function() button.hasPosted = false end)
+            elseif not button.hasPosted and MatchManager.finalResultInfo and MatchManager.finalResultInfo.matchPoints ~= " " then
+                Facebook:postMessage("Meus palpites no jogo " .. MatchManager:getTeamName(true) .. " x " ..
+                        MatchManager:getTeamName(false) .. " valeram " .. MatchManager.finalResultInfo.matchPoints ..
+                        " pontos. " .. (MatchResultPostTxt or " "))
+                button.hasPosted = true
+            end
         end
         return true
     end)

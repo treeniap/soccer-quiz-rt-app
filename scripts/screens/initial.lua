@@ -421,7 +421,7 @@ local function createMatchesFoil(onComplete)
         playBtn:showUp(onComplete)
         rankingBtn:showUp()
         tablesBtn:showUp()
-        videosBtn:showUp()
+        --videosBtn:showUp()
     end)
     return matchesFoil
 end
@@ -431,10 +431,14 @@ function InitialScreen:showUp(onComplete)
     bottomRanking:showUp(function()
         topBar:showUp()
         logo:showUp()
-        initialScreenGroup:insert(6, createMatchesFoil(function()
+        initialScreenGroup:insert(5, createMatchesFoil(function()
             isUpdatingMatchesFoil = false
             if onComplete then
                 onComplete()
+            end
+            if UserData.showFacebookLogin then
+                UserData.showFacebookLogin = false
+                require("scripts.widgets.view.login_pop_up"):new()
             end
         end))
     end)
@@ -512,30 +516,45 @@ function InitialScreen:new()
 
     createLogo()
 
-    videosBtn = BtnHomeScreen:new(display.contentCenterY - 30, "VÍDEOS", true, function()
-    end)
-    initialScreenGroup:insert(videosBtn)
+    --videosBtn = BtnHomeScreen:new(display.contentCenterY - 30, "VÍDEOS", true, function()
+    --end)
+    --initialScreenGroup:insert(videosBtn)
 
-    tablesBtn = BtnHomeScreen:new(display.contentCenterY + 17, "CLASSIFICAÇÃO", false, function()
+    tablesBtn = BtnHomeScreen:new(display.contentCenterY, "CLASSIFICAÇÃO", false, function()
         ScreenManager:show("tables")
         AudioManager.playAudio("hideInitialScreen")
     end)
     initialScreenGroup:insert(tablesBtn)
 
-    playBtn = BtnHomeScreen:new(display.contentCenterY + 64, "PARTIDAS", false, function()
+    playBtn = BtnHomeScreen:new(display.contentCenterY + 47, "PARTIDAS", false, function()
         MatchManager:resquestMatches()
         ScreenManager:show("select_match")
         AudioManager.playAudio("hideInitialScreen")
     end)
     initialScreenGroup:insert(playBtn)
 
-    rankingBtn = BtnHomeScreen:new(display.contentCenterY + 111, "RANKING", false, function()
-        ScreenManager:show("ranking")
-        AudioManager.playAudio("hideInitialScreen")
+    rankingBtn = BtnHomeScreen:new(display.contentCenterY + 94, "RANKING", false, function()
+        if UserData.demoModeOn then
+            local function onComplete(event)
+                if "clicked" == event.action then
+                    local i = event.index
+                    if 1 == i then
+                        ScreenManager:show("ranking")
+                        AudioManager.playAudio("hideInitialScreen")
+                    elseif 2 == i then
+                        UserData:reset()
+                    end
+                end
+            end
+            native.showAlert("Ganhe prêmios!", "Cadastre-se no Facebook e dispute pelo prêmio semanal junto com seus amigos.", {"Mais tarde.", "Cadastrar."}, onComplete)
+        else
+            ScreenManager:show("ranking")
+            AudioManager.playAudio("hideInitialScreen")
+        end
     end)
     initialScreenGroup:insert(rankingBtn)
 
-    bottomRanking = BottomRanking:new(UserData:getUserPicture(), true)
+    bottomRanking = BottomRanking:new(true)
     initialScreenGroup:insert(bottomRanking)
 
     topBar = TopBar:new(true)
@@ -575,7 +594,7 @@ function InitialScreen:hide(onComplete)
     end)
     rankingBtn:hide()
     tablesBtn:hide()
-    videosBtn:hide()
+    --videosBtn:hide()
 end
 
 function InitialScreen:destroy()
@@ -587,7 +606,7 @@ function InitialScreen:destroy()
     playBtn:removeSelf()
     rankingBtn:removeSelf()
     tablesBtn:removeSelf()
-    videosBtn:removeSelf()
+    --videosBtn:removeSelf()
     if matchesGroup and matchesGroup.removeSelf then
         matchesGroup:removeSelf()
     end
@@ -603,7 +622,7 @@ function InitialScreen:destroy()
     playBtn = nil
     rankingBtn = nil
     tablesBtn = nil
-    videosBtn = nil
+    --videosBtn = nil
 end
 
 return InitialScreen

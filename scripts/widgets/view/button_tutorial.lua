@@ -32,7 +32,7 @@ local function createView(button, tutorialSheetImage, tutorialSheetInfo, params)
         topText.y = -button.default.height*0.35
     end
     if params.bottomText then
-        local bottomText = display.newEmbossedText(button, "Não publicaremos nada sem a sua autorização.", 0, 0, "MyriadPro-BoldCond", 12)
+        local bottomText = display.newEmbossedText(button, "Não publicaremos NADA no seu mural sem autorização!", 0, 0, "MyriadPro-BoldCond", 14)
         bottomText:setEmbossColor({
             highlight = {r =0, g = 0, b = 0, a = 255},
             shadow = {r = 0, g = 0, b = 0, a = 255}
@@ -42,13 +42,13 @@ local function createView(button, tutorialSheetImage, tutorialSheetInfo, params)
         bottomText.y = button.default.height*0.3
     end
     if params.text then
-        local text = display.newEmbossedText(button, params.text, 0, 0, "MyriadPro-BoldCond", 22)
+        local text = display.newEmbossedText(button, params.text, 0, 0, "MyriadPro-BoldCond", params.textSize or 22)
         text:setEmbossColor({
             highlight = {r =128, g = 128, b = 128, a = 128},
             shadow = {r = 32, g = 32, b = 32, a = 128}
         })
         text:setTextColor(255)
-        text.x = 30
+        text.x = params.textX or 30
         text.y = 0
     end
     if params.icon then
