@@ -14,7 +14,8 @@ local store = require("store")
 --       DEFINING PROPERTIES TO BE USED ALONG THE GAME         --
 -----------------------------------------------------------------
 local productsIDs = {
-    "com.ffgfriends.chutepremiado.pacotedemoedas"
+    "com.ffgfriends.chutepremiado.pacotedemoedas",
+    "com.ffgfriends.chutepremiado.semana"
 }
 local validProducts, invalidProducts = {}, {}
 
@@ -48,27 +49,78 @@ local function transactionCallback(event)
         log("Transaction successful!")
         log("productIdentifier", transaction.productIdentifier)
         --log("receipt", transaction.receipt)
+        --log("---------------------------")
+        --log("---------------------------")
+        --log("receipt", Json.Decode(transaction.receipt))
+        --log("---------------------------")
+        --log("---------------------------")
+        --log("originalReceipt", transaction.originalReceipt)
+        --log("---------------------------")
+        --log("---------------------------")
+        --log("originalReceipt", tostring(transaction.originalReceipt))
         log("transactionIdentifier", transaction.identifier)
         log("date", transaction.date)
 
-        local mime = require ( "mime" )
-        local encoded = mime.b64(transaction.receipt)
-        --log(encoded)
-        Server:onPurchase(transaction.productIdentifier, encoded, function(response, status)
-            if status == 201 then
-                -- The following must be called after transaction is complete.
-                -- If your In-app product needs to download, do not call the following
-                -- function until AFTER the download is complete:
-                store.finishTransaction(transaction)
-                UserData:setInventory(response)
-                ScreenManager:updateTotalCoin()
-            end
+        if string.find(transaction.productIdentifier, "semana") then
+            local receipt = string.fromhex(clearSpace(transaction.receipt))
+            require("base64")
+            local encodedReceipt = base64.encode(receipt)
+            Server:onSubscription(encodedReceipt, function(response, status)
+                if status == 200 then
+                    -- The following must be called after transaction is complete.
+                    -- If your In-app product needs to download, do not call the following
+                    -- function until AFTER the download is complete:
+                    store.finishTransaction(transaction)
+                    UserData:setInventory(response)
+                    ScreenManager:updateTotalCoin()
+                elseif status >= 500 then
+                    native.showAlert(
+                        "Comunicação não estabelecida.",
+                        "Encontramos uma falha de comunicação com o serviço da loja. Tente novamente.",
+                        { "Ok" },
+                        function() end)
+                end
             --printTable(response)
-        end)
+            end)
+        else
+            local receipt = string.fromhex(clearSpace(transaction.receipt))
+            local mime = require ( "mime" )
+            local encodedReceipt = mime.b64(receipt)
+            Server:onPurchase(transaction.productIdentifier, encodedReceipt, function(response, status)
+                if status == 201 then
+                    -- The following must be called after transaction is complete.
+                    -- If your In-app product needs to download, do not call the following
+                    -- function until AFTER the download is complete:
+                    store.finishTransaction(transaction)
+                    UserData:setInventory(response)
+                    ScreenManager:updateTotalCoin()
+                end
+            --printTable(response)
+            end)
+        end
+
         isBuying = false
 
     elseif  transaction.state == "restored" then
         -- You'll never reach this transaction state on Android.
+        if string.find(transaction.productIdentifier, "semana") then
+            local receipt = string.fromhex(clearSpace(transaction.receipt))
+            require("base64")
+            local encodedReceipt = base64.encode(receipt)
+            Server:onSubscription(encodedReceipt, function(response, status)
+                if status == 200 then
+                    UserData:setInventory(response)
+                    ScreenManager:updateTotalCoin()
+                elseif status >= 500 then
+                    native.showAlert(
+                        "Comunicação não estabelecida.",
+                        "Encontramos uma falha de comunicação com o serviço da loja. Tente novamente.",
+                        { "Ok" },
+                        function() end)
+                end
+            --printTable(response)
+            end)
+        end
     elseif  transaction.state == "refunded" then
         -- Android-only; user refunded their purchase
         local productId = transaction.productIdentifier
@@ -146,8 +198,14 @@ function StoreManager.buyThis(inappPurchaseId, listener)
     if not isStoreInitialized then
         StoreManager.initStore()
     end
-
     store.purchase({inappPurchaseId})
+end
+
+function StoreManager.restore()
+    if not isStoreInitialized then
+        StoreManager.initStore()
+    end
+    store.restore()
 end
 
 return StoreManager

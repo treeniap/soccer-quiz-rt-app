@@ -212,7 +212,8 @@ local function createTwitterBtn(goalData)
                 AnalyticsManager.postTwitter("Goal")
             end
         end
-        twitter = require("scripts.network.GGTwitter"):new("kaO6n7jMhgyNzx9lXhLg", "OY0PBfVKizWKfUutKjwh1gt3W99YOmlqbYtgqzg81I", listener)
+        twitter = TwitterObject
+        twitter.listener = listener
         if twitter:isAuthorised() then
             post()
         else

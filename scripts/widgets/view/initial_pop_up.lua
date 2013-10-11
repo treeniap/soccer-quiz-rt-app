@@ -3,7 +3,7 @@
 == Date: 02/10/13
 == Time: 14:34
 ==============]]--
-LoginPopUp = {}
+InitialPopUp = {}
 
 local function createCloseBtn(x, y, listener)
     local BtnClose = {}
@@ -25,7 +25,7 @@ local function createCloseBtn(x, y, listener)
     return PressRelease:new(BtnClose, listener)
 end
 
-function LoginPopUp:new()
+function InitialPopUp:new(imageName, listener)
     local popUpGroup = display.newGroup()
 
     local bg = display.newRect(popUpGroup, SCREEN_LEFT, SCREEN_TOP, CONTENT_WIDTH, CONTENT_HEIGHT)
@@ -36,7 +36,7 @@ function LoginPopUp:new()
     bg.touch = bgTouch
     bg:addEventListener("touch", bg)
 
-    local panel = TextureManager.newImageRect("images/pop_up.png", 256, 318, popUpGroup)
+    local panel = TextureManager.newImageRect(imageName, 300, 372, popUpGroup)
     panel.x = display.contentCenterX
     panel.y = display.contentCenterY
     local closeBtn
@@ -48,15 +48,15 @@ function LoginPopUp:new()
         closeBtn:removeSelf()
         popUpGroup:removeSelf()
     end
-    local function panelTouch(event)
-        UserData:reset()
-        close()
-        return true
+    panel.touch = function(target, event)
+        if event.phase == "ended" then
+            listener()
+            close()
+        end
     end
-    panel.touch = panelTouch
     panel:addEventListener("touch", panel)
 
-    closeBtn = createCloseBtn(panel.x + panel.width*0.5 - 16, panel.y - panel.height*0.5, close)
+    closeBtn = createCloseBtn(panel.x + panel.width*0.5 - 24, panel.y - panel.height*0.5, close)
     popUpGroup:insert(closeBtn)
 
     transition.from(bg, {time = 200, alpha = 0})
@@ -64,4 +64,4 @@ function LoginPopUp:new()
     transition.from(closeBtn, {delay = 300, time = 300, xScale = 0.1, yScale = 0.1})
 end
 
-return LoginPopUp
+return InitialPopUp

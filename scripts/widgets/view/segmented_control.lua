@@ -36,7 +36,7 @@ local function touchListener(button, event)
         -- Subsequent touch events will target button even if they are outside the stageBounds of button
         display.getCurrentStage():setFocus(button)
         button.isFocus = true
-        AudioManager.playAudio("btn")
+        --AudioManager.playAudio("btn")
     elseif button.isFocus then
         local bounds = button.stageBounds
         local x, y = event.x, event.y

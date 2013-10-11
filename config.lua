@@ -5,7 +5,7 @@ application =
     {
         width = 320,
         height = 480,
-        fps = 60,
+        fps = 30,
         scale = "letterBox",
         xAlign = "center",
         yAlign = "center",

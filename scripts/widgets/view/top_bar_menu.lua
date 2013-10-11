@@ -9,7 +9,7 @@ require "scripts.widgets.view.button_back"
 
 MENU_TITLE_BAR_HEIGHT = 43
 
-local function createView(title, listener)
+local function createView(title, listener, rightButton)
     local topBarGroup = display.newGroup()
     local bar = TextureManager.newImageRect("images/stretchable/stru_bar_top.png", CONTENT_WIDTH, MENU_TITLE_BAR_HEIGHT, topBarGroup)
     local title = display.newEmbossedText(topBarGroup, title, 0, 0, "MyriadPro-BoldCond", 28)
@@ -20,14 +20,19 @@ local function createView(title, listener)
     btnBack.x = -bar.width*0.5 + btnBack.width*0.5
     btnBack.y = -2
     topBarGroup:insert(btnBack)
+    if rightButton then
+        rightButton.x = bar.width*0.5 - rightButton.width*0.5
+        rightButton.y = -2
+        topBarGroup:insert(rightButton)
+    end
     topBarGroup:setReferencePoint(display.TopLeftReferencePoint)
     topBarGroup.x = SCREEN_LEFT
     topBarGroup.y = SCREEN_TOP
     return topBarGroup
 end
 
-function TopBarMenu:new(title, listener)
-    return createView(title, listener)
+function TopBarMenu:new(title, listener, rightButton)
+    return createView(title, listener, rightButton)
 end
 
 return TopBarMenu

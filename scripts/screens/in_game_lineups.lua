@@ -108,11 +108,13 @@ end
 local function newLineupLine(identifier, name)
     local lineGroup = display.newGroup()
 
-    local preText = display.newText(lineGroup, identifier, 0, 0, "MyriadPro-BoldCond", 12)
-    preText:setTextColor(0)
-    preText:setReferencePoint(display.CenterRightReferencePoint)
-    preText.x = 0
-    preText.y = 0
+    if identifier == "TÉC.:" then
+        local preText = display.newText(lineGroup, identifier, 0, 0, "MyriadPro-BoldCond", 12)
+        preText:setTextColor(0)
+        preText:setReferencePoint(display.CenterRightReferencePoint)
+        preText.x = 0
+        preText.y = 0
+    end
     local name = createPlayerName(name)
     lineGroup:insert(name)
     name.x = 4
@@ -521,6 +523,10 @@ function InGameLineups:create()
     end
 
     createView(lineupsGroup)
+
+    if MatchManager:currentMatchFinished() then
+        lineupsGroup.defaultState = true
+    end
 
     return lineupsGroup
 end

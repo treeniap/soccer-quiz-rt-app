@@ -4,7 +4,6 @@
 == Time: 10:59
 ==============]]--
 local widget = require "widget"
-require "scripts.widgets.view.top_bar_menu"
 require "scripts.widgets.view.button_open_menu"
 
 RankingScreen = {}
@@ -372,11 +371,30 @@ local function getPlayersInTheRanking(button, ranking)
             end
         end
         Server:downloadFilesList(downloadList, function()
-            button.ranking = ranking
-            if button.spinnerDefault and button.spinnerDefault.removeSelf then
-                button.spinnerDefault:removeSelf()
+            if rankingScreenGroup then
+                button.ranking = ranking
+                if button.spinnerDefault and button.spinnerDefault.removeSelf then
+                    button.spinnerDefault:removeSelf()
+                end
+                button:lock(false)
+
+                if button == rankingButtons[1] then
+                    timer.performWithDelay(900, function()
+                        if rankingScreenGroup then
+                            local someOpen
+                            for i, btn in ipairs(rankingButtons) do
+                                if btn.isOpen then
+                                    someOpen = true
+                                end
+                            end
+                            if not someOpen then
+                                button.isOpen = true
+                                RankingScreen:openBG(button, 1)
+                            end
+                        end
+                    end)
+                end
             end
-            button:lock(false)
         end)
     end
     local playersIds = {}
@@ -429,8 +447,8 @@ local function getAmigosRanking(button)
     end)
 end
 
-local function getGlobalRanking(button)
-    local function callback(response, status)
+local function getWeeklyRankingCallback(button)
+    return function (response, status)
         --printTable(response)
         local ranking
         if status == 200 then
@@ -443,12 +461,38 @@ local function getGlobalRanking(button)
         end
         getPlayersInTheRanking(button, ranking)
     end
-    Server:getTopRanking(nil, callback)
+end
+
+local function getCurrentWeekRanking(button)
+    Server:getTopRanking("current_week", getWeeklyRankingCallback(button))
+end
+
+local function getLastWeekRanking(button)
+    Server:getTopRanking("last_week", getWeeklyRankingCallback(button))
+end
+
+local function getWeekDates(days)
+    local currentDate = getCurrentDate():adddays(days)
+    local rankingWeekDay = currentDate:getweekday() == 1 and 6 or currentDate:getweekday() - 2
+    local rankingWeekFirstDay = currentDate:copy():adddays(-rankingWeekDay):fmt("%d/%m")
+    return currentDate:adddays(7 - rankingWeekDay):fmt(rankingWeekFirstDay .. " a %d/%m")
 end
 
 local function createRankingsList()
     rankingsListGroup = display.newGroup()
-    local rankingsList = {{name = "amigos", getRanking = getAmigosRanking}, {name = "global", getRanking = getGlobalRanking}}
+    local rankingsList
+    if UserData.demoModeOn then
+        rankingsList = {
+            {name = "geral - semana " .. getWeekDates(0), getRanking = getCurrentWeekRanking},
+            {name = "geral - semana " .. getWeekDates(-7), getRanking = getLastWeekRanking}
+        }
+    else
+        rankingsList = {
+            {name = "amigos - todos os tempos", getRanking = getAmigosRanking},
+            {name = "geral - semana " .. getWeekDates(0), getRanking = getCurrentWeekRanking},
+            {name = "geral - semana " .. getWeekDates(-7), getRanking = getLastWeekRanking}
+        }
+    end
     local Y_RANKING = 50
     for i, ranking in ipairs(rankingsList) do
         local rankingGroup = display.newGroup()

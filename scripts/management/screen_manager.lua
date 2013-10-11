@@ -6,6 +6,7 @@
 require "scripts.widgets.controller.button_press_release"
 require "scripts.widgets.controller.button_touch_handler"
 require "scripts.widgets.view.top_bar"
+require "scripts.widgets.view.top_bar_menu"
 require "scripts.widgets.view.bottom_ranking"
 require "scripts.widgets.view.goal"
 require "util.utf8"
@@ -220,6 +221,7 @@ function ScreenManager.init()
     local statusBarBg = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, display.topStatusBarContentHeight)
     statusBarBg:setFillColor(0)
     display.getCurrentStage():insert(3, statusBarBg)
+    display.setStatusBar(display.DarkStatusBar)
 end
 
 function ScreenManager:startTutorial()

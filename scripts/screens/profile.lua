@@ -3,7 +3,6 @@
 == Date: 23/05/13
 == Time: 12:37
 ==============]]--
-require "scripts.widgets.view.top_bar_menu"
 require "scripts.widgets.view.button_import_profile"
 require "scripts.widgets.view.button_profile"
 require "scripts.widgets.view.button_text_underline"

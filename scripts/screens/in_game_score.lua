@@ -231,6 +231,10 @@ function InGameScore:create()
 
     infoGroup:updateMatch(true)
 
+    if MatchManager:currentMatchFinished() then
+        infoGroup.defaultState = false
+    end
+
     return infoGroup
 end
 

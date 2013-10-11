@@ -47,7 +47,7 @@ local function onMatchOver()
                     finalResultInfo.globalPoints = response.user_ranking.score
                     finalResultInfo.globalPosition = response.user_ranking.ranking
                     MatchManager.finalResultInfo = finalResultInfo
-                    InGameScreen:onGameOver(finalResultInfo)
+                    InGameScreen:onGameOver(finalResultInfo, CurrentMatch.enteredFinished)
                 end,
                 function(response)
                     --printTable(response)
@@ -57,10 +57,9 @@ local function onMatchOver()
                         globalPosition = "-"
                     }
                     MatchManager.finalResultInfo = finalResultInfo
-                    InGameScreen:onGameOver(finalResultInfo)
+                    InGameScreen:onGameOver(finalResultInfo, CurrentMatch.enteredFinished)
                 end)
         end
-
         Server:getPlayerRanking(MatchManager:getMatchId(),
             function(response, status)
                 finalResultInfo.matchPoints = response.user_ranking.score
@@ -187,6 +186,7 @@ function MatchManager:setCurrentMatch(matchId)
                     CurrentMatch.championshipRound = championshipInfo.current_round
                     CurrentMatch.championshipName = championshipInfo.name
                     CurrentMatch.championshipLogoName = championshipInfo.machine_friendly_name
+                    CurrentMatch.enteredFinished = CurrentMatch.matchInfo.status == "finished"
                     ScreenManager:enterMatch(matchId)
                     --if DEBUG_MODE then
                     --    timer.performWithDelay(5000, onMatchOver) -- teste: finaliza partida
@@ -404,7 +404,9 @@ function MatchManager:getMatchTimeStatus()
     end
     CurrentMatch.period = period
 
-    checkLocalNotification(CurrentMatch.matchInfo.status_updated_at, period, time)
+    if not CurrentMatch.enteredFinished then
+        checkLocalNotification(CurrentMatch.matchInfo.status_updated_at, period, time)
+    end
 
     status = sanitizeStatus(CurrentMatch.matchInfo, status)
 
@@ -416,6 +418,10 @@ function MatchManager:onExitMatch()
         system.cancelNotification(v)
         notifications.ids[k] = nil
     end
+end
+
+function MatchManager:currentMatchFinished()
+    return CurrentMatch.enteredFinished
 end
 
 function MatchManager:getMatchId()
@@ -450,19 +456,19 @@ function MatchManager:getTeamLogoImg(isHome, size)
 end
 
 function MatchManager:getChampionshipsList()
-    for i = #nextMatchesInfo, 1, -1 do
-        local championship = nextMatchesInfo[i]
-        for j = #championship.incoming_matches, 1, -1 do
-            local currentDate = getCurrentDate()
-            local daysDiff = currentDate:getyearday() - championship.incoming_matches[j].starts_at:getyearday()
-            if daysDiff > 0 then
-                table.remove(championship.incoming_matches, j)
-            end
-        end
-        if #championship.incoming_matches == 0 then
-            table.remove(nextMatchesInfo, i)
-        end
-    end
+    --for i = #nextMatchesInfo, 1, -1 do
+    --    local championship = nextMatchesInfo[i]
+    --    for j = #championship.incoming_matches, 1, -1 do
+    --        local currentDate = getCurrentDate()
+    --        local daysDiff = currentDate:getyearday() - championship.incoming_matches[j].starts_at:getyearday()
+    --        if daysDiff > 0 then
+    --            table.remove(championship.incoming_matches, j)
+    --        end
+    --    end
+    --    if #championship.incoming_matches == 0 then
+    --        table.remove(nextMatchesInfo, i)
+    --    end
+    --end
 
     return nextMatchesInfo
 end

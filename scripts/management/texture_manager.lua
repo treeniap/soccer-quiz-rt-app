@@ -22,6 +22,7 @@ printTextMem(" ")
 local mainSheetInfo, mainSheetImage
 local tutorialSheetInfo, tutorialSheetImage
 local splashSheetInfo, splashSheetImage
+local subsSheetInfo, subsSheetImage
 --local sheetInfo = require("images.sheet_main") -- lua file that Texture packer published
 --local imageSheet = graphics.newImageSheet("images/sheet_main.png", sheetInfo:getSheet())
 
@@ -166,6 +167,13 @@ function TextureManager.loadTutorialSheet()
     return tutorialSheetInfo, tutorialSheetImage
 end
 
+function TextureManager.loadSubsSheet()
+    subsSheetInfo = require("images.sheet_subs") -- lua file that Texture packer published
+    subsSheetImage = graphics.newImageSheet("images/sheet_subs.png", subsSheetInfo:getSheet())
+    printTextMem("sheet_subs")
+    return subsSheetInfo, subsSheetImage
+end
+
 function TextureManager.disposeMainSheet()
     mainSheetInfo = nil
     mainSheetImage = nil
@@ -182,6 +190,12 @@ function TextureManager.disposeTutorialSheet()
     tutorialSheetInfo = nil
     tutorialSheetImage = nil
     printTextMem("dispose sheet_tutorial")
+end
+
+function TextureManager.disposeSubsSheet()
+    subsSheetInfo = nil
+    subsSheetImage = nil
+    printTextMem("dispose sheet_subs")
 end
 
 return TextureManager

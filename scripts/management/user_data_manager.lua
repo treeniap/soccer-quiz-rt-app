@@ -28,8 +28,15 @@ function UserData:setInventory(response)
             self.inventory.coins = item.amount
         end
     end
-    --print("inventory--------------")
-    --print(self.inventory.coins)
+    self.inventory.subscribed = false
+    if response.inventory.subscription_expires_at and response.inventory.subscription_expires_at ~= "" then
+        local subscriptionExpiresAt = date(response.inventory.subscription_expires_at):tolocal()
+        local c = date.diff(getCurrentDate(), subscriptionExpiresAt)
+        local minutesToExpire = c:spanminutes()
+        if minutesToExpire < 0 then
+            self.inventory.subscribed = true
+        end
+    end
 
     self.attributes = {}
     self.attributes.favorite_team_id = response.inventory.attributes.favorite_team_id

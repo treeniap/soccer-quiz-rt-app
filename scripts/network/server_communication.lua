@@ -17,12 +17,13 @@ local networkStatusChangeListeners
 ---URLS
 local getUserInventoryUrl
 
-local KB_URL          = "http://api.kb.soccer.welovequiz.com/1/"
-local LEADERBOARD_URL = DEBUG_MODE and "http://leaderboards-api-test.herokuapp.com/v1/"    or "http://api.leaderboards.welovequiz.com/v1/"
-local USERS_URL       = DEBUG_MODE and "http://users-api-test.herokuapp.com/v1/"           or "http://api.users.welovequiz.com/v1/"
-local INVENTORY_URL   = DEBUG_MODE and "http://inventory-api-test.herokuapp.com/v1/users/" or "http://api.inventory.welovequiz.com/v1/users/"
-local QUESTIONS_URL   = DEBUG_MODE and "http://soccer-questions-api-test.herokuapp.com/"   or "http://api.questions.soccer.welovequiz.com/"
-local CLOUD_URL       = "http://d1a6cxe4fj6xw1.cloudfront.net/"
+local KB_URL                = "http://api.kb.soccer.welovequiz.com/1/"
+local LEADERBOARD_URL       = DEBUG_MODE and "http://leaderboards-api-test.herokuapp.com/v1/"    or "http://api.leaderboards.welovequiz.com/v1/"
+local USERS_URL             = DEBUG_MODE and "http://users-api-test.herokuapp.com/v1/"           or "http://api.users.welovequiz.com/v1/"
+local INVENTORY_URL         = DEBUG_MODE and "http://inventory-api-test.herokuapp.com/v1/users/" or "http://api.inventory.welovequiz.com/v1/users/"
+local QUESTIONS_URL         = DEBUG_MODE and "http://soccer-questions-api-test.herokuapp.com/"   or "http://api.questions.soccer.welovequiz.com/"
+local CLOUD_URL             = "http://d1a6cxe4fj6xw1.cloudfront.net/"
+local APP_INVENTORIES_URL   = DEBUG_MODE and "http://inventory-api-test.herokuapp.com/v1/apps/" or "http://api.inventory.welovequiz.com/v1/apps/"
 
 --
 -- INITIALIZE PUBNUB STATE
@@ -121,7 +122,7 @@ function Server:downloadFilesList(filesList, listener)
     end
     for i, file in ipairs(filesList) do
         --print("download", file.fileName, file.url)
-        network.download(file.url, "GET", logoDownloadListener, file.fileName, system.DocumentsDirectory)
+        network.download(file.url, "GET", logoDownloadListener, file.fileName, file.directory or system.DocumentsDirectory)
     end
 end
 
@@ -396,7 +397,7 @@ function Server:checkUser(userInfo)
         return
     end
     local url
-    if UserData.userId then
+    if UserData.userId and UserData.userId ~= "empty" then
         url = USERS_URL .. "users/" .. UserData.userId
     elseif userInfo.facebook_profile.id then
         url = USERS_URL .. "facebook_profiles/" .. userInfo.facebook_profile.id
@@ -565,6 +566,22 @@ function Server:getInventory(userId, listener)
     testignError = false
 end
 
+function Server:getPlayersIventories(playersIds, listener)
+    local url = APP_INVENTORIES_URL .. "com.ffgfriends.chutepremiado/public_attributes?"
+    for i, id in ipairs(playersIds) do
+        url = url .. "&users_ids[]=" .. id
+    end
+    networkRequest{
+        name = "getPlayersIventories",
+        url = url,
+        method = "GET",
+        retries_number = RETRIES_NUMBER,
+        listener = listener,
+        on_client_error = listener,
+        on_no_response = listener
+    }
+end
+
 function Server:updateAttributes(userAttributes, userId)
     local payload = {}
     payload.app_id = APP_ID
@@ -604,6 +621,27 @@ function Server:onPurchase(productId, receipt, listener)
         retries_number = 5,
         post_params = encode(payload),
         on_no_response = TRY_AGAIN_ON_NO_RESPONSE
+    }
+end
+
+function Server:onSubscription(receipt, listener)
+    if not UserData or not UserData.info or not UserData.info.user_id then
+        timer.performWithDelay(500, function() Server:onSubscription(receipt, listener) end)
+        return
+    end
+    local payload = {}
+    payload.app_id = APP_ID
+    payload.receipt = receipt
+
+    networkRequest{
+        name = "onSubscription",
+        url = INVENTORY_URL .. UserData.info.user_id .. "/subscriptions",
+        method = "PUT",
+        listener = listener,
+        on_client_error = listener,
+        retries_number = 5,
+        post_params = encode(payload),
+        on_no_response = listener
     }
 end
 
@@ -863,7 +901,8 @@ function Server.init()
 
     AssetsManager:createFolder("logos")
     AssetsManager:createFolder("pictures")
-    --Server:getVideos(function(response) printTable(response) end)
+
+    TwitterObject = require("scripts.network.GGTwitter"):new("kaO6n7jMhgyNzx9lXhLg", "OY0PBfVKizWKfUutKjwh1gt3W99YOmlqbYtgqzg81I")
 end
 
 return Server

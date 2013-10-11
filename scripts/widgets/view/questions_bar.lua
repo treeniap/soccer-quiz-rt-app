@@ -193,7 +193,8 @@ function QuestionsBar:createView()
                     --native.showAlert("Twitter", "Pontuação postada.", {"Ok"})
                 end
             end
-            twitter = require("scripts.network.GGTwitter"):new("kaO6n7jMhgyNzx9lXhLg", "OY0PBfVKizWKfUutKjwh1gt3W99YOmlqbYtgqzg81I", listener)
+            twitter = TwitterObject
+            twitter.listener = listener
             if twitter:isAuthorised() then
                 post()
             else
@@ -217,7 +218,8 @@ function QuestionsBar:createView()
                     native.showAlert("Twitter", "Pontuação compartilhada no Twitter.", {"Ok"})
                 end
             end
-            twitter = require("scripts.network.GGTwitter"):new("kaO6n7jMhgyNzx9lXhLg", "OY0PBfVKizWKfUutKjwh1gt3W99YOmlqbYtgqzg81I", listener)
+            twitter = TwitterObject
+            twitter.listener = listener
             if twitter:isAuthorised() then
                 post()
             else

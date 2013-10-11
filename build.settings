@@ -2,7 +2,8 @@ settings =
 {
 	orientation =
  	{
-		default = "portrait"
+		content = "portrait",
+		supported = { "portrait", "landscapeRight" },
 	},
 
     android =

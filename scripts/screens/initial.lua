@@ -275,30 +275,32 @@ local function createMatchesView(x, y)
     local nextUpdateTime
     for i = #matches, 1, -1 do
         local match = matches[i]
-        --if i > 1 then
-        --    break
-        --end
-        matchesGroup.lines[#matchesGroup.lines + 1] = createFoilLine(80 + (-display.screenOriginX), yPos,  160 + (-display.screenOriginX))
-        matchesGroup:insert(matchesGroup.lines[#matchesGroup.lines])
-        local matchView = createMatchView(match, yPos, currentDate)
-        matchesGroup:insert(matchView)
-        if matchView.touchHandler then
-            matchView.touchHandler.matchId = match.id
-            matchView.touchHandler.group = matchView
-            matchView.touchHandler.touch = onEnterMatch
-            matchView.touchHandler:addEventListener("touch", matchView.touchHandler)
-        end
-        matchesGroup.matches[#matchesGroup.matches + 1] = matchView
-        yPos = yPos + 84 --(120*(((yPos)*1.4 + 500)/1000))
+        if match.status ~= "finished" then
+            --if i > 1 then
+            --    break
+            --end
+            matchesGroup.lines[#matchesGroup.lines + 1] = createFoilLine(80 + (-display.screenOriginX), yPos,  160 + (-display.screenOriginX))
+            matchesGroup:insert(matchesGroup.lines[#matchesGroup.lines])
+            local matchView = createMatchView(match, yPos, currentDate)
+            matchesGroup:insert(matchView)
+            if matchView.touchHandler then
+                matchView.touchHandler.matchId = match.id
+                matchView.touchHandler.group = matchView
+                matchView.touchHandler.touch = onEnterMatch
+                matchView.touchHandler:addEventListener("touch", matchView.touchHandler)
+            end
+            matchesGroup.matches[#matchesGroup.matches + 1] = matchView
+            yPos = yPos + 84 --(120*(((yPos)*1.4 + 500)/1000))
 
-        local c = date.diff(currentDate, match.starts_at)
-        local minutesToMatch = -c:spanminutes() - 5
-        if minutesToMatch <= 0 then
-            minutesToMatch = 110 + minutesToMatch
-        end
-        if not nextUpdateTime or nextUpdateTime > minutesToMatch then
-            if minutesToMatch > 0 then
-                nextUpdateTime = minutesToMatch
+            local c = date.diff(currentDate, match.starts_at)
+            local minutesToMatch = -c:spanminutes() - 5
+            if minutesToMatch <= 0 then
+                minutesToMatch = 110 + minutesToMatch
+            end
+            if not nextUpdateTime or nextUpdateTime > minutesToMatch then
+                if minutesToMatch > 0 then
+                    nextUpdateTime = minutesToMatch
+                end
             end
         end
     end
@@ -384,7 +386,7 @@ local function createMatchesFoil(onComplete)
 
     if MatchManager.initialized then
         matchesFoil:insert(createMatchesView(SCREEN_RIGHT - (160 + (-display.screenOriginX))*0.5, display.contentCenterY - 210))
-        showWelcomeAlert()
+        --showWelcomeAlert()
     else
         isUpdatingMatchesFoil = false
         MatchManager:addListener(updateMatchesFoil)
@@ -421,7 +423,7 @@ local function createMatchesFoil(onComplete)
         playBtn:showUp(onComplete)
         rankingBtn:showUp()
         tablesBtn:showUp()
-        --videosBtn:showUp()
+        videosBtn:showUp()
     end)
     return matchesFoil
 end
@@ -431,14 +433,25 @@ function InitialScreen:showUp(onComplete)
     bottomRanking:showUp(function()
         topBar:showUp()
         logo:showUp()
-        initialScreenGroup:insert(5, createMatchesFoil(function()
+        initialScreenGroup:insert(6, createMatchesFoil(function()
             isUpdatingMatchesFoil = false
             if onComplete then
                 onComplete()
             end
             if UserData.showFacebookLogin then
                 UserData.showFacebookLogin = false
-                require("scripts.widgets.view.login_pop_up"):new()
+                require("scripts.widgets.view.initial_pop_up"):new("images/pop_up.png",
+                function()
+                    UserData:reset()
+                    return true
+                end)
+            elseif UserData.showSubscriptionOffer and not UserData.inventory.subscribed then
+                UserData.showSubscriptionOffer = false
+                require("scripts.widgets.view.initial_pop_up"):new("images/pop_up_subs.png",
+                function()
+                    StoreManager.buyThis("com.ffgfriends.chutepremiado.semana")
+                    return true
+                end)
             end
         end))
     end)
@@ -464,15 +477,17 @@ function updateMatchesFoil()
 
     local function newMatchesGroup()
         matchesFoil:insert(createMatchesView(SCREEN_RIGHT - (160 + (-display.screenOriginX))*0.5, display.contentCenterY - 210))
-        showWelcomeAlert()
+        --showWelcomeAlert()
         matchesGroup.scrolling = true
         transition.from(matchesGroup, {delay = 500, time = 500, alpha = 0, onComplete = function()
-            timer.performWithDelay(1000, function()
-                matchesGroup.scrolling = false
-                unlockScreen()
-            end)
-            matchesGroup:scrollTo("bottom", {time = 1000})
-            isUpdatingMatchesFoil = false
+            if matchesGroup then
+                timer.performWithDelay(1000, function()
+                    matchesGroup.scrolling = false
+                    unlockScreen()
+                end)
+                matchesGroup:scrollTo("bottom", {time = 1000})
+                isUpdatingMatchesFoil = false
+            end
         end})
     end
 
@@ -490,7 +505,7 @@ function updateMatchesFoil()
     --        matchesFoil:hide(function()
     --            matchesFoil:removeSelf()
     --            initialScreenGroup:insert(6, createMatchesFoil(function() isUpdatingMatchesFoil = false end))
-    --            showWelcomeAlert()
+    --            --showWelcomeAlert()
     --        end)
     --    end)
     --end
@@ -516,24 +531,26 @@ function InitialScreen:new()
 
     createLogo()
 
-    --videosBtn = BtnHomeScreen:new(display.contentCenterY - 30, "VÍDEOS", true, function()
-    --end)
-    --initialScreenGroup:insert(videosBtn)
+    videosBtn = BtnHomeScreen:new(display.contentCenterY - 30, "VÍDEOS", true, function()
+        ScreenManager:show("videos")
+        AudioManager.playAudio("hideInitialScreen")
+    end)
+    initialScreenGroup:insert(videosBtn)
 
-    tablesBtn = BtnHomeScreen:new(display.contentCenterY, "CLASSIFICAÇÃO", false, function()
+    tablesBtn = BtnHomeScreen:new(display.contentCenterY + 17, "CLASSIFICAÇÃO", false, function()
         ScreenManager:show("tables")
         AudioManager.playAudio("hideInitialScreen")
     end)
     initialScreenGroup:insert(tablesBtn)
 
-    playBtn = BtnHomeScreen:new(display.contentCenterY + 47, "PARTIDAS", false, function()
+    playBtn = BtnHomeScreen:new(display.contentCenterY + 64, "PARTIDAS", false, function()
         MatchManager:resquestMatches()
         ScreenManager:show("select_match")
         AudioManager.playAudio("hideInitialScreen")
     end)
     initialScreenGroup:insert(playBtn)
 
-    rankingBtn = BtnHomeScreen:new(display.contentCenterY + 94, "RANKING", false, function()
+    rankingBtn = BtnHomeScreen:new(display.contentCenterY + 111, "RANKING", false, function()
         if UserData.demoModeOn then
             local function onComplete(event)
                 if "clicked" == event.action then
@@ -594,7 +611,7 @@ function InitialScreen:hide(onComplete)
     end)
     rankingBtn:hide()
     tablesBtn:hide()
-    --videosBtn:hide()
+    videosBtn:hide()
 end
 
 function InitialScreen:destroy()
@@ -606,7 +623,7 @@ function InitialScreen:destroy()
     playBtn:removeSelf()
     rankingBtn:removeSelf()
     tablesBtn:removeSelf()
-    --videosBtn:removeSelf()
+    videosBtn:removeSelf()
     if matchesGroup and matchesGroup.removeSelf then
         matchesGroup:removeSelf()
     end
@@ -622,7 +639,7 @@ function InitialScreen:destroy()
     playBtn = nil
     rankingBtn = nil
     tablesBtn = nil
-    --videosBtn = nil
+    videosBtn = nil
 end
 
 return InitialScreen

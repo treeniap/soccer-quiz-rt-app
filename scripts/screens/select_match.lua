@@ -4,7 +4,6 @@
 == Time: 12:15
 ==============]]--
 local widget = require "widget"
-require "scripts.widgets.view.top_bar_menu"
 require "scripts.widgets.view.button_open_menu"
 
 SelectMatchScreen = {}
@@ -83,7 +82,12 @@ local function createMatchView(match, matchesGroup, yPos)
 
     if match.status == "finished" then
         time.text = match.home_goals .. " - " .. match.guest_goals
-        status.text = "ENCERRADO"
+        status.text = "TOQUE PARA VER ESTATÍSTICAS"
+        status.size = 16
+        status:setTextColor(0)
+        local touchHandler = createTouchHandler(yPos)
+        matchesGroup:insert(touchHandler)
+        matchGroup.touchHandler = touchHandler
     elseif match.status == "scheduled" then
         local c = date.diff(getCurrentDate(), match.starts_at)
         local minutesToMatch = c:spanminutes()
@@ -478,7 +482,7 @@ function SelectMatchScreen:new()
     selectMatchGroup:insert(selectMatchGroup.bg)
     selectMatchGroup.championshipsList = createChampionshipsList(MatchManager:getChampionshipsList())
     selectMatchGroup:insert(selectMatchGroup.championshipsList)
-    selectMatchGroup.topBar = TopBarMenu:new("JOGAR")
+    selectMatchGroup.topBar = TopBarMenu:new("PARTIDAS")
     selectMatchGroup.topBar.isVisible = false
     selectMatchGroup:insert(selectMatchGroup.topBar)
 

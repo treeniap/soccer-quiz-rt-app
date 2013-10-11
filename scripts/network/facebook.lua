@@ -258,7 +258,7 @@ function Facebook:init(_listener)
             first_name = "John",
             last_name = "Smithwitz",
             facebook_profile = {
-                id =  "100006769958286",
+                id =  "100006337952512",
                 username = "",
                 access_token = "",
                 picture_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/c5.5.65.65/s50x50/1006257_1375577609330158_216697327_t.jpg",
@@ -275,11 +275,11 @@ function Facebook:init(_listener)
             }
         }, function()
             local friends_ids = {}
-            friends_ids[1] = "100006326892112"
-            friends_ids[2] = "100006410700030"
-            friends_ids[3] = "100006397561562"
-            friends_ids[4] = "100006387546231"
-            friends_ids[5] = "100006460237951"
+            --friends_ids[1] = "100006326892112"
+            --friends_ids[2] = "100006410700030"
+            --friends_ids[3] = "100006397561562"
+            --friends_ids[4] = "100006387546231"
+            --friends_ids[5] = "100006460237951"
             UserData:init(userInfo, friends_ids)
         end)
         if _listener then

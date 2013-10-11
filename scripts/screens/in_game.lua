@@ -160,7 +160,7 @@ function InGameScreen:onEventEnd(resultInfo)
     --Server:getPlayerRanking(nil, checkScore)
 end
 
-function InGameScreen:onGameOver(finalResultInfo)
+function InGameScreen:onGameOver(finalResultInfo, enteredAfterMatchEnd)
     display.getCurrentStage():setFocus(nil)
     if eventView then
         Server:getUserInventory(nil, function()
@@ -171,7 +171,7 @@ function InGameScreen:onGameOver(finalResultInfo)
 
                 InGameScreen:updateTotalCoins()
                 native.showAlert("", "O evento que estavamos aguardando foi cancelado e suas fichas apostadas foram devolvidas.", { "Ok" })
-                InGameScreen:onGameOver(finalResultInfo)
+                InGameScreen:onGameOver(finalResultInfo, enteredAfterMatchEnd)
             end)
         end)
         return
@@ -183,8 +183,12 @@ function InGameScreen:onGameOver(finalResultInfo)
     endView:showUp(function()
         questionsBar:onGameOver()
         stateManager.canChange = true
-        AnalyticsManager.changedGamePeriod("match_over")
-    end)
+        if enteredAfterMatchEnd then
+            AnalyticsManager.enteredInGameForStats()
+        else
+            AnalyticsManager.changedGamePeriod("match_over")
+        end
+    end, enteredAfterMatchEnd)
 end
 
 function InGameScreen:onPeriodChange(period)

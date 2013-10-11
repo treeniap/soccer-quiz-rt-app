@@ -5,7 +5,7 @@
 ==============]]--
 BottomRanking = {}
 
-require "scripts.widgets.view.top_bar_menu"
+require "scripts.widgets.view.bottom_tweets"
 
 local function getPlayerPosition(ranking)
     for i, v in ipairs(ranking) do
@@ -193,10 +193,7 @@ local function createTweetsBar()
     end
     local tweetsGroup = display.newGroup()
     tweetsGroup.x = display.contentCenterX + 43 - (display.screenOriginX*-0.5)
-    tweetsGroup.y = 5
-
-    local tweetMask = graphics.newMask("images/masks/tweets_bar_mask.png")
-    tweetsGroup:setMask(tweetMask)
+    tweetsGroup.y = 3
 
     local function onTweetsTouch(self, event)
         if event.phase == "began" then
@@ -218,15 +215,22 @@ local function createTweetsBar()
     tweetsGroup:addEventListener("touch", tweetsGroup)
 
     local postCallback = function( status, result )
+        if not tweetsGroup or not tweetsGroup.insert then
+            return
+        end
         local response = require("json").decode( result )
         tweetsGroup.links = {}
         for i, v in ipairs(response) do
             --print("--" .. fixhtml(v.text))
             --printTable(v)
-            local txt = display.newText("@" .. screenName .. ": " .. fixhtml(v.text), 0, 0, 200 + (-display.screenOriginX), 0, "MyriadPro-BoldCond", 14)
+            local txt = display.newText("@" .. screenName .. ": " .. fixhtml(v.text), 0, 0, 200 + (-display.screenOriginX), 0, "MyriadPro-Cond", 13)
             txt.x = (i - 1)*CONTENT_WIDTH
-            txt.y = 0
-            txt:setTextColor(32)
+            if txt.height > 79 then
+                txt.y = (txt.height - 79)*0.5
+            else
+                txt.y = 0
+            end
+            txt:setTextColor(0)
             tweetsGroup:insert(txt)
 
             local linkStart, linkEnd = findLink(v.text)
@@ -247,13 +251,12 @@ local function createTweetsBar()
                 tweetsGroup.showing = 1
             end
             if tweetsGroup.showing == tweetsGroup.numChildren then
-                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 200, x = tweetsGroup.x - CONTENT_WIDTH*0.5, maskX = tweetsGroup.maskX + CONTENT_WIDTH*0.5, onComplete = function()
+                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 200, x = tweetsGroup.x - CONTENT_WIDTH*0.5, onComplete = function()
                     tweetsGroup.x = display.contentCenterX + 43 - (display.screenOriginX*-0.5) + CONTENT_WIDTH*0.5
-                    tweetsGroup.maskX = -CONTENT_WIDTH*0.5
-                    tweetsGroup.trans = transition.to(tweetsGroup, {time = 300, x = tweetsGroup.x - CONTENT_WIDTH*0.5, maskX = tweetsGroup.maskX + CONTENT_WIDTH*0.5, transition = easeOutExpo, onComplete = rollTweets})
+                    tweetsGroup.trans = transition.to(tweetsGroup, {time = 300, x = tweetsGroup.x - CONTENT_WIDTH*0.5, transition = easeOutExpo, onComplete = rollTweets})
                 end})
             else
-                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 500, x = tweetsGroup.x - CONTENT_WIDTH, maskX = tweetsGroup.maskX + CONTENT_WIDTH, transition = easeOutExpo, onComplete = rollTweets})
+                tweetsGroup.trans = transition.to(tweetsGroup, {delay = 6000, time = 500, x = tweetsGroup.x - CONTENT_WIDTH, transition = easeOutExpo, onComplete = rollTweets})
             end
         end
         rollTweets()
@@ -291,7 +294,7 @@ function BottomRanking:showUp(onComplete)
     transition.to(self.bg, {delay = 300, time = 300, x = display.contentCenterX, xScale = 1, onComplete = onComplete})
     AudioManager.playAudio("showBottomRanking", 500)
     transition.to(self.leftBar, {time = 300, x = SCREEN_LEFT + self.leftBar.width*0.5, transition = easeOutCirc})
-    transition.to(self.rightBar, {time = 300, x = SCREEN_RIGHT - self.rightBar.width*0.5 + 1, transition = easeOutCirc})
+    transition.to(self.rightBar, {time = 300, x = self.rightBar.xDest, transition = easeOutCirc})
     AudioManager.playAudio("showBottomRL")
     if self.tweets then
         transition.from(self.tweets, {delay = 600, time = 300, alpha = 0})
@@ -343,10 +346,32 @@ function BottomRanking:createView(isInitialScreen)
     --local trophy = TextureManager.newImage("stru_icontrophy", self)
     --trophy.x = SCREEN_LEFT + trophy.width
     --trophy.y = leftBar.y - leftBar.height*0.35
-    self.rightBar = TextureManager.newImage("stru_ranking_red", self)
+    if isInitialScreen then
+        self.rightBar = TextureManager.newImage("stru_ranking_red", self)
+        self.rightBar.xDest = SCREEN_RIGHT - self.rightBar.width*0.5 + 1
+        self.rightBar.touch = function() return true end
+    else
+        self.rightBar = BottomTweets:new()
+        self:insert(self.rightBar)
+        self.rightBar.xDest = SCREEN_RIGHT - 29
+        self.rightBar.touch = function(target, event)
+            if event.phase == "ended" then
+                if target.isOpened then
+                    target.isOpened = false
+                    target:close()
+                    transition.to(self.leftBar, {time = 300, x = SCREEN_LEFT + self.leftBar.width*0.5, transition = easeOutCirc})
+                else
+                    target.isOpened = true
+                    target:open()
+                    transition.to(self.leftBar, {time = 300, x = SCREEN_LEFT - 24, transition = easeInCirc})
+                end
+            end
+            return true
+        end
+    end
+    self.rightBar:addEventListener("touch", self.rightBar)
     self.rightBar.x = SCREEN_RIGHT + self.rightBar.width*0.5 + 1
     self.rightBar.y = -5
-    self.rightBar:addEventListener("touch", function() return true end)
 end
 
 function BottomRanking:updateRankingPositions(ranking)

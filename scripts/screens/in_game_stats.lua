@@ -290,7 +290,7 @@ local function createButton(scrollView, group, button, statName)
             display.getCurrentStage():setFocus(button)
             button.isFocus = true
             button.over.isVisible = true
-            AudioManager.playAudio("btn")
+            --AudioManager.playAudio("btn")
         elseif button.isFocus then
             if event.phase == "moved" then
                 local dy = math.abs((event.y - event.yStart))

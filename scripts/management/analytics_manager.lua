@@ -97,6 +97,10 @@ function AnalyticsManager.enteredInGameScreen()
     })
 end
 
+function AnalyticsManager.enteredInGameForStats()
+    analytics.logEvent("EnteredInGameForStats")
+end
+
 ----/////////////////////////////
 ---////-- Screen:Tutorial --////
 --/////////////////////////////
@@ -125,6 +129,23 @@ function AnalyticsManager.enteredTablesScreen()
     analytics.logEvent("Screen:Tables", {
         SessionCounter = UserData.session
     })
+end
+
+----/////////////////////////
+---///-- Screen:Videos --///
+--/////////////////////////
+function AnalyticsManager.enteredVideosScreen()
+    analytics.logEvent("Screen:Videos", {
+        SessionCounter = UserData.session
+    })
+end
+
+function AnalyticsManager.watchedAVideo()
+    analytics.logEvent("WatchedAVideo")
+end
+
+function AnalyticsManager.touchedAVideo()
+    analytics.logEvent("TouchedAVideo")
 end
 
 ----/////////////////////////////

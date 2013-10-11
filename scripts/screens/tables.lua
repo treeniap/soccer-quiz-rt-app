@@ -4,7 +4,6 @@
 == Time: 12:15
 ==============]]--
 local widget = require "widget"
-require "scripts.widgets.view.top_bar_menu"
 require "scripts.widgets.view.button_open_menu"
 
 TablesScreen = {}
@@ -322,9 +321,25 @@ local function createChampionshipsList(championshipList)
             Server.getChampionshipTable(championship.ranking_url, function(response, status)
                 if status == 200 and response.ranking and response.ranking.entries then
                     --printTable(response)
-                    arrow.table = response.ranking.entries
-                    spinnerDefault:removeSelf()
-                    arrow:lock(false)
+                    if tablesGroup then
+                        arrow.table = response.ranking.entries
+                        spinnerDefault:removeSelf()
+                        arrow:lock(false)
+                        timer.performWithDelay(900, function()
+                            if tablesGroup then
+                                local someOpen
+                                for i = 1, championshipsListGroup.numChildren do
+                                    if championshipsListGroup[i][1].isOpen then
+                                        someOpen = true
+                                    end
+                                end
+                                if not someOpen then
+                                    championshipsListGroup[i][1].isOpen = true
+                                    openBG(championshipsListGroup[i][1])
+                                end
+                            end
+                        end)
+                    end
                 else
                     printTable(response)
                 end
@@ -339,14 +354,8 @@ local function createChampionshipsList(championshipList)
         self.isVisible = true
         for i = 1, self.numChildren do
             transition.from(self[i], {delay = 300, time = 300, y = 50*-i - 50, transition = easeInQuart})
-            if i == 1 then
-                timer.performWithDelay(900, function()
-                    --self[i][1].isOpen = true
-                    --openBG(self[i][1])
-                    unlockScreen()
-                end)
-            end
         end
+        timer.performWithDelay(900, unlockScreen)
         if self.numChildren > 0 then
             AudioManager.playAudio("openCloseMenu", 500)
         end

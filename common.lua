@@ -12,7 +12,7 @@ SCREEN_LEFT     = display.screenOriginX
 SCREEN_RIGHT    = display.contentWidth + (-display.screenOriginX)
 IS_SIMULATOR    = system.getInfo("environment") == "simulator"
 IS_ANDROID      = system.getInfo("platformName") == "Android"
-DEBUG_MODE      = false -- IS_SIMULATOR or true -- TODO test mode
+DEBUG_MODE      = false -- TODO test mode
 MINUTE_DURATION = 60000
 
 function getDeviceName()
@@ -231,9 +231,9 @@ function getTimezoneOffset(ts)
 end
 
 local lfs = require "lfs"
-function hasFile(fileName, dir)
+function hasFile(fileName, dir, baseDir)
     local noError, result = pcall(function()
-        for file in lfs.dir(system.pathForFile(dir or "", system.DocumentsDirectory)) do
+        for file in lfs.dir(system.pathForFile(dir or "", baseDir or system.DocumentsDirectory)) do
             if string.find(file, fileName) then
                 return true
             end
@@ -314,6 +314,18 @@ function scheduleLocalNotification(uctTime, alertTxt, soundFileName)
     --print("scheduleLocalNotification", uctTime, alertTxt)
     --printTable(uctTime)
     return system.scheduleNotification(uctTime, options)
+end
+
+function clearSpace(str)
+    str = string.gsub(str, " ", "")
+    str = string.gsub(str, ">", "")
+    return string.gsub(str, "<", "")
+end
+
+function string.fromhex(str)
+    return (str:gsub('..', function (cc)
+        return string.char(tonumber(cc, 16))
+    end))
 end
 
 -- Monitors memory
