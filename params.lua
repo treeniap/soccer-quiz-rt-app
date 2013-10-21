@@ -6,13 +6,13 @@
 Params = {}
 
 if IS_ANDROID then
-    Params.flurryId = "" -- Android Flurry Id
+    Params.flurryId = "XGRT2ZZZ2NMH87F8BJBB" -- Android Flurry Id
 else
     Params.flurryId = "TYQXPJZ66XM6FRNXZRT2" -- iPhone Flurry Id
 end
 
 if IS_ANDROID then
-    Params.rateId = "" -- Android Bundle Name
+    Params.rateId = "com.welovequiz.chutepremiado" -- Android Bundle Name
 else
     Params.rateId = "670063656" -- App id
 end

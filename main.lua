@@ -1,4 +1,4 @@
-display.setStatusBar(display.HideStatusBar)
+display.setStatusBar(display.DarkStatusBar)
 system.setIdleTimer(false)
 require "Json"
 require "params"
@@ -62,7 +62,7 @@ local function load()
             UserData.showFacebookLogin = true
             UserData:initDemoMode(" ", " ")
         else
-            UserData.showSubscriptionOffer = true
+            UserData.showSubscriptionOffer = UserData:hasToShowSubscriptionPopUp()
             Facebook:init()
         end
     else
@@ -183,7 +183,7 @@ local function onRotation(event)
         if event.type == "portrait" or event.type == "portraitUpsideDown" or event.type == "faceUp" then
             display.setStatusBar(display.DarkStatusBar)
         else
-            display.setStatusBar(display.HideStatusBar)
+            display.setStatusBar(display.HiddenStatusBar)
         end
     end
 end

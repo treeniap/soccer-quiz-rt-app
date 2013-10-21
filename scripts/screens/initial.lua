@@ -447,9 +447,15 @@ function InitialScreen:showUp(onComplete)
                 end)
             elseif UserData.showSubscriptionOffer and not UserData.inventory.subscribed then
                 UserData.showSubscriptionOffer = false
-                require("scripts.widgets.view.initial_pop_up"):new("images/pop_up_subs.png",
+                local imageFileName
+                if IS_ANDROID then
+                    imageFileName = "images/pop_up_subs_android.png"
+                else
+                    imageFileName = "images/pop_up_subs_ios.png"
+                end
+                require("scripts.widgets.view.initial_pop_up"):new(imageFileName,
                 function()
-                    StoreManager.buyThis("com.ffgfriends.chutepremiado.semana")
+                    StoreManager.buyThis("semana")
                     return true
                 end)
             end
@@ -531,7 +537,7 @@ function InitialScreen:new()
 
     createLogo()
 
-    videosBtn = BtnHomeScreen:new(display.contentCenterY - 30, "VÍDEOS", true, function()
+    videosBtn = BtnHomeScreen:new(display.contentCenterY - 30, "GOLS DA RODADA", true, function()
         ScreenManager:show("videos")
         AudioManager.playAudio("hideInitialScreen")
     end)

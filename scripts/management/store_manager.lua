@@ -22,6 +22,7 @@ local validProducts, invalidProducts = {}, {}
 local isStoreInitialized = false
 local isBuying
 local buyListener
+local productPrefix
 
 -----------------------------------------------------------------
 --	                    CALLING FUNCTIONS                      --
@@ -43,28 +44,34 @@ local function transactionCallback(event)
     --storeText.text = storeText.text.."\n"..transaction.state
     log("transactionCallback: Received event ", event.name)
     log("state", transaction.state)
+    log("errorType", transaction.errorType)
+    log("errorString", transaction.errorString)
 
     if transaction.state == "purchased" then
         -- Transaction was successful; unlock/download content now
         log("Transaction successful!")
         log("productIdentifier", transaction.productIdentifier)
-        --log("receipt", transaction.receipt)
-        --log("---------------------------")
-        --log("---------------------------")
-        --log("receipt", Json.Decode(transaction.receipt))
-        --log("---------------------------")
-        --log("---------------------------")
-        --log("originalReceipt", transaction.originalReceipt)
-        --log("---------------------------")
-        --log("---------------------------")
-        --log("originalReceipt", tostring(transaction.originalReceipt))
+        log("signature", transaction.signature)
+        log("identifier", transaction.identifier)
+        log("receipt", transaction.receipt)
+        log("originalReceipt", tostring(transaction.originalReceipt))
         log("transactionIdentifier", transaction.identifier)
         log("date", transaction.date)
 
         if string.find(transaction.productIdentifier, "semana") then
-            local receipt = string.fromhex(clearSpace(transaction.receipt))
-            require("base64")
-            local encodedReceipt = base64.encode(receipt)
+            local encodedReceipt
+            if IS_ANDROID then
+                local noError, receipt = pcall(Json.Decode, transaction.receipt)
+                if noError and receipt then
+                    encodedReceipt = receipt.orders[1].purchaseToken
+                else
+                    return
+                end
+            else
+                local receipt = string.fromhex(clearSpace(transaction.receipt))
+                require("base64")
+                encodedReceipt = base64.encode(receipt)
+            end
             Server:onSubscription(encodedReceipt, function(response, status)
                 if status == 200 then
                     -- The following must be called after transaction is complete.
@@ -83,9 +90,19 @@ local function transactionCallback(event)
             --printTable(response)
             end)
         else
-            local receipt = string.fromhex(clearSpace(transaction.receipt))
-            local mime = require ( "mime" )
-            local encodedReceipt = mime.b64(receipt)
+            local encodedReceipt
+            if IS_ANDROID then
+                local noError, receipt = pcall(Json.Decode, transaction.receipt)
+                if noError and receipt then
+                    encodedReceipt = receipt.orders[1].purchaseToken
+                else
+                    return
+                end
+            else
+                local receipt = string.fromhex(clearSpace(transaction.receipt))
+                require("base64")
+                encodedReceipt = base64.encode(receipt)
+            end
             Server:onPurchase(transaction.productIdentifier, encodedReceipt, function(response, status)
                 if status == 201 then
                     -- The following must be called after transaction is complete.
@@ -104,9 +121,19 @@ local function transactionCallback(event)
     elseif  transaction.state == "restored" then
         -- You'll never reach this transaction state on Android.
         if string.find(transaction.productIdentifier, "semana") then
-            local receipt = string.fromhex(clearSpace(transaction.receipt))
-            require("base64")
-            local encodedReceipt = base64.encode(receipt)
+            local encodedReceipt
+            if IS_ANDROID then
+                local noError, receipt = pcall(Json.Decode, transaction.receipt)
+                if noError and receipt then
+                    encodedReceipt = receipt.orders[1].purchaseToken
+                else
+                    return
+                end
+            else
+                local receipt = string.fromhex(clearSpace(transaction.receipt))
+                require("base64")
+                encodedReceipt = base64.encode(receipt)
+            end
             Server:onSubscription(encodedReceipt, function(response, status)
                 if status == 200 then
                     UserData:setInventory(response)
@@ -185,8 +212,11 @@ function StoreManager.initStore()
     if store.availableStores.apple then
         store.init("apple", transactionCallback)
         timer.performWithDelay(500, setupMyStore)
+        productPrefix = "com.ffgfriends.chutepremiado."
     elseif store.availableStores.google then
         store.init("google", transactionCallback)
+        isStoreInitialized = true
+        productPrefix = "com.welovequiz.chutepremiado."
     end
 end
 
@@ -198,6 +228,7 @@ function StoreManager.buyThis(inappPurchaseId, listener)
     if not isStoreInitialized then
         StoreManager.initStore()
     end
+    inappPurchaseId = productPrefix .. inappPurchaseId
     store.purchase({inappPurchaseId})
 end
 

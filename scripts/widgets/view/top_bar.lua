@@ -31,7 +31,7 @@ function TopBar:createView(isMenu)
     local moreCoinsBtn
     moreCoinsBtn = BtnMoreCoins:new(function()
         moreCoinsBtn:lock(true)
-        StoreManager.buyThis("com.ffgfriends.chutepremiado.pacotedemoedas", function()
+        StoreManager.buyThis("pacotedemoedas", function()
             moreCoinsBtn:lock(false)
         end)
 

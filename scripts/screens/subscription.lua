@@ -72,7 +72,7 @@ local function createButtons()
     end
     local subscribeBtn = PressRelease:new(subscribeGroup, function()
         if not UserData.inventory.subscribed then
-            StoreManager.buyThis("com.ffgfriends.chutepremiado.semana")
+            StoreManager.buyThis("semana")
         end
     end)
 

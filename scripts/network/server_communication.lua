@@ -294,7 +294,8 @@ function networkRequest(_request)
             _request.retries_count = _request.retries_number
         end
         _request.startTime = system.getTimer()
-        network.request(URL, _request.method, serverResponseHandler(_request), _request.post_params)
+        local params = _request.post_params or encode({})
+        network.request(URL, _request.method, serverResponseHandler(_request), params)
     else
         Server.addNetworkStatusListener(function() networkRequest(_request) end)
         native.showAlert("Sem internet!", "Conecte-se a uma boa rede 3G ou Wi-Fi para jogar um jogo inteiro sem interrupções.", { "Tentar novamente" })
@@ -471,6 +472,7 @@ function Server:updateUser(userInfo, userId, listener)
         url = USERS_URL .. "users/" .. userId,
         method = "PUT",
         listener = listener or function(response, status) end,
+        on_no_response = listener,
         retries_number = RETRIES_NUMBER,
         post_params = encode(payload)
     }
@@ -631,7 +633,11 @@ function Server:onSubscription(receipt, listener)
     end
     local payload = {}
     payload.app_id = APP_ID
-    payload.receipt = receipt
+    if IS_ANDROID then
+        payload.purchase_token = receipt
+    else
+        payload.receipt = receipt
+    end
 
     networkRequest{
         name = "onSubscription",
@@ -835,23 +841,19 @@ end
 ---==============================================================---
 function Server.pubnubSubscribe(channel, listener)
     log("pubnubSubscribe - " .. channel or "")
-    if weLovePubnub then
-        weLovePubnub.subscribe(channel)
-    else
-        pubnubObj:subscribe({
-            channel = channel,
-            connect = function()
-            --'Connected to channel '
-            end,
-            callback = function(message)
+    pubnubObj:subscribe({
+        channel = channel,
+        connect = function()
+        --'Connected to channel '
+        end,
+        callback = function(message)
             --printTable(message)
-                pcall(listener, message)
-            end,
-            errorback = function()
-                print("Oh no!!! Dropped 3G Conection!")
-            end
-        })
-    end
+            pcall(listener, message)
+        end,
+        errorback = function()
+            print("Oh no!!! Dropped 3G Conection!")
+        end
+    })
 end
 function Server.pubnubUnsubscribe(channel)
     pubnubObj:unsubscribe({channel = channel})
@@ -877,17 +879,12 @@ end
 function Server.pubnubConnect()
     log("pubnub Connect")
 
-    local noError, errorMessage = pcall(require, "weLovePubnub")
-    if noError then
-        weLovePubnub.connect()
-    else
-        require "pubnub"
-        pubnubObj = pubnub.new({
-            subscribe_key = "sub-c-e2d4b628-fe18-11e2-b670-02ee2ddab7fe",
-            ssl           = false,
-            origin        = "pubsub.pubnub.com"
-        })
-    end
+    require "pubnub"
+    pubnubObj = pubnub.new({
+        subscribe_key = "sub-c-e2d4b628-fe18-11e2-b670-02ee2ddab7fe",
+        ssl           = false,
+        origin        = "pubsub.pubnub.com"
+    })
 end
 
 ---=====================================================---

@@ -53,14 +53,26 @@ local function getPictureFieldName(size)
     return "picture_" .. size .. "_url"
 end
 
-local function getUserPictureUrl(username, size)
+local function getUserPictureUrl(size)
     local picSize = getPictureSize(size)
     return "me/picture?redirect=false&width=" .. picSize .. "&height=" .. picSize
 end
 
-local function request(path, _requestType)
-    requestType = _requestType or path
-    facebook.request(path)
+local function request(pathOrSize, _requestType)
+    requestType = _requestType or pathOrSize
+    if _requestType == REQUEST_TYPE_USER_PIC then
+        facebook.request("me/picture", "GET", {
+            redirect = "false",
+            width = string.format("%i", pathOrSize),
+            height = string.format("%i", pathOrSize)
+        })
+    elseif pathOrSize == REQUEST_TYPE_USER_FRIENDS then
+        facebook.request("me/friends", "GET", {
+            fields = "installed,name"
+        })
+    else
+        facebook.request(pathOrSize)
+    end
 end
 
 local function setUserInfo(info)
@@ -78,7 +90,7 @@ end
 local function setUserPicture(response)
     local imageSize = getPictureSize(tonumber(response.data.width))
     userInfo.facebook_profile[getPictureFieldName(imageSize)] = response.data.url
-    facebookSteps[stepsCount](response) ---> 3, 4, 5
+    facebookSteps[stepsCount]() ---> 3, 4, 5
 end
 
 local function setUserFriends(response)
@@ -244,7 +256,7 @@ end
 
 function Facebook:post()
     requestType = REQUEST_TYPE_POST
-    facebook.showDialog("feed")
+    facebook.showDialog("feed", {})
 end
 
 function Facebook:requestFriends(_friendsListener)
@@ -293,16 +305,16 @@ function Facebook:init(_listener)
             request(REQUEST_TYPE_USER_INFO)
             stepsCount = stepsCount + 1
         end,
-        function(response) ---> 2
-            request(getUserPictureUrl(response.username, "default"), REQUEST_TYPE_USER_PIC)
+        function() ---> 2
+            request(getPictureSize("default"), REQUEST_TYPE_USER_PIC)
             stepsCount = stepsCount + 1
         end,
-        function(response) ---> 3
-            request(getUserPictureUrl(response.username, "2x"), REQUEST_TYPE_USER_PIC)
+        function() ---> 3
+            request(getPictureSize("2x"), REQUEST_TYPE_USER_PIC)
             stepsCount = stepsCount + 1
         end,
-        function(response) ---> 4
-            request(getUserPictureUrl(response.username, "4x"), REQUEST_TYPE_USER_PIC)
+        function() ---> 4
+            request(getPictureSize("4x"), REQUEST_TYPE_USER_PIC)
             stepsCount = stepsCount + 1
         end,
         function() ---> 5

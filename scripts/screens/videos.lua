@@ -189,7 +189,7 @@ local function videoPreviewTouchListener(scrollView)
                             local i = event.index
                             if 1 == i then
                             elseif 2 == i then
-                                StoreManager.buyThis("com.ffgfriends.chutepremiado.semana")
+                                StoreManager.buyThis("semana")
                             end
                         end
                     end

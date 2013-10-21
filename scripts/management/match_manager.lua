@@ -278,7 +278,7 @@ local notifications = {
 local function prepareNotification(uctTime, text)
     local soundFile
     if UserData.attributes.favorite_team_id ~= "" and TeamsAssets[UserData.attributes.favorite_team_id] and TeamsAssets[UserData.attributes.favorite_team_id][2] then
-        soundFile = "sounds/notifications/" .. UserData.attributes.favorite_team_id .. ".m4a"
+        soundFile = AudioManager:getFavoriteTeamSoundFileName()
     end
 
     return scheduleLocalNotification(uctTime, text, soundFile)
@@ -568,13 +568,42 @@ function MatchManager:scheduleNextFavoriteTeamMatch()
 
                         local soundFile = "sounds/aif/16.aif"
                         if TeamsAssets[favoriteTeamId] and TeamsAssets[favoriteTeamId][2] then
-                            soundFile = "sounds/notifications/" .. favoriteTeamId .. ".m4a"
+                            soundFile = AudioManager:getFavoriteTeamSoundFileName()
                         end
 
                         scheduleLocalNotification(convertedStartsAt,
                             "Chegou a hora de " .. matchInfo.home_team.name .. " x " .. matchInfo.guest_team.name ..
                                     ". Venha jogar Chute Premiado e ganhe 5 fichas!",
                             soundFile)
+
+                        --- Video Notification
+                        if UserData.inventory.subscribed then
+                            local matchWeekDay = startsAt:getweekday()
+                            local daysDiff
+                            if matchWeekDay <= 2 or matchWeekDay >= 6 then
+                                daysDiff = 2 - matchWeekDay
+                                if daysDiff < 0 then
+                                    daysDiff = 7 + daysDiff
+                                end
+                            else
+                                daysDiff = 6 - matchWeekDay
+                            end
+                            startsAt:adddays(daysDiff)
+                            local convertedNotificationDate = {
+                                hour = 16,
+                                min = 0,
+                                wday = startsAt:getweekday(),
+                                day = startsAt:getday(),
+                                month = startsAt:getmonth(),
+                                year = startsAt:getyear(),
+                                sec = startsAt:getseconds(),
+                                yday = startsAt:getyearday(),
+                                isdst = false,
+                            }
+                            scheduleLocalNotification(convertedNotificationDate,
+                                "Novos vídeos! Venha assistir os gols da rodada.",
+                                soundFile)
+                        end
                     end
                 end
             end

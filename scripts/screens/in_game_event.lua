@@ -505,7 +505,7 @@ function InGameEvent:create(eventInfo)
                 if "clicked" == event.action then
                     local i = event.index
                     if 1 == i then
-                        StoreManager.buyThis("com.ffgfriends.chutepremiado.pacotedemoedas", function()
+                        StoreManager.buyThis("pacotedemoedas", function()
                             canShowAlert = true
                         end)
                     end

@@ -137,7 +137,7 @@ local function createChampionshipTableView(table, topY)
             maskFile = "images/masks/rankingscreen_" .. maskSize .. "_mask.png",
             hideBackground = true,
             hideScrollBar = true,
-            verticalScrollDisabled = maskSize == "big",
+            --verticalScrollDisabled = maskSize == "big",
             horizontalScrollDisabled = true,
             isBounceEnabled = false
         }

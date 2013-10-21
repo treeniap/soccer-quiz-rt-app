@@ -202,7 +202,7 @@ local function createTwitterBtn(goalData)
     return PressRelease:new(BtnTwitter, function(self, event)
         local twitter
         local function post()
-            twitter:showPopup(createText(goalData), "@chutepremiado")
+            twitter:showPopup(createText(goalData), "#chutepremiado")
         end
         local listener = function( event )
         --printTable(event)
@@ -330,6 +330,9 @@ function Goal:new(goalData)
     local fbBtn = createFacebookBtn(goalData)
     goalGroup:insert(fbBtn)
     local twitterBtn = createTwitterBtn(goalData)
+    if IS_ANDROID then
+        twitterBtn.alpha = 0
+    end
     goalGroup:insert(twitterBtn)
 
     function goalGroup:show()

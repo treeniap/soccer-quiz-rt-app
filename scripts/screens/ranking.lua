@@ -475,7 +475,7 @@ local function getWeekDates(days)
     local currentDate = getCurrentDate():adddays(days)
     local rankingWeekDay = currentDate:getweekday() == 1 and 6 or currentDate:getweekday() - 2
     local rankingWeekFirstDay = currentDate:copy():adddays(-rankingWeekDay):fmt("%d/%m")
-    return currentDate:adddays(7 - rankingWeekDay):fmt(rankingWeekFirstDay .. " a %d/%m")
+    return currentDate:adddays(6 - rankingWeekDay):fmt(rankingWeekFirstDay .. " a %d/%m")
 end
 
 local function createRankingsList()

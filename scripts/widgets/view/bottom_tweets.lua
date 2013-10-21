@@ -107,7 +107,7 @@ local function createReplyBtn(bottomTweets)
     return PressRelease:new(BtnReply, function()
         local twitter
         local function post()
-            twitter:showPopup("@" .. bottomTweets.replyAccount, "@chutepremiado")
+            twitter:showPopup("@" .. bottomTweets.replyAccount, "#chutepremiado")
         end
         local listener = function( event )
             if event.phase == "authorised" then
@@ -150,7 +150,7 @@ local function createRetweetBtn(bottomTweets)
     return PressRelease:new(BtnRetweet, function()
         local twitter
         local function post()
-            local retweetedPost = bottomTweets.tweet
+            local retweetedPost = "RT " .. bottomTweets.tweet
             if bottomTweets.tweet:len() > 140 then
                 retweetedPost = bottomTweets.tweet:sub(1, 137)
                 retweetedPost = retweetedPost .. "..."
@@ -211,14 +211,16 @@ function BottomTweets:createView(isInitialScreen)
     self:insert(lineBlack)
     self:insert(lineWhite)
 
-    local replyBtn = createReplyBtn(self)
-    replyBtn.x = lineBlack.x + replyBtn.width*0.5
-    replyBtn.y = lineBlack.y - replyBtn.height*0.5
-    self:insert(replyBtn)
-    local retweetBtn = createRetweetBtn(self)
-    retweetBtn.x = lineBlack.x + retweetBtn.width*0.5
-    retweetBtn.y = lineBlack.y + retweetBtn.height*0.5
-    self:insert(retweetBtn)
+    if not IS_ANDROID then
+        local replyBtn = createReplyBtn(self)
+        replyBtn.x = lineBlack.x + replyBtn.width*0.5
+        replyBtn.y = lineBlack.y - replyBtn.height*0.5
+        self:insert(replyBtn)
+        local retweetBtn = createRetweetBtn(self)
+        retweetBtn.x = lineBlack.x + retweetBtn.width*0.5
+        retweetBtn.y = lineBlack.y + retweetBtn.height*0.5
+        self:insert(retweetBtn)
+    end
 end
 
 function BottomTweets:new()

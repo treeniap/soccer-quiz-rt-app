@@ -108,9 +108,15 @@ function UserData:init(params, friends_ids)
 
     if self.demoModeOn and params.facebook_profile.id and self.userId ~= "empty" then
         local function updateUser()
-            Server:updateUser(self.info, self.userId, function()
-                Server:checkUser(self.info)
-                UserData:shutOffDemoMode()
+            Server:updateUser(self.info, self.userId, function(response, status)
+                if status == 500 then
+                    UserData:shutOffDemoMode()
+                    self.userId = "empty"
+                    Server:checkUser(self.info)
+                else
+                    Server:checkUser(self.info)
+                    UserData:shutOffDemoMode()
+                end
             end)
         end
         self:updateFriends(friends_ids, updateUser)
@@ -145,8 +151,12 @@ function UserData:checkRating()
                                     AnalyticsManager.rating(true)
                                     self.rating = 3
                                     self:save()
-                                    local url = "https://itunes.apple.com/us/app/chute-premiado-create-stake/id670063656?mt=8"
-
+                                    local url
+                                    if IS_ANDROID then
+                                        url = "market://details?id=" .. Params.rateId
+                                    else
+                                        url = "https://itunes.apple.com/us/app/chute-premiado-create-stake/id" .. Params.rateId .. "?mt=8"
+                                    end
                                     system.openURL(url)
                                 elseif 2 == i then
                                     AnalyticsManager.rating(false)
@@ -166,6 +176,7 @@ function UserData:checkTutorial()
     self.session = 1
     self.rating = 0
     self.lastNotificationDate = getCurrentDate()
+    self.popupSubsDate = getCurrentDate()
     self.brightness = false
     self.demoModeOn = false
     self.userId = "empty"
@@ -187,6 +198,8 @@ function UserData:checkTutorial()
                 self.rating = tonumber(line:sub(8))
             elseif(line:sub(1, 21) == "lastNotificationDate=") then
                 self.lastNotificationDate = date(line:sub(22))
+            elseif(line:sub(1, 14) == "popupSubsDate=") then
+                self.popupSubsDate = date(line:sub(15))
             elseif(line:sub(1, 11) == "brightness=") then
                 self.brightness = (tonumber(line:sub(12)) == 1)
             elseif(line:sub(1, 11) == "demoModeOn=") then
@@ -219,12 +232,24 @@ function UserData:save()
     file:write("\nsession=" .. self.session or 1)
     file:write("\nrating=" .. self.rating or 0)
     file:write("\nlastNotificationDate=" .. self.lastNotificationDate or getCurrentDate())
+    file:write("\npopupSubsDate=" .. self.popupSubsDate or getCurrentDate())
     file:write("\nbrightness=" .. (self.brightness and 1 or 0))
     file:write("\ndemoModeOn=" .. (self.demoModeOn and 1 or 0))
     file:write("\nuserId=" .. (self.userId or "empty"))
     file:write("\nfavoriteTeamId=" .. (self.favoriteTeamId or " "))
 
     io.close(file)
+end
+
+function UserData:hasToShowSubscriptionPopUp()
+    local minutesToNewPopUp = date.diff(getCurrentDate(), self.popupSubsDate):spanminutes()
+    if minutesToNewPopUp <= 0 then
+        return false
+    end
+    self.popupSubsDate = getCurrentDate():adddays(6)
+    self.popupSubsDate = self.popupSubsDate:addhours(20)
+    self:save()
+    return true
 end
 
 ---//////////////////////////---

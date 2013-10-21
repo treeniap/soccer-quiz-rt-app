@@ -182,7 +182,7 @@ function QuestionsBar:createView()
         if not button.hasPosted and not MatchManager.finalResultInfo then
             local twitter
             local function post()
-                twitter:showPopup("", "@chutepremiado")
+                twitter:showPopup("", "#chutepremiado")
             end
             local listener = function( event )
             --printTable(event)
@@ -207,7 +207,7 @@ function QuestionsBar:createView()
             local function post()
                 twitter:showPopup("Ganhei " .. MatchManager.finalResultInfo.matchPoints ..
                         " pontos no jogo " .. MatchManager:getTeamName(true) .. " x " ..
-                        MatchManager:getTeamName(false) .. ". " .. (MatchResultPostTxt or " "), "@chutepremiado")
+                        MatchManager:getTeamName(false) .. ". " .. (MatchResultPostTxt or " "), "#chutepremiado")
             end
             local listener = function( event )
                 --printTable(event)
@@ -232,6 +232,9 @@ function QuestionsBar:createView()
     twitterBtn.x = 77
     twitterBtn.y = bar.y - 17
     twitterBtn.isVisible = false
+    if IS_ANDROID then
+        twitterBtn.alpha = 0
+    end
     self:insert(twitterBtn)
     --twitterBtn:addEventListener("touch", dragAndDrop)
 

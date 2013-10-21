@@ -7,7 +7,7 @@ AudioManager = {}
 
 local extName = "aif"
 if IS_ANDROID then
-    extName = "aif"
+    extName = "ogg"
 end
 
 local SUPPORTERS_CHANNEL = 1
@@ -92,6 +92,10 @@ function AudioManager.playStopBetAnswerWait(play)
         end
         timerBetAnswerWait = nil
     end
+end
+
+function AudioManager:getFavoriteTeamSoundFileName()
+    return "sounds/notifications/" .. UserData.attributes.favorite_team_id .. ".m4a"
 end
 
 return AudioManager
