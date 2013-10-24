@@ -24,63 +24,155 @@ local friendsIdBadgesNames
 
 local lastScore
 
-function InGameScreen:updateBottomRanking(listener)
-    local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
-    Server:getPlayersRank(userAndFriendsIds, MatchManager:getMatchId(), function(response, status)
-        --printTable(response)
-        local ranking
-        if status == 200 and response then
-            ranking = response.scores
-            --check if all friends and the user are in the rank otherwise add then
-            for i, id in ipairs(userAndFriendsIds) do
-                local isInTheRanking
-                for i, player in ipairs(ranking) do
-                    if player.user_id == id then
-                        isInTheRanking = true
+local function getUserPhotoUrl(user)
+    local url
+    if user.facebook_profile then
+        local imageSize = getImagePrefix()
+        if imageSize == "default" then
+            imageSize = ""
+        else
+            imageSize = imageSize .. "_"
+        end
+        if user.facebook_profile["picture_" .. imageSize .. "url"] then
+            url = user.facebook_profile["picture_" .. imageSize .. "url"]
+        else
+            if user.facebook_profile["picture_url"] then
+                url = user.facebook_profile["picture_url"]
+            elseif user.facebook_profile["picture_2x_url"] then
+                url = user.facebook_profile["picture_2x_url"]
+            else
+                url = user.facebook_profile["picture_4x_url"]
+            end
+        end
+    end
+    return url
+end
+
+local function getUsersPhotoRanking(ids, players, ranking, _listener)
+    Server:getUsers(ids, false, function(response, status)
+        local count = 0
+        for i, ranker in ipairs(ranking) do
+            for k, user in pairs(response.users) do
+                if ranker.user_id == user.id then
+                    --printTable(user)
+                    local photoUrl = getUserPhotoUrl(user)
+                    if photoUrl and count < 5 then
+                        players[user.id].photoUrl = photoUrl
+                        players[user.id].photo = getPictureFileName(user.id)
+                        count = count + 1
+                    else
+                        players[user.id] = nil
                     end
                 end
-                if not isInTheRanking then
-                    ranking[#ranking + 1] = {
-                        user_id = id,
-                        score = 0
-                    }
+            end
+        end
+        _listener(players)
+    end)
+end
+
+local function getMatchTopRanking(_listener)
+    Server:getTopRanking(MatchManager:getMatchId(), function(response, status)
+        local ranking
+        local players = {}
+        local playersIds = {}
+        if status == 200 and response then
+            ranking = response.scores
+            for i, player in ipairs(ranking) do
+                players[player.user_id] = {id = player.user_id, score = player.score}
+                if UserData.info.user_id == player.user_id then
+                    players[player.user_id].isPlayer = true
+                end
+                playersIds[#playersIds + 1] = player.user_id
+            end
+            getUsersPhotoRanking(playersIds, players, ranking, function(_players)
+                _listener(_players)
+            end)
+        else
+            _listener(players)
+        end
+    end)
+end
+
+local function getUserAndFriendsRanking(_listener)
+    Facebook:requestFriends(function()
+        if not UserData.info.friendsIds then
+            UserData.info.friendsIds = {}
+        end
+        local userAndFriendsIds = table.copy({UserData.info.user_id}, UserData.info.friendsIds)
+        Server:getPlayersRank(userAndFriendsIds, MatchManager:getMatchId(), function(response, status)
+            local ranking
+            local players = {}
+            if status == 200 and response then
+                ranking = response.scores
+                for i, player in ipairs(ranking) do
+                    players[player.user_id] = {id = player.user_id, score = player.score, photo = getPictureFileName(player.user_id) }
+                    if UserData.info.user_id == player.user_id then
+                        players[player.user_id].isPlayer = true
+                    end
                 end
             end
-        elseif status == 404 then
-            ranking = {}
-            for i, id in ipairs(userAndFriendsIds) do
-                ranking[#ranking + 1] = {
-                    user_id = id,
-                    score = 0
-                }
+            if not players[UserData.info.user_id] then
+                players[UserData.info.user_id] = {isPlayer = true, id = UserData.info.user_id, score = 0, photo = getPictureFileName(UserData.info.user_id)}
+            end
+            _listener(players)
+        end)
+    end)
+end
+
+local function setTeams(players, _listener)
+    local playersIds = {}
+    for k, v in pairs(players) do
+        playersIds[#playersIds + 1] = k
+    end
+
+    Server:getPlayersInventories(playersIds, function(response)
+        if response then
+            for k, v in pairs(response) do
+                players[k].teamBadge = getLogoFileName(v.favorite_team_id, 1)
             end
         else
-            if listener then
-                listener()
+            for k, v in pairs(players) do
+                players[k].teamBadge = "none"
             end
-            return
         end
-        if not friendsIdBadgesNames then
-            friendsIdBadgesNames = {}
-        end
-        for i, player in ipairs(ranking) do
-            if player.user_id == UserData.info.user_id then
-                player.isPlayer = true
-                player.photo = UserData:getUserPicture()
-                player.teamBadge = getLogoFileName(UserData.attributes.favorite_team_id, 1)
+        _listener(players)
+    end)
+end
+
+local function mountRanking(_listener)
+    getMatchTopRanking(function(topPlayers)
+
+        getUserAndFriendsRanking(function(userAndFriends)
+
+            local bottomRankingPlayers = topPlayers
+            for k, _userOrFriend in pairs(userAndFriends) do
+                if #topPlayers == 0 or not table.indexOf(topPlayers, k) then
+                    bottomRankingPlayers[k] = _userOrFriend
+                end
+            end
+            setTeams(bottomRankingPlayers, _listener)
+        end)
+    end)
+end
+
+function InGameScreen:updateBottomRanking(listener)
+    mountRanking(function(players)
+        local ranking = {}
+        for k, player in pairs(players) do
+            if #ranking == 0 then
+                ranking[#ranking + 1] = player
             else
-                player.photo = getPictureFileName(player.user_id)
-                if friendsIdBadgesNames[player.user_id] then
-                    player.teamBadge = friendsIdBadgesNames[player.user_id]
-                else
-                    Server:getInventory(player.user_id, function(response)
-                        if not response then
-                            player.teamBadge = "none"
-                        else
-                            friendsIdBadgesNames[player.user_id] = getLogoFileName(response.inventory.attributes.favorite_team_id, 1)
-                            player.teamBadge = friendsIdBadgesNames[player.user_id]
-                        end
-                    end)
+                local addedToRanking
+                for i = #ranking, 1, -1 do
+                    local ranker = ranking[i]
+                    if ranker.score > player.score then
+                        table.insert(ranking, i + 1, player)
+                        addedToRanking = true
+                        break
+                    end
+                end
+                if not addedToRanking then
+                    table.insert(ranking, 1, player)
                 end
             end
         end
@@ -247,30 +339,18 @@ function InGameScreen:goal()
     --questionsBar:addEvent()
 end
 
-function InGameScreen:showUp(onComplete)
-    --local ranking = {}
-    --for i, friendId in ipairs(UserData.info.facebook_profile.friends_ids) do
-    --    ranking[i] = {}
-    --    ranking[i].photo = getPictureFileName(friendId)
-    --    --ranking[i].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
-    --    ranking[i].score = (14 - i)*999
-    --end
-    --
-    --local playerPos = #UserData.info.facebook_profile.friends_ids + 1
-    --ranking[playerPos] = {}
-    --ranking[playerPos].photo = getPictureFileName(UserData.info.facebook_profile.id)
-    ----ranking[playerPos].team_badge = "pictures/clubes_" .. teams[i] .. "_p.png"
-    --ranking[playerPos].score = (14 - playerPos)*999
-    --ranking[playerPos].isPlayer = true
+function InGameScreen:updateTime()
+    if topBar then
+        topBar:updateTime()
+    end
+end
 
+function InGameScreen:showUp(onComplete)
     bottomRanking:showUp(function()
         InGameScreen:updateBottomRanking()
         topBar:showUp()
         onComplete()
     end)
-
-    topBar:updateMatchTeams(MatchManager:getTeamLogoImg(true, 1), MatchManager:getTeamLogoImg(false, 1))
-    --Server:getPlayerRanking(nil, checkScore)
 end
 
 function InGameScreen:hide(onComplete)

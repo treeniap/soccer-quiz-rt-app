@@ -53,14 +53,14 @@ settings =
                 CFBundleURLTypes =
                 {
                     {
-                        CFBundleURLName = "com.ffgfriends.chutepremiado",
+                        CFBundleURLName = "com.power.chute",
                         CFBundleURLSchemes =
                         {
                             "fb371360562986250",
                         }
                     }
                 },
-                CFBundleIdentifier = "com.ffgfriends.chutepremiado",
+                CFBundleIdentifier = "com.power.chute",
             },
             components = {}	-- no openfeint
 	}

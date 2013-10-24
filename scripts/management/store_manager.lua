@@ -14,8 +14,8 @@ local store = require("store")
 --       DEFINING PROPERTIES TO BE USED ALONG THE GAME         --
 -----------------------------------------------------------------
 local productsIDs = {
-    "com.ffgfriends.chutepremiado.pacotedemoedas",
-    "com.ffgfriends.chutepremiado.semana"
+    "com.power.chute.pacotedemoedas",
+    "com.power.chute.semana"
 }
 local validProducts, invalidProducts = {}, {}
 
@@ -212,7 +212,7 @@ function StoreManager.initStore()
     if store.availableStores.apple then
         store.init("apple", transactionCallback)
         timer.performWithDelay(500, setupMyStore)
-        productPrefix = "com.ffgfriends.chutepremiado."
+        productPrefix = "com.power.chute."
     elseif store.availableStores.google then
         store.init("google", transactionCallback)
         isStoreInitialized = true

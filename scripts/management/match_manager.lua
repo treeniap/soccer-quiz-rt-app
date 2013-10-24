@@ -135,6 +135,9 @@ local function postEnteredMatchOnFB(matchId)
 end
 
 function MatchManager:addListener(_listener)
+    if not MatchManager.initListeners then
+        MatchManager.initListeners = {}
+    end
     MatchManager.initListeners[#MatchManager.initListeners + 1] = _listener
 end
 
@@ -149,7 +152,9 @@ function MatchManager:callListener()
 end
 
 function MatchManager:init()
-    MatchManager.initListeners = {}
+    if not MatchManager.initListeners then
+        MatchManager.initListeners = {}
+    end
     MatchManager:loadTeamsList(function()
     --LoadingBall:newStage() --- 6
         Server:downloadTeamsLogos({sizes = "mini"})
@@ -394,6 +399,7 @@ function MatchManager:getMatchTimeStatus()
 
     if CurrentMatch.period and CurrentMatch.period ~= period then
         if period == "finished" then
+            UserData:checkRating()
             onMatchOver()
         else
             if period == "break" then

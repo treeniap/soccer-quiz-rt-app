@@ -14,14 +14,6 @@ local topBarGroup, menuFoilGroup
 local totalCoins
 local matchTeams
 
-local function createMatchViewer()
-    local matchTeamsGroup = display.newGroup()
-    local vsText = display.newText(matchTeamsGroup, "VS", 0, 0, "MyriadPro-BoldCond", 16)
-    vsText.x = 0
-    vsText.y = 0
-    return matchTeamsGroup
-end
-
 function TopBar:createView(isMenu)
     local bg = TextureManager.newImage("stru_header", self)
     bg.x = display.contentCenterX
@@ -55,30 +47,34 @@ function TopBar:createView(isMenu)
 end
 
 function TopBar:updateTotalCoins(coins)
-    totalCoins:update(coins)
+    if totalCoins then
+        totalCoins:update(coins)
+    end
 end
 
-function TopBar:updateMatchTeams(team1BadgeDir, team2BadgeDir)
-    if not matchTeams then
-        matchTeams = createMatchViewer()
-        matchTeams.x = 85
-        matchTeams.y = -8
-        self:insert(matchTeams)
+function TopBar:updateTime()
+
+    local status, time = MatchManager:getMatchTimeStatus()
+    if time then
+        if time > 45 then
+            time = "45'+/"
+        else
+            time = time .. "'/"
+        end
+        time = time .. status:sub(1, 1) .. "T"
     else
-        if matchTeams.team1Badge then
-            matchTeams.team1Badge:removeSelf()
-        end
-        if matchTeams.team2Badge then
-            matchTeams.team2Badge:removeSelf()
-        end
+        time = " "
     end
-    local BADGE_SIZE = 32
-    matchTeams.team1Badge = TextureManager.newLogo(team1BadgeDir, BADGE_SIZE, matchTeams)
-    matchTeams.team1Badge.x = -BADGE_SIZE
-    matchTeams.team1Badge.y = -4
-    matchTeams.team2Badge = TextureManager.newLogo(team2BadgeDir, BADGE_SIZE, matchTeams)
-    matchTeams.team2Badge.x = BADGE_SIZE
-    matchTeams.team2Badge.y = -4
+
+    if matchTeams then
+        matchTeams.text = time
+        matchTeams:setReferencePoint(display.CenterReferencePoint)
+    else
+        matchTeams = display.newText(time, 0, 0, "MyriadPro-BoldCond", 28)
+        self:insert(matchTeams)
+    end
+    matchTeams.x = 85
+    matchTeams.y = -8
 end
 
 function TopBar:showUp(onComplete)

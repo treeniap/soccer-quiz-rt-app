@@ -11,52 +11,43 @@ InGameScore.defaultState = true
 
 local function createChampionshipInfo()
     local championshipRound, championshipName, championshipBadge = MatchManager:getChampionshipInfo()
-    local championshipGroup = display.newGroup()
-    if championshipBadge then
-        local cBadge = TextureManager.newImageRect(championshipBadge, 20, 20, championshipGroup)
-        cBadge.x = 0
-        cBadge.y = 0
-    end
-    local cName = display.newText(championshipGroup, championshipName .. " - " .. championshipRound, 0, 0, "MyriadPro-BoldCond", 10)
-    cName.x = 0
-    cName.y = 10 + 9
-    cName:setTextColor(128)
-    --local cRound = display.newText(championshipGroup, championshipRound, 0, 0, "MyriadPro-BoldCond", 10)
-    --cRound.x = 0
-    --cRound.y = cName.y + 12
-    --cRound:setTextColor(128)
-    return championshipGroup
+    local cName = display.newText(championshipName .. " - " .. championshipRound, 0, 0, "MyriadPro-Cond", 10)
+    cName:setTextColor(96)
+    cName:setReferencePoint(display.CenterLeftReferencePoint)
+    return cName
 end
 
-local function createLocationAndReferee()
+local function createLocation()
     local info = MatchManager:getStadiumRefereeInfo()
-    local locationRefereeGroup = display.newGroup()
-    local location = display.newText(locationRefereeGroup, info.stadium .. ", " .. info.city .. " - " .. info.state .. ", " .. info.country, 0, 0, "MyriadPro-BoldCond", 10)
-    location.x = 0
-    location.y = 10 + 9
-    location:setTextColor(128)
-    local referee = display.newText(locationRefereeGroup, "Árbitro: " .. info.referee, 0, 0, "MyriadPro-BoldCond", 10)
-    referee.x = 0
-    referee.y = location.y + 12
-    referee:setTextColor(128)
-    return locationRefereeGroup
+    local location = display.newText(info.stadium .. ", " .. info.city .. " - " .. info.state .. ", " .. info.country, 0, 0, "MyriadPro-Cond", 10)
+    location:setTextColor(96)
+    location:setReferencePoint(display.CenterLeftReferencePoint)
+    return location
+end
+
+local function createReferee()
+    local info = MatchManager:getStadiumRefereeInfo()
+    local referee = display.newText("Árbitro: " .. info.referee, 0, 0, "MyriadPro-Cond", 10)
+    referee:setTextColor(96)
+    referee:setReferencePoint(display.CenterLeftReferencePoint)
+    return referee
 end
 
 local function createScore(homeTeamBadge, awayTeamBadge)
     local scoreGroup = display.newGroup()
     --- Home Team Badge
-    local badgeScale = 96--(CONTENT_WIDTH <= 320) and 96 or 128
+    local badgeScale = 48 --(CONTENT_WIDTH <= 320) and 96 or 128
     local htBadge = TextureManager.newLogo(homeTeamBadge, badgeScale, scoreGroup)
-    htBadge.x = -106 - (display.screenOriginX*-0.4)
+    htBadge.x = -54 - (display.screenOriginX*-0.4)
     htBadge.y = 0
     --- Away Team Badge
     local atBadge = TextureManager.newLogo(awayTeamBadge, badgeScale, scoreGroup)
-    atBadge.x = 106 + (display.screenOriginX*-0.4)
+    atBadge.x = 54 + (display.screenOriginX*-0.4)
     atBadge.y = 0
     --- Placar
-    local placar = display.newText(scoreGroup, "-", 0, 0, "MyriadPro-BoldCond", 72)
+    local placar = display.newText(scoreGroup, "-", 0, 0, "MyriadPro-BoldCond", 40)
     placar.x = 0
-    placar.y = 20
+    placar.y = 10
     placar:setTextColor(0)
     function InGameScore:updateScore()
         placar.text = MatchManager:getTeamScore(true) .. " - " .. MatchManager:getTeamScore(false)
@@ -66,14 +57,14 @@ end
 
 local function createTeamsNames()
     local teamsNamesGroup = display.newGroup()
-    local homeTeamName = display.newText(teamsNamesGroup, string.utf8upper(MatchManager:getTeamName(true)), 0, 0, "MyriadPro-BoldCond", 16)
-    homeTeamName.x = -106 - (display.screenOriginX*-0.25)
+    local homeTeamName = display.newText(teamsNamesGroup, string.utf8upper(MatchManager:getTeamName(true)), 0, 0, "MyriadPro-Cond", 10)
+    homeTeamName.x = -54 - (display.screenOriginX*-0.25)
     homeTeamName:setTextColor(0)
     --local vs = display.newText(teamsNamesGroup, " VS ", 0, 0, "MyriadPro-BoldCond", 16)
     --vs.x = homeTeamName.width*0.5 + vs.width*0.5
     --vs:setTextColor(128)
-    local awayTeamName = display.newText(teamsNamesGroup, string.utf8upper(MatchManager:getTeamName(false)), 0, 0, "MyriadPro-BoldCond", 16)
-    awayTeamName.x = 106 + (display.screenOriginX*-0.25)
+    local awayTeamName = display.newText(teamsNamesGroup, string.utf8upper(MatchManager:getTeamName(false)), 0, 0, "MyriadPro-Cond", 10)
+    awayTeamName.x = 54 + (display.screenOriginX*-0.25)
     awayTeamName:setTextColor(0)
     --local scale = teamsNamesGroup.width > CONTENT_WIDTH and CONTENT_WIDTH/teamsNamesGroup.width or 1
     --teamsNamesGroup.xScale = scale
@@ -81,45 +72,109 @@ local function createTeamsNames()
     return teamsNamesGroup
 end
 
-local function createMatchTimer()
-    local timerGroup = display.newGroup()
-    local matchMinutes = display.newText(timerGroup, " ", 0, 0, "MyriadPro-BoldCond", 64)
-    matchMinutes.x = getFontLettersSize("'")*0.5
-    matchMinutes.y = -5
-    matchMinutes:setTextColor(0)
-    --[[
-    local min = display.newText(timerGroup, "'", 0, 0, "MyriadPro-BoldCond", 80)
-    min.x = matchMinutes.width*0.5 + min.width*0.5
-    min.y = 0
-    min:setTextColor(0)
-    --]]
-    local matchTime = display.newText(timerGroup, " ", 0, 0, "MyriadPro-BoldCond", 24)
-    matchTime.x = 0
-    matchTime.y = 27
-    matchTime:setTextColor(128)
-    function InGameScore:updateTime()
-        local status, time = MatchManager:getMatchTimeStatus()
-        if time then
-            if time > 45 then
-                matchMinutes.text = "45'+"
-            else
-                matchMinutes.text = time .. "'"
-            end
-        else
-            matchMinutes.text = " "
+
+function InGameScore:updateLive()
+    Server.getLive(function(response, status)
+        if self.isDestroyed then
+            return
         end
-        matchTime.text = status
-        matchMinutes:setReferencePoint(display.CenterReferencePoint)
-        matchMinutes.x = getFontLettersSize("'")*0.5
-        matchTime:setReferencePoint(display.CenterReferencePoint)
-        matchTime.x = 0
-    end
-    return timerGroup
+        if self.liveIndex >= #response.live_feed then
+            return
+        end
+        self.liveIndex = #response.live_feed
+        if self.live then
+            self.live:removeSelf()
+        end
+        local widget = require "widget"
+        -- Create a ScrollView
+        local _maskFile = "images/masks/live_mask"
+        if display.screenOriginY < 0 then
+            _maskFile = _maskFile .. "_iphone5"
+        end
+        _maskFile = _maskFile .. ".png"
+
+        local liveScroll = widget.newScrollView
+            {
+                width = 320,
+                height = 178 + (display.screenOriginY*-2),
+                maskFile = _maskFile,
+                hideBackground = true,
+                hideScrollBar = true,
+                horizontalScrollDisabled = true,
+                friction = 0.8,
+                listener = function(event)
+                    if event.phase == "moved" then
+                        local dX = math.abs(event.x - event.xStart)
+                        local dY = math.abs(event.y - event.yStart)
+                        -- If our finger has moved more than the desired range
+                        if dY < 25 and dX > 50 then
+                            InGameScreen:getStateManager().touchHandler:takeFocus(event)
+                        end
+                    end
+                end
+            }
+        local yPos = 2
+        for i = #response.live_feed, 1, -1 do
+            local v = response.live_feed[i]
+            local TIME_X = 22
+            local lineStartY = yPos
+
+            liveScroll:insert(TextureManager.newHorizontalLine(display.contentCenterX, yPos, display.contentWidth*1.05))
+
+            local descTxt = display.newText(v.description, 0, 0, display.contentWidth*.7, 0, "MyriadPro-Regular", 14)
+            descTxt:setReferencePoint(display.CenterLeftReferencePoint)
+            descTxt:setTextColor(0)
+            descTxt.x = 52
+            yPos = yPos + descTxt.height*.5 + 12
+            descTxt.y = yPos
+            liveScroll:insert(descTxt)
+
+            if v.key and TextureManager.checkFrameIndex("tag_" .. v.key) then
+                local tag = TextureManager.newImage("tag_" .. v.key)
+                tag.x = 300
+                tag.y = yPos
+                liveScroll:insert(tag)
+            end
+
+            local myCircle = display.newCircle(TIME_X, yPos, 12)
+            myCircle:setFillColor(0, 0)
+            myCircle.strokeWidth = 3
+            myCircle:setStrokeColor(135)
+            liveScroll:insert(myCircle)
+
+            local minTxt = display.newText(v.minute or "", 0, 0, "MyriadPro-BoldCond", 16)
+            minTxt:setTextColor(135)
+            minTxt.x = TIME_X
+            minTxt.y = yPos + 2
+            liveScroll:insert(minTxt)
+
+            local lineTop = display.newLine(TIME_X, lineStartY, TIME_X, yPos - 12)
+            lineTop:setColor(135)
+            lineTop.width = 3
+            liveScroll:insert(lineTop)
+
+            lineStartY = yPos + 12
+            yPos = yPos + descTxt.height*.5 + 12
+
+            local lineBottom = display.newLine(TIME_X, lineStartY, TIME_X, yPos)
+            lineBottom:setColor(135)
+            lineBottom.width = 3
+            liveScroll:insert(lineBottom)
+        end
+        liveScroll:insert(TextureManager.newHorizontalLine(display.contentCenterX, yPos, display.contentWidth*1.05))
+
+
+        liveScroll.x = 0
+        liveScroll.y = 154 + (display.screenOriginY)
+        self.live = liveScroll
+        self:insert(liveScroll)
+        self.timerLive = timer.performWithDelay(60000, function() self:updateLive() end)
+    end)
 end
 
 function InGameScore:update()
     InGameScore:updateScore()
-    InGameScore:updateTime()
+    InGameScreen:updateTime()
 end
 
 local function onGoal(response, scoringTeam, scoringTeamId, isFavoriteTeamAgainstGoal)
@@ -181,7 +236,11 @@ function InGameScore:forceUpdateMatch()
     if self.timer then
         timer.cancel(self.timer)
     end
+    if self.timerLive then
+        timer.cancel(self.timerLive)
+    end
     self:updateMatch()
+    self:updateLive()
 end
 
 function InGameScore:toFront()
@@ -198,38 +257,44 @@ function InGameScore:create()
        infoGroup[k] = v
     end
 
-    --- Championship
-    local championshioInfo = createChampionshipInfo()
-    championshioInfo.x = display.contentCenterX
-    championshioInfo.y = 88 + (display.screenOriginY*0.5)
-    infoGroup:insert(championshioInfo)
+    infoGroup.liveIndex = 0
 
-    --- Location and Referee
-    local locationAndReferee = createLocationAndReferee()
-    locationAndReferee.x = display.contentCenterX
-    locationAndReferee.y = championshioInfo.y + 12
-    infoGroup:insert(locationAndReferee)
+    local minutoaminutoTxt = display.newText(infoGroup, "MINUTO A MINUTO", 8, 88 + (display.screenOriginY), "MyriadPro-BoldCond", 16)
+    minutoaminutoTxt:setTextColor(32)
+    minutoaminutoTxt:setReferencePoint(display.CenterLeftReferencePoint)
+
+    --- Championship
+    local championshipInfo = createChampionshipInfo()
+    championshipInfo.x = 8
+    championshipInfo.y = minutoaminutoTxt.y + 14
+    infoGroup:insert(championshipInfo)
+
+    --- Location
+    local locationInfo = createLocation()
+    locationInfo.x = 8
+    locationInfo.y = championshipInfo.y + 12
+    infoGroup:insert(locationInfo)
+
+    --- Referee
+    local refereeInfo = createReferee()
+    refereeInfo.x = 8
+    refereeInfo.y = locationInfo.y + 12
+    infoGroup:insert(refereeInfo)
 
     --- Score
-    local score = createScore(MatchManager:getTeamLogoImg(true, 3), MatchManager:getTeamLogoImg(false, 3))
-    score.x = display.contentCenterX
-    score.y = 184
+    local score = createScore(MatchManager:getTeamLogoImg(true, 2), MatchManager:getTeamLogoImg(false, 2))
+    score.x = display.contentWidth*.75
+    score.y = championshipInfo.y
     infoGroup:insert(score)
 
     --- Teams Names
     local teamsNames = createTeamsNames()
-    --teamsNames:setReferencePoint(display.CenterReferencePoint)
-    teamsNames.x = display.contentCenterX
-    teamsNames.y = score.y + score.height*0.5 + (display.screenOriginY*-0.25)
+    teamsNames.x = display.contentWidth*.75
+    teamsNames.y = score.y + score.height*0.45
     infoGroup:insert(teamsNames)
 
-    --- Match Timer
-    local matchTimer = createMatchTimer()
-    matchTimer.x = display.contentCenterX
-    matchTimer.y = 290 + (display.screenOriginY*-0.5)
-    infoGroup:insert(matchTimer)
-
     infoGroup:updateMatch(true)
+    infoGroup:updateLive()
 
     if MatchManager:currentMatchFinished() then
         infoGroup.defaultState = false
@@ -242,6 +307,13 @@ function InGameScore:destroy()
     Goal:close()
     if self.timer then
         timer.cancel(self.timer)
+    end
+    if self.timerLive then
+        timer.cancel(self.timerLive)
+    end
+    if self.live then
+        self.live:removeSelf()
+        self.live = nil
     end
     self:removeSelf()
     self.isDestroyed = true

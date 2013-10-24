@@ -98,7 +98,7 @@ local function prepareMatch()
     local error, result = pcall(function()
         currentScreen = require("scripts.screens.in_game")
         display.getCurrentStage():insert(2, currentScreen:new())
-        Server:downloadTeamsLogos({sizes = {1, 2, 3}, listener = showMatch})
+        Server:downloadTeamsLogos({sizes = {1, 2}, listener = showMatch})
     end)
     --print(result)
     if not error then

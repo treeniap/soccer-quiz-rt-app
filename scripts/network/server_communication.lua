@@ -133,7 +133,7 @@ local function getSizeName(size)
     elseif size == 2 then
         return "medium"
     end
-    return "big"
+    return "medium"
 end
 
 function Server:downloadTeamsLogos(params)
@@ -383,9 +383,28 @@ function Server.getChampionshipTable(url, listener)
     }
 end
 
+function Server.getLive(listener)
+    networkRequest{
+        name = "getLive",
+        url = KB_URL .. "matches/" .. MatchManager:getMatchId() .. "/live_feed",
+        method = "GET",
+        listener = listener,
+        retries_number = RETRIES_NUMBER,
+        on_client_error = listener,
+        on_no_response = listener,
+    }
+end
+
 ---============================================================---
 ---/////////////////////////// USER ///////////////////////////---
 ---============================================================---
+local function getPictureFieldName(size)
+    if size == "default" then
+        return "picture_url"
+    end
+    return "picture_" .. size .. "_url"
+end
+
 function Server:checkUser(userInfo)
     if UserData.demoModeOn then
         if UserData.userId == "empty" then
@@ -393,7 +412,8 @@ function Server:checkUser(userInfo)
         else
             LoadingBall:newStage() --- 4
             UserData:setUserId(UserData.userId)
-            Server:getUserInventory(userInfo, ScreenManager.init, TRY_AGAIN_ON_NO_RESPONSE)
+            Server:getUserInventory(userInfo, nil, TRY_AGAIN_ON_NO_RESPONSE)
+            ScreenManager.init()
         end
         return
     end
@@ -414,8 +434,16 @@ function Server:checkUser(userInfo)
         listener = function(response, status)
             LoadingBall:newStage() --- 4
             UserData:setUserId(response.user.id)
-            Server:getUserInventory(userInfo, ScreenManager.init, TRY_AGAIN_ON_NO_RESPONSE)
-            Server:updateUser(userInfo, response.user.id)
+            Server:downloadFilesList({
+                {
+                    url = userInfo.facebook_profile[getPictureFieldName(getImagePrefix())],
+                    fileName = getPictureFileName(response.user.id)
+                }
+            }, function()
+                Server:getUserInventory(userInfo, nil, TRY_AGAIN_ON_NO_RESPONSE)
+                ScreenManager.init()
+                Server:updateUser(userInfo, response.user.id)
+            end)
         end,
         on_client_error = function()
             Server:createUser(userInfo)
@@ -445,7 +473,18 @@ function Server:createUser(userInfo)
         method = "POST",
         listener = function(response, status)
             UserData:setUserId(response.user.id)
-            Server:createInventory(userInfo)
+            if UserData.demoModeOn then
+                Server:createInventory(userInfo)
+            else
+                Server:downloadFilesList({
+                    {
+                        url = userInfo.facebook_profile[getPictureFieldName(getImagePrefix())],
+                        fileName = getPictureFileName(response.user.id)
+                    }
+                }, function()
+                    Server:createInventory(userInfo)
+                end)
+            end
         end,
         retries_number = 30,
         on_no_response = TRY_AGAIN_ON_NO_RESPONSE,
@@ -523,7 +562,8 @@ function Server:createInventory(userInfo)
         url = INVENTORY_URL .. UserData.info.user_id .. "/inventories",
         method = "POST",
         listener = function(response, status)
-            Server:getUserInventory(userInfo, ScreenManager.init, TRY_AGAIN_ON_NO_RESPONSE)
+            Server:getUserInventory(userInfo, nil, TRY_AGAIN_ON_NO_RESPONSE)
+            ScreenManager.init()
         end,
         retries_number = 30,
         on_no_response = TRY_AGAIN_ON_NO_RESPONSE,
@@ -540,7 +580,9 @@ function Server:getUserInventory(userInfo, listener, onNoResponse)
         listener = function(response, status)
             --getUserInventoryUrl = response.inventory._links.self.href
             UserData:setInventory(response)
-            listener()
+            if listener then
+                listener()
+            end
         end,
         on_client_error = function()
             if userInfo then
@@ -550,7 +592,6 @@ function Server:getUserInventory(userInfo, listener, onNoResponse)
         retries_number = RETRIES_NUMBER,
         on_no_response = onNoResponse or listener
     }
-    testignError = false
 end
 
 function Server:getInventory(userId, listener)
@@ -565,16 +606,15 @@ function Server:getInventory(userId, listener)
         retries_number = RETRIES_NUMBER,
         on_no_response = listener
     }
-    testignError = false
 end
 
-function Server:getPlayersIventories(playersIds, listener)
+function Server:getPlayersInventories(playersIds, listener)
     local url = APP_INVENTORIES_URL .. "com.ffgfriends.chutepremiado/public_attributes?"
     for i, id in ipairs(playersIds) do
         url = url .. "&users_ids[]=" .. id
     end
     networkRequest{
-        name = "getPlayersIventories",
+        name = "getPlayersInventories",
         url = url,
         method = "GET",
         retries_number = RETRIES_NUMBER,
@@ -671,7 +711,7 @@ function Server:claimFavoriteTeamCoins(matchId)
         url = QUESTIONS_URL .. "offers/claim",
         method = "PUT",
         listener = listener,
-        on_client_error = function(response, status) log("already claimed") end,
+        on_client_error = function(response, status) --[[log("already claimed")]] end,
         retries_number = RETRIES_NUMBER,
         post_params = encode(payload),
         on_no_response = function(response, status)

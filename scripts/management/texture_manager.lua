@@ -198,4 +198,8 @@ function TextureManager.disposeSubsSheet()
     printTextMem("dispose sheet_subs")
 end
 
+function TextureManager.checkFrameIndex(frameName)
+    return mainSheetInfo:getFrameIndex(frameName)
+end
+
 return TextureManager

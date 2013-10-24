@@ -357,26 +357,18 @@ local resultInfo = {
     goal = {
         type = "goal",
         title = "GOOOOL!!!",
-        earnedCoins = 10,
-        totalCoins = 999
     },
     saved = {
         type = "saved",
         title = "O GOLEIRO SALVOU!",
-        earnedCoins = 5,
-        totalCoins = 999
     },
     cleared = {
         type = "cleared",
         title = "AFASTA A ZAGA!",
-        earnedCoins = 2,
-        totalCoins = 999
     },
     missed = {
         type = "missed",
         title = "PRA FORA!",
-        earnedCoins = 3,
-        totalCoins = 999
     }
 }
 

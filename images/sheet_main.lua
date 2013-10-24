@@ -1,7 +1,7 @@
 --
 -- created with TexturePacker (http://www.codeandweb.com/texturepacker)
 --
--- $TexturePacker:SmartUpdate:bf4b916e418dccb7eba91e0fb30ac677:1/1$
+-- $TexturePacker:SmartUpdate:183e661188b2431ac8f49dadbd31e43d:1/1$
 --
 -- local sheetInfo = require("mysheet")
 -- local myImageSheet = graphics.newImageSheet( "mysheet.png", sheetInfo:getSheet() )
@@ -16,88 +16,88 @@ SheetInfo.sheet =
     
         {
             -- bola_frame01
-            x=378,
-            y=873,
+            x=269,
+            y=869,
             width=32,
             height=32,
 
         },
         {
             -- bola_frame02
-            x=277,
-            y=732,
+            x=236,
+            y=869,
             width=32,
             height=32,
 
         },
         {
             -- bola_frame03
-            x=425,
-            y=752,
+            x=376,
+            y=931,
             width=32,
             height=32,
 
         },
         {
             -- bola_frame04
-            x=425,
-            y=719,
+            x=343,
+            y=931,
             width=32,
             height=32,
 
         },
         {
             -- bola_frame05
-            x=291,
-            y=650,
+            x=310,
+            y=931,
             width=32,
             height=32,
 
         },
         {
             -- bola_frame06
-            x=291,
-            y=617,
+            x=277,
+            y=931,
             width=32,
             height=32,
 
         },
         {
             -- bola_frame07
-            x=291,
-            y=584,
+            x=376,
+            y=985,
             width=32,
             height=32,
 
         },
         {
             -- bola_frame08
-            x=291,
-            y=551,
+            x=343,
+            y=985,
             width=32,
             height=32,
 
         },
         {
             -- bola_frame09
-            x=291,
-            y=518,
+            x=310,
+            y=985,
             width=32,
             height=32,
 
         },
         {
             -- bola_frame10
-            x=291,
-            y=485,
+            x=277,
+            y=985,
             width=32,
             height=32,
 
         },
         {
             -- bt_red_twitter
-            x=236,
-            y=555,
+            x=457,
+            y=584,
             width=54,
             height=97,
 
@@ -108,8 +108,8 @@ SheetInfo.sheet =
         },
         {
             -- bt_reply
-            x=487,
-            y=483,
+            x=353,
+            y=424,
             width=24,
             height=25,
 
@@ -144,8 +144,8 @@ SheetInfo.sheet =
         },
         {
             -- icon_brilho_alto
-            x=206,
-            y=555,
+            x=488,
+            y=548,
             width=21,
             height=21,
 
@@ -156,16 +156,16 @@ SheetInfo.sheet =
         },
         {
             -- icon_brilho_baixo
-            x=26,
-            y=293,
+            x=433,
+            y=643,
             width=18,
             height=18,
 
         },
         {
             -- icon_classificacao_off
-            x=487,
-            y=527,
+            x=488,
+            y=464,
             width=23,
             height=17,
 
@@ -176,8 +176,8 @@ SheetInfo.sheet =
         },
         {
             -- icon_classificacao_on
-            x=487,
-            y=509,
+            x=488,
+            y=446,
             width=23,
             height=17,
 
@@ -188,8 +188,8 @@ SheetInfo.sheet =
         },
         {
             -- icon_comparacao_off
-            x=430,
-            y=446,
+            x=242,
+            y=546,
             width=28,
             height=14,
 
@@ -200,8 +200,8 @@ SheetInfo.sheet =
         },
         {
             -- icon_comparacao_on
-            x=401,
-            y=446,
+            x=213,
+            y=546,
             width=28,
             height=14,
 
@@ -212,8 +212,8 @@ SheetInfo.sheet =
         },
         {
             -- icon_escalacao_off
-            x=145,
-            y=464,
+            x=433,
+            y=662,
             width=15,
             height=17,
 
@@ -224,8 +224,8 @@ SheetInfo.sheet =
         },
         {
             -- icon_escalacao_on
-            x=145,
-            y=446,
+            x=335,
+            y=490,
             width=15,
             height=17,
 
@@ -252,8 +252,8 @@ SheetInfo.sheet =
         },
         {
             -- icon_jogo_off
-            x=359,
-            y=396,
+            x=254,
+            y=490,
             width=20,
             height=20,
 
@@ -264,8 +264,8 @@ SheetInfo.sheet =
         },
         {
             -- icon_jogo_on
-            x=359,
-            y=375,
+            x=233,
+            y=490,
             width=20,
             height=20,
 
@@ -276,16 +276,16 @@ SheetInfo.sheet =
         },
         {
             -- icon_minuto_off
-            x=489,
-            y=753,
+            x=315,
+            y=490,
             width=19,
             height=19,
 
         },
         {
             -- icon_minuto_on
-            x=206,
-            y=577,
+            x=295,
+            y=490,
             width=19,
             height=19,
 
@@ -316,8 +316,8 @@ SheetInfo.sheet =
         },
         {
             -- play_icon
-            x=458,
-            y=753,
+            x=467,
+            y=963,
             width=30,
             height=30,
 
@@ -328,8 +328,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_albumframe
-            x=310,
-            y=873,
+            x=145,
+            y=445,
             width=67,
             height=68,
 
@@ -340,8 +340,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_aright
-            x=459,
-            y=713,
+            x=419,
+            y=728,
             width=46,
             height=39,
 
@@ -376,8 +376,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_awrong
-            x=459,
-            y=665,
+            x=244,
+            y=692,
             width=47,
             height=47,
 
@@ -385,42 +385,6 @@ SheetInfo.sheet =
             sourceY = 0,
             sourceWidth = 47,
             sourceHeight = 47
-        },
-        {
-            -- stru_balloon_chat
-            x=353,
-            y=942,
-            width=55,
-            height=66,
-
-            sourceX = 0,
-            sourceY = 0,
-            sourceWidth = 55,
-            sourceHeight = 66
-        },
-        {
-            -- stru_balloon_gift
-            x=1,
-            y=321,
-            width=62,
-            height=53,
-
-            sourceX = 0,
-            sourceY = 0,
-            sourceWidth = 62,
-            sourceHeight = 53
-        },
-        {
-            -- stru_balloon_vs
-            x=1,
-            y=375,
-            width=82,
-            height=70,
-
-            sourceX = 0,
-            sourceY = 0,
-            sourceWidth = 82,
-            sourceHeight = 70
         },
         {
             -- stru_bg01
@@ -436,8 +400,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_button_back
-            x=459,
-            y=532,
+            x=118,
+            y=321,
             width=26,
             height=19,
 
@@ -448,8 +412,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_button_coins
-            x=320,
-            y=710,
+            x=244,
+            y=740,
             width=104,
             height=68,
 
@@ -460,8 +424,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_button_foward
-            x=294,
-            y=969,
+            x=59,
+            y=321,
             width=58,
             height=48,
 
@@ -484,8 +448,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_button_save
-            x=145,
-            y=555,
+            x=372,
+            y=626,
             width=60,
             height=60,
 
@@ -496,8 +460,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_button_voteconfirm
-            x=324,
-            y=598,
+            x=353,
+            y=450,
             width=134,
             height=24,
 
@@ -508,8 +472,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_button_votepass
-            x=236,
-            y=885,
+            x=145,
+            y=546,
             width=67,
             height=24,
 
@@ -520,16 +484,16 @@ SheetInfo.sheet =
         },
         {
             -- stru_buttonfacebook
-            x=279,
-            y=683,
+            x=450,
+            y=805,
             width=40,
             height=48,
 
         },
         {
             -- stru_buttonhexa_back_vote
-            x=326,
-            y=483,
+            x=218,
+            y=375,
             width=160,
             height=48,
 
@@ -540,8 +504,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_buttonhexa_front_vote
-            x=162,
-            y=407,
+            x=338,
+            y=862,
             width=165,
             height=68,
 
@@ -552,8 +516,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_buttonhexa_midle_vote
-            x=145,
-            y=485,
+            x=72,
+            y=375,
             width=145,
             height=69,
 
@@ -564,8 +528,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_buttoninvite
-            x=236,
-            y=910,
+            x=310,
+            y=632,
             width=58,
             height=58,
 
@@ -576,8 +540,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_buttonmenu
-            x=236,
-            y=681,
+            x=466,
+            y=756,
             width=42,
             height=48,
 
@@ -588,8 +552,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_buttonmenu_icon
-            x=459,
-            y=446,
+            x=271,
+            y=546,
             width=20,
             height=14,
 
@@ -600,8 +564,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_buttonmenu_icon_config
-            x=64,
-            y=344,
+            x=275,
+            y=490,
             width=19,
             height=19,
 
@@ -609,7 +573,7 @@ SheetInfo.sheet =
         {
             -- stru_buttontwitter
             x=236,
-            y=730,
+            y=931,
             width=40,
             height=44,
 
@@ -620,8 +584,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_coin_friendsvote
-            x=480,
-            y=446,
+            x=488,
+            y=570,
             width=21,
             height=13,
 
@@ -632,8 +596,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_coin_prize
-            x=412,
-            y=785,
+            x=244,
+            y=809,
             width=93,
             height=59,
 
@@ -644,8 +608,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_coin_vote
-            x=236,
-            y=653,
+            x=466,
+            y=728,
             width=45,
             height=27,
 
@@ -656,8 +620,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_coinslot_vote
-            x=459,
-            y=552,
+            x=369,
+            y=687,
             width=49,
             height=63,
 
@@ -677,7 +641,7 @@ SheetInfo.sheet =
         {
             -- stru_foil_border
             x=145,
-            y=616,
+            y=584,
             width=90,
             height=404,
 
@@ -755,21 +719,9 @@ SheetInfo.sheet =
             sourceHeight = 14
         },
         {
-            -- stru_iconmessage
-            x=1,
-            y=293,
-            width=24,
-            height=25,
-
-            sourceX = 0,
-            sourceY = 0,
-            sourceWidth = 24,
-            sourceHeight = 24
-        },
-        {
             -- stru_iconmorecoins
-            x=328,
-            y=417,
+            x=433,
+            y=682,
             width=51,
             height=45,
 
@@ -812,8 +764,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_notchgolden
-            x=412,
-            y=845,
+            x=1,
+            y=375,
             width=70,
             height=70,
 
@@ -824,8 +776,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_notchsilver
-            x=84,
-            y=321,
+            x=311,
+            y=571,
             width=60,
             height=60,
 
@@ -836,8 +788,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_notchsilveropen
-            x=459,
-            y=616,
+            x=310,
+            y=691,
             width=47,
             height=48,
 
@@ -848,8 +800,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_notchsilverundo
-            x=236,
-            y=969,
+            x=1,
+            y=321,
             width=57,
             height=53,
 
@@ -872,8 +824,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_perrado
-            x=324,
-            y=532,
+            x=218,
+            y=424,
             width=134,
             height=65,
 
@@ -884,8 +836,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_pic_defende_vote
-            x=324,
-            y=623,
+            x=353,
+            y=475,
             width=104,
             height=86,
 
@@ -920,8 +872,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_pic_tira_vote
-            x=311,
-            y=779,
+            x=349,
+            y=768,
             width=100,
             height=93,
 
@@ -932,8 +884,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_position
-            x=64,
-            y=321,
+            x=213,
+            y=490,
             width=19,
             height=22,
 
@@ -956,8 +908,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_ranking_red
-            x=429,
-            y=623,
+            x=458,
+            y=475,
             width=29,
             height=95,
 
@@ -969,7 +921,7 @@ SheetInfo.sheet =
         {
             -- stru_table_division
             x=236,
-            y=775,
+            y=582,
             width=74,
             height=26,
 
@@ -980,8 +932,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_timebarback
-            x=161,
-            y=476,
+            x=236,
+            y=976,
             width=164,
             height=8,
 
@@ -992,8 +944,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_timebarcover
-            x=328,
-            y=463,
+            x=145,
+            y=571,
             width=165,
             height=10,
 
@@ -1004,8 +956,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_timebarcover2
-            x=328,
-            y=474,
+            x=213,
+            y=562,
             width=165,
             height=8,
 
@@ -1016,8 +968,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_timebarframe
-            x=162,
-            y=375,
+            x=145,
+            y=514,
             width=196,
             height=31,
 
@@ -1028,8 +980,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_toclose
-            x=380,
-            y=446,
+            x=433,
+            y=626,
             width=20,
             height=16,
 
@@ -1052,8 +1004,8 @@ SheetInfo.sheet =
         },
         {
             -- stru_trophy
-            x=84,
-            y=382,
+            x=379,
+            y=562,
             width=77,
             height=63,
 
@@ -1065,7 +1017,7 @@ SheetInfo.sheet =
         {
             -- stru_userframe
             x=236,
-            y=802,
+            y=609,
             width=73,
             height=82,
 
@@ -1088,8 +1040,8 @@ SheetInfo.sheet =
         },
         {
             -- subscription_icon
-            x=378,
-            y=906,
+            x=236,
+            y=902,
             width=31,
             height=24,
 
@@ -1097,6 +1049,158 @@ SheetInfo.sheet =
             sourceY = 0,
             sourceWidth = 31,
             sourceHeight = 24
+        },
+        {
+            -- tag_brawl
+            x=244,
+            y=985,
+            width=32,
+            height=32,
+
+        },
+        {
+            -- tag_break
+            x=438,
+            y=963,
+            width=28,
+            height=32,
+
+            sourceX = 2,
+            sourceY = 0,
+            sourceWidth = 32,
+            sourceHeight = 32
+        },
+        {
+            -- tag_end_match
+            x=409,
+            y=964,
+            width=28,
+            height=32,
+
+            sourceX = 2,
+            sourceY = 0,
+            sourceWidth = 32,
+            sourceHeight = 32
+        },
+        {
+            -- tag_foul
+            x=409,
+            y=931,
+            width=28,
+            height=32,
+
+            sourceX = 2,
+            sourceY = 0,
+            sourceWidth = 32,
+            sourceHeight = 32
+        },
+        {
+            -- tag_goal
+            x=211,
+            y=989,
+            width=32,
+            height=32,
+
+        },
+        {
+            -- tag_injured_player
+            x=178,
+            y=989,
+            width=32,
+            height=32,
+
+        },
+        {
+            -- tag_keeper_defense
+            x=488,
+            y=515,
+            width=22,
+            height=32,
+
+            sourceX = 4,
+            sourceY = 0,
+            sourceWidth = 32,
+            sourceHeight = 32
+        },
+        {
+            -- tag_kickoff
+            x=471,
+            y=931,
+            width=32,
+            height=31,
+
+            sourceX = 0,
+            sourceY = 0,
+            sourceWidth = 32,
+            sourceHeight = 32
+        },
+        {
+            -- tag_kickoff_2
+            x=438,
+            y=931,
+            width=32,
+            height=31,
+
+            sourceX = 0,
+            sourceY = 0,
+            sourceWidth = 32,
+            sourceHeight = 32
+        },
+        {
+            -- tag_offside
+            x=302,
+            y=869,
+            width=32,
+            height=31,
+
+            sourceX = 0,
+            sourceY = 0,
+            sourceWidth = 32,
+            sourceHeight = 32
+        },
+        {
+            -- tag_penalty
+            x=145,
+            y=989,
+            width=32,
+            height=32,
+
+        },
+        {
+            -- tag_red_card
+            x=488,
+            y=482,
+            width=22,
+            height=32,
+
+            sourceX = 5,
+            sourceY = 0,
+            sourceWidth = 32,
+            sourceHeight = 32
+        },
+        {
+            -- tag_substitution
+            x=1,
+            y=293,
+            width=32,
+            height=26,
+
+            sourceX = 0,
+            sourceY = 3,
+            sourceWidth = 32,
+            sourceHeight = 32
+        },
+        {
+            -- tag_yellow_card
+            x=118,
+            y=341,
+            width=22,
+            height=32,
+
+            sourceX = 5,
+            sourceY = 0,
+            sourceWidth = 32,
+            sourceHeight = 32
         },
     },
     
@@ -1143,67 +1247,77 @@ SheetInfo.frameIndex =
     ["stru_arrowundo_off"] = 34,
     ["stru_arrowundo_on"] = 35,
     ["stru_awrong"] = 36,
-    ["stru_balloon_chat"] = 37,
-    ["stru_balloon_gift"] = 38,
-    ["stru_balloon_vs"] = 39,
-    ["stru_bg01"] = 40,
-    ["stru_button_back"] = 41,
-    ["stru_button_coins"] = 42,
-    ["stru_button_foward"] = 43,
-    ["stru_button_import"] = 44,
-    ["stru_button_save"] = 45,
-    ["stru_button_voteconfirm"] = 46,
-    ["stru_button_votepass"] = 47,
-    ["stru_buttonfacebook"] = 48,
-    ["stru_buttonhexa_back_vote"] = 49,
-    ["stru_buttonhexa_front_vote"] = 50,
-    ["stru_buttonhexa_midle_vote"] = 51,
-    ["stru_buttoninvite"] = 52,
-    ["stru_buttonmenu"] = 53,
-    ["stru_buttonmenu_icon"] = 54,
-    ["stru_buttonmenu_icon_config"] = 55,
-    ["stru_buttontwitter"] = 56,
-    ["stru_coin_friendsvote"] = 57,
-    ["stru_coin_prize"] = 58,
-    ["stru_coin_vote"] = 59,
-    ["stru_coinslot_vote"] = 60,
-    ["stru_drawer"] = 61,
-    ["stru_foil_border"] = 62,
-    ["stru_header"] = 63,
-    ["stru_icon01_encerramento"] = 64,
-    ["stru_icon02_encerramento"] = 65,
-    ["stru_icon03_encerramento"] = 66,
-    ["stru_icon04_encerramento"] = 67,
-    ["stru_iconarrow"] = 68,
-    ["stru_iconmessage"] = 69,
-    ["stru_iconmorecoins"] = 70,
-    ["stru_icontime"] = 71,
-    ["stru_logotipo"] = 72,
-    ["stru_menufoil_borda"] = 73,
-    ["stru_notchgolden"] = 74,
-    ["stru_notchsilver"] = 75,
-    ["stru_notchsilveropen"] = 76,
-    ["stru_notchsilverundo"] = 77,
-    ["stru_pcerto"] = 78,
-    ["stru_perrado"] = 79,
-    ["stru_pic_defende_vote"] = 80,
-    ["stru_pic_fora_vote"] = 81,
-    ["stru_pic_gol_vote"] = 82,
-    ["stru_pic_tira_vote"] = 83,
-    ["stru_position"] = 84,
-    ["stru_ranking_gold"] = 85,
-    ["stru_ranking_red"] = 86,
-    ["stru_table_division"] = 87,
-    ["stru_timebarback"] = 88,
-    ["stru_timebarcover"] = 89,
-    ["stru_timebarcover2"] = 90,
-    ["stru_timebarframe"] = 91,
-    ["stru_toclose"] = 92,
-    ["stru_toopen"] = 93,
-    ["stru_trophy"] = 94,
-    ["stru_userframe"] = 95,
-    ["stru_whistle"] = 96,
-    ["subscription_icon"] = 97,
+    ["stru_bg01"] = 37,
+    ["stru_button_back"] = 38,
+    ["stru_button_coins"] = 39,
+    ["stru_button_foward"] = 40,
+    ["stru_button_import"] = 41,
+    ["stru_button_save"] = 42,
+    ["stru_button_voteconfirm"] = 43,
+    ["stru_button_votepass"] = 44,
+    ["stru_buttonfacebook"] = 45,
+    ["stru_buttonhexa_back_vote"] = 46,
+    ["stru_buttonhexa_front_vote"] = 47,
+    ["stru_buttonhexa_midle_vote"] = 48,
+    ["stru_buttoninvite"] = 49,
+    ["stru_buttonmenu"] = 50,
+    ["stru_buttonmenu_icon"] = 51,
+    ["stru_buttonmenu_icon_config"] = 52,
+    ["stru_buttontwitter"] = 53,
+    ["stru_coin_friendsvote"] = 54,
+    ["stru_coin_prize"] = 55,
+    ["stru_coin_vote"] = 56,
+    ["stru_coinslot_vote"] = 57,
+    ["stru_drawer"] = 58,
+    ["stru_foil_border"] = 59,
+    ["stru_header"] = 60,
+    ["stru_icon01_encerramento"] = 61,
+    ["stru_icon02_encerramento"] = 62,
+    ["stru_icon03_encerramento"] = 63,
+    ["stru_icon04_encerramento"] = 64,
+    ["stru_iconarrow"] = 65,
+    ["stru_iconmorecoins"] = 66,
+    ["stru_icontime"] = 67,
+    ["stru_logotipo"] = 68,
+    ["stru_menufoil_borda"] = 69,
+    ["stru_notchgolden"] = 70,
+    ["stru_notchsilver"] = 71,
+    ["stru_notchsilveropen"] = 72,
+    ["stru_notchsilverundo"] = 73,
+    ["stru_pcerto"] = 74,
+    ["stru_perrado"] = 75,
+    ["stru_pic_defende_vote"] = 76,
+    ["stru_pic_fora_vote"] = 77,
+    ["stru_pic_gol_vote"] = 78,
+    ["stru_pic_tira_vote"] = 79,
+    ["stru_position"] = 80,
+    ["stru_ranking_gold"] = 81,
+    ["stru_ranking_red"] = 82,
+    ["stru_table_division"] = 83,
+    ["stru_timebarback"] = 84,
+    ["stru_timebarcover"] = 85,
+    ["stru_timebarcover2"] = 86,
+    ["stru_timebarframe"] = 87,
+    ["stru_toclose"] = 88,
+    ["stru_toopen"] = 89,
+    ["stru_trophy"] = 90,
+    ["stru_userframe"] = 91,
+    ["stru_whistle"] = 92,
+    ["subscription_icon"] = 93,
+    ["tag_brawl"] = 94,
+    ["tag_break"] = 95,
+    ["tag_end_match"] = 96,
+    ["tag_foul"] = 97,
+    ["tag_goal"] = 98,
+    ["tag_injured_player"] = 99,
+    ["tag_keeper_defense"] = 100,
+    ["tag_kickoff"] = 101,
+    ["tag_kickoff_2"] = 102,
+    ["tag_offside"] = 103,
+    ["tag_penalty"] = 104,
+    ["tag_red_card"] = 105,
+    ["tag_substitution"] = 106,
+    ["tag_yellow_card"] = 107,
 }
 
 function SheetInfo:getSheet()

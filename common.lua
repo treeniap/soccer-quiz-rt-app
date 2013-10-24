@@ -264,13 +264,33 @@ function getLogoFileName(teamId, size)
     elseif size == 2 then
         size = "medium"
     elseif size >= 3 then
-        size = "big"
+        size = "medium" --"big"
     end
     return "logos/logo_" ..size .. "_" .. teamId .. ".png"
 end
 
 function getPictureFileName(userId)
     return "pictures/pic_" .. userId .. (display.imageSuffix or "") .. ".jpg"
+end
+
+function loadImage(photoFileName, photoUrl, drawImage, hasFile)
+    if hasFile then
+        drawImage()
+    elseif photoUrl then
+        Server:downloadFilesList({
+            {
+                url = photoUrl,
+                fileName = photoFileName
+            }
+        }, drawImage)
+    end
+end
+
+function loadPicture(photoFileName, photoUrl, drawImage)
+    local letterPos = string.find(photoFileName, "pic_")
+    if letterPos then
+        loadImage(photoFileName, photoUrl, drawImage, hasFile(photoFileName:sub(letterPos), photoFileName:sub(1, letterPos - 1)))
+    end
 end
 
 function setICloudBackupFalse(fileName)

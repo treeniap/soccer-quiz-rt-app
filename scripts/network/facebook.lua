@@ -278,22 +278,13 @@ function Facebook:init(_listener)
                 picture_4x_url = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/1006257_1375577609330158_216697327_n.jpg"
             }
         }
-        local imgFix = getImagePrefix()
-        imgFix = imgFix == "default" and "" or (imgFix .. "_")
-        Server:downloadFilesList({
-            {
-                url = userInfo.facebook_profile["picture_"..imgFix.."url"],
-                fileName = getPictureFileName(userInfo.facebook_profile.id)
-            }
-        }, function()
-            local friends_ids = {}
-            --friends_ids[1] = "100006326892112"
-            --friends_ids[2] = "100006410700030"
-            --friends_ids[3] = "100006397561562"
-            --friends_ids[4] = "100006387546231"
-            --friends_ids[5] = "100006460237951"
-            UserData:init(userInfo, friends_ids)
-        end)
+        local friends_ids = {}
+        --friends_ids[1] = "100006326892112"
+        --friends_ids[2] = "100006410700030"
+        --friends_ids[3] = "100006397561562"
+        --friends_ids[4] = "100006387546231"
+        --friends_ids[5] = "100006460237951"
+        UserData:init(userInfo, friends_ids)
         if _listener then
             _listener()
         end
@@ -335,16 +326,9 @@ function Facebook:init(_listener)
             userInfo.facebook_profile.picture_2x_url = x2PicUrl
             userInfo.facebook_profile.picture_4x_url = x4PicUrl
 
-            Server:downloadFilesList({
-                {
-                    url = userInfo.facebook_profile[getPictureFieldName(getImagePrefix())],
-                    fileName = getPictureFileName(userInfo.facebook_profile.id)
-                }
-            }, function()
-                LoadingBall:newStage() --- 3
-                request(REQUEST_TYPE_USER_FRIENDS)
-                stepsCount = stepsCount + 1
-            end)
+            LoadingBall:newStage() --- 3
+            request(REQUEST_TYPE_USER_FRIENDS)
+            stepsCount = stepsCount + 1
         end,
         function(friends_ids) ---> 6
             UserData:init(userInfo, friends_ids)

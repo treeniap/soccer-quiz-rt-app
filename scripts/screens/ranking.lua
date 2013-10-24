@@ -64,6 +64,13 @@ end
 local function createPlayerView(player, playersGroup, yPos, rankingPosition)
     local playerGroup = display.newGroup()
 
+    if player.empty then
+        local txt = display.newText(playerGroup, "RANKING VAZIO", 0, 0, "MyriadPro-BoldCond", 18)
+        txt.x = display.contentCenterX
+        txt.y = 0
+        txt:setTextColor(32)
+        return playerGroup
+    end
     if player.isPlayer then
         local bg = TextureManager.newImageRect("images/stretchable/stru_ranking_user.png", CONTENT_WIDTH, 64, playerGroup)
         bg.x = display.contentCenterX + (-display.screenOriginX) + 4
@@ -324,6 +331,7 @@ local function getPlayersInTheRanking(button, ranking)
     end
     local function listener(response, status)
         local downloadList = {}
+        local rankingPlayersIds = {}
         --printTable(response)
         for i, user in ipairs(response.users) do
             local url
@@ -359,15 +367,33 @@ local function getPlayersInTheRanking(button, ranking)
                     if isPlayer then
                         ranking[i].teamBadge = getLogoFileName(UserData.attributes.favorite_team_id, 1)
                     else
-                        Server:getInventory(user.id, function(response)
-                            if not response then
-                                ranking[i].teamBadge = "none"
-                            else
-                                ranking[i].teamBadge = getLogoFileName(response.inventory.attributes.favorite_team_id, 1)
-                            end
-                        end)
+                        rankingPlayersIds[#rankingPlayersIds + 1] = player.user_id
                     end
                 end
+            end
+        end
+        if #rankingPlayersIds > 0 then
+            Server:getPlayersInventories(rankingPlayersIds, function(response)
+                if response then
+                    for i, ranker in ipairs(ranking) do
+                        for id, _player in pairs(response) do
+                            if id == ranker.user_id then
+                                ranking[i].teamBadge = getLogoFileName(_player.favorite_team_id, 1)
+                            end
+                        end
+                        if not ranking[i].teamBadge then
+                            ranking[i].teamBadge = "none"
+                        end
+                    end
+                else
+                    for i, ranker in ipairs(ranking) do
+                        ranking[i].teamBadge = "none"
+                    end
+                end
+            end)
+        else
+            for i, ranker in ipairs(ranking) do
+                ranking[i].teamBadge = "none"
             end
         end
         Server:downloadFilesList(downloadList, function()
@@ -457,6 +483,13 @@ local function getWeeklyRankingCallback(button)
             --    table.remove(ranking, i)
             --end
         else
+            if rankingScreenGroup then
+                button.ranking = {{empty = true}}
+                if button.spinnerDefault and button.spinnerDefault.removeSelf then
+                    button.spinnerDefault:removeSelf()
+                end
+                button:lock(false)
+            end
             return
         end
         getPlayersInTheRanking(button, ranking)

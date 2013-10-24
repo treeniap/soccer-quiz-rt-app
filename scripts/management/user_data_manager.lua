@@ -6,7 +6,7 @@
 UserData = {}
 
 function UserData:getUserPicture()
-    return getPictureFileName(self.info.facebook_profile.id or "demo")
+    return getPictureFileName(self.info.facebook_profile.id and self.info.user_id or "demo")
 end
 
 function UserData:setUserId(userId)
@@ -44,10 +44,11 @@ function UserData:setInventory(response)
     if not self.attributes.favorite_team_id or self.attributes.favorite_team_id == "" or self.attributes.favorite_team_id == " " then
         self.attributes.favorite_team_id = self.favoriteTeamId
     end
+    TopBar:updateTotalCoins(self.inventory.coins)
 end
 
 function UserData:updateAttributes(pushNotificationEnabled, favoriteTeamId)
-    if self.attributes then
+    if self.attributes and self.info and self.info.user_id then
         self.attributes.favorite_team_id = favoriteTeamId
         self.favoriteTeamId = favoriteTeamId
         self:save()
@@ -106,25 +107,26 @@ end
 function UserData:init(params, friends_ids)
     self.info = params
 
+    self.inventory = {}
+    self.inventory.coins = ""
+    self.inventory.subscribed = false
+
+    self.attributes = {}
+    self.attributes.favorite_team_id = self.favoriteTeamId
+
     if self.demoModeOn and params.facebook_profile.id and self.userId ~= "empty" then
-        local function updateUser()
-            Server:updateUser(self.info, self.userId, function(response, status)
-                if status == 500 then
-                    UserData:shutOffDemoMode()
-                    self.userId = "empty"
-                    Server:checkUser(self.info)
-                else
-                    Server:checkUser(self.info)
-                    UserData:shutOffDemoMode()
-                end
-            end)
-        end
-        self:updateFriends(friends_ids, updateUser)
+        Server:updateUser(self.info, self.userId, function(response, status)
+            if status == 500 then
+                UserData:shutOffDemoMode()
+                self.userId = "empty"
+                Server:checkUser(self.info)
+            else
+                Server:checkUser(self.info)
+                UserData:shutOffDemoMode()
+            end
+        end)
     else
-        local function checkUser()
-            Server:checkUser(self.info)
-        end
-        self:updateFriends(friends_ids, checkUser)
+        Server:checkUser(self.info)
     end
 end
 
@@ -141,7 +143,7 @@ function UserData:checkRating()
                 local matchPoints = response.user_ranking.score
                 if tonumber(matchPoints) > 0 then
                     native.showAlert(
-                        "Parabéns! Você fez " .. matchPoints .. " pontos no 1º tempo!",
+                        "Parabéns! Você fez " .. matchPoints .. " pontos!",
                         RatingTxt or " ",
                         {"Avaliar", "Mais tarde"},
                         function (event)
