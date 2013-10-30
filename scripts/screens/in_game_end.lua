@@ -81,15 +81,15 @@ local function createFinalResults(finalResultInfo)
         lineY)
     lineY = lineY + 34
     createResultLine(resultsGroup,
-        "TOTAL DE PONTOS",
+        "PONTOS NA SEMANA",
         nil,--"stru_icon02_encerramento",
-        finalResultInfo.globalPoints .. "pts",
+        finalResultInfo.weekPoints .. "pts",
         lineY)
     lineY = lineY + 34
     createResultLine(resultsGroup,
-        "POSIÇÃO NO RANKING",
+        "RANKING SEMANAL",
         nil,--"stru_icon02_encerramento",
-        finalResultInfo.globalPosition .. "º",
+        finalResultInfo.weekPosition .. "º",
         lineY, true)
 
     resultsGroup:insert(whiteLine)

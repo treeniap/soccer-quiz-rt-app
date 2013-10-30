@@ -42,10 +42,10 @@ local function onMatchOver()
         local finalResultInfo = {}
 
         local function getPlayerGlobalRanking()
-            Server:getPlayerRanking(nil,
+            Server:getPlayerRanking("current_week",
                 function(response, status)
-                    finalResultInfo.globalPoints = response.user_ranking.score
-                    finalResultInfo.globalPosition = response.user_ranking.ranking
+                    finalResultInfo.weekPoints = response.user_ranking.score
+                    finalResultInfo.weekPosition = response.user_ranking.ranking
                     MatchManager.finalResultInfo = finalResultInfo
                     InGameScreen:onGameOver(finalResultInfo, CurrentMatch.enteredFinished)
                 end,
@@ -53,8 +53,8 @@ local function onMatchOver()
                     --printTable(response)
                     finalResultInfo = {
                         matchPoints    = "0",
-                        globalPoints   = "0",
-                        globalPosition = "-"
+                        weekPoints   = "0",
+                        weekPosition = "-"
                     }
                     MatchManager.finalResultInfo = finalResultInfo
                     InGameScreen:onGameOver(finalResultInfo, CurrentMatch.enteredFinished)
@@ -196,7 +196,6 @@ function MatchManager:setCurrentMatch(matchId)
                     --if DEBUG_MODE then
                     --    timer.performWithDelay(5000, onMatchOver) -- teste: finaliza partida
                     --end
-                    postEnteredMatchOnFB(matchId)
                 end
             end
         end

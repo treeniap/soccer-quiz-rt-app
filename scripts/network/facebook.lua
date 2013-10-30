@@ -260,6 +260,10 @@ function Facebook:post()
 end
 
 function Facebook:requestFriends(_friendsListener)
+    if UserData.demoModeOn and _friendsListener then
+        _friendsListener()
+        return
+    end
     friendsListener = _friendsListener
     request(REQUEST_TYPE_USER_FRIENDS)
 end

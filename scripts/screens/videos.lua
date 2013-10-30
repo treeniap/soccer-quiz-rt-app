@@ -204,6 +204,9 @@ end
 local function createVideoList()
     Server:getVideos(function(response, status)
         if status == 200 and response.body and response.body.children then
+            if not videosGroup then
+                return
+            end
             if spinner then
                 spinner:stop()
                 spinner:removeSelf()
@@ -277,10 +280,12 @@ function VideosScreen:new()
 end
 
 function VideosScreen:destroy()
-    for i, btn in ipairs(buttons) do
-        btn:removeEventListener("touch", btn)
+    if buttons then
+        for i, btn in ipairs(buttons) do
+            btn:removeEventListener("touch", btn)
+        end
+        buttons = nil
     end
-    buttons = nil
 
     topBar:removeSelf()
     topBar = nil

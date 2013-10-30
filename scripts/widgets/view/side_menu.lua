@@ -188,7 +188,9 @@ local function createOptions()
                         "\nMeu nome: " ..             UserData.info.first_name .. " " .. (UserData.info.last_name or " ") ..
                         "\nTime escolhido: " ..       MatchManager:getTeamName(UserData.attributes.favorite_team_id) ..
                         "\nQuantidade de fichas: " .. UserData.inventory.coins ..
-                        "\nMeu ID no Facebook: " ..   UserData.info.facebook_profile.id or " "
+                        "\nMeu ID no Facebook: " ..   (UserData.info.facebook_profile and
+                        (UserData.info.facebook_profile.id and UserData.info.facebook_profile.id or " ") or
+                        " ")
             }
             native.showPopup("mail", options)
             AnalyticsManager.clickedUsefulLink("SUPORTE E SUGESTÕES")
@@ -332,7 +334,7 @@ local function createView(isMenu)
 
     -- menu background border
     local menuFoilBorda = TextureManager.newImage("stru_menufoil_borda", menuFoilGroup)
-    menuFoilBorda.x = menuFoilCenter.x + menuFoilCenter.width*0.5 + menuFoilBorda.width*0.5
+    menuFoilBorda.x = menuFoilCenter.x + menuFoilCenter.width*0.5 + menuFoilBorda.width*0.5 - 1
     menuFoilBorda.y = 0
     menuFoilBorda:addEventListener("touch", blockTouch)
 

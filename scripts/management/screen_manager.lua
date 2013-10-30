@@ -148,9 +148,9 @@ function ScreenManager:showWebView(link)
     end
     local currentScreenGroup = currentScreen.group
     local webView = native.newWebView(CONTENT_WIDTH,
-        display.screenOriginY + (MENU_TITLE_BAR_HEIGHT + display.topStatusBarContentHeight) - 2,
+        display.screenOriginY + (MENU_TITLE_BAR_HEIGHT + STATUS_BAR_HEIGHT) - 2,
         CONTENT_WIDTH,
-        CONTENT_HEIGHT - (MENU_TITLE_BAR_HEIGHT + display.topStatusBarContentHeight) + 2)
+        CONTENT_HEIGHT - (MENU_TITLE_BAR_HEIGHT + STATUS_BAR_HEIGHT) + 2)
     webView:request(link)
     webView:addEventListener("urlRequest", listener)
     webView:setReferencePoint(display.TopLeftReferencePoint)
@@ -218,7 +218,7 @@ function ScreenManager.init()
     end
     tutorial = nil
     -- White Status Bar for iOS7
-    local statusBarBg = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, display.topStatusBarContentHeight)
+    local statusBarBg = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, STATUS_BAR_HEIGHT)
     statusBarBg:setFillColor(0)
     display.getCurrentStage():insert(3, statusBarBg)
 end

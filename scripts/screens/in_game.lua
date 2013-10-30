@@ -219,6 +219,10 @@ function InGameScreen:onGame()
 end
 
 function InGameScreen:onEventStart(eventInfo)
+    if inGameGroup.eventRolling then
+        return
+    end
+    inGameGroup.eventRolling = true
     display.getCurrentStage():setFocus(nil)
     stateManager:hide()
     if eventView then
@@ -240,15 +244,15 @@ end
 
 function InGameScreen:onEventEnd(resultInfo)
     display.getCurrentStage():setFocus(nil)
-    InGameScreen:updateBottomRanking(function(ranking)
-        if eventView then
-            eventView:showResult(resultInfo, ranking, function()
-                questionsBar:onEventResult()
-                topBar:updateTotalCoins(resultInfo.totalCoins)
-                UserData:setTotalCoins(resultInfo.totalCoins)
-            end)
-        end
-    end)
+    InGameScreen:updateBottomRanking()
+    if eventView then
+        eventView:showResult(resultInfo, {}, function()
+            questionsBar:onEventResult()
+            topBar:updateTotalCoins(resultInfo.totalCoins)
+            UserData:setTotalCoins(resultInfo.totalCoins)
+            timer.performWithDelay(2000, function() inGameGroup.eventRolling = false end)
+        end)
+    end
     --Server:getPlayerRanking(nil, checkScore)
 end
 

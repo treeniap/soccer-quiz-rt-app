@@ -63,5 +63,14 @@ settings =
                 CFBundleIdentifier = "com.power.chute",
             },
             components = {}	-- no openfeint
-	}
+	},
+	plugins =
+    {
+        -- key is the name passed to Lua's 'require()'
+        ["CoronaProvider.analytics.flurry"] =
+        {
+            -- required
+            publisherId = "com.coronalabs",
+        },
+    }
 }

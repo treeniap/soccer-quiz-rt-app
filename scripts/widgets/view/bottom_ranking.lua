@@ -30,13 +30,18 @@ local function createPlayerView(player, position, isGoldenPlayer)
         notch = TextureManager.newImage("stru_notchgolden", playerGroup)
     else
         notch = TextureManager.newImage("stru_notchsilver", playerGroup)
-        playerGroup.onRelease = function()
-            Facebook:postFriend(player.user_id)
+        if not UserData.demoModeOn then
+            playerGroup.onRelease = function()
+                Facebook:postFriend(player.user_id)
+            end
         end
     end
     notch.x = 0
     notch.y = 0
 
+    if player.isPlayer and UserData.demoModeOn then
+        player.photo = getPictureFileName("demo")
+    end
     if player.photo then
         local photoGroup = display.newGroup()
         playerGroup:insert(photoGroup)

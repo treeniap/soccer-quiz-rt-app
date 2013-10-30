@@ -1,8 +1,8 @@
 display.setStatusBar(display.DarkStatusBar)
 system.setIdleTimer(false)
 require "Json"
-require "params"
 require "common"
+require "params"
 require "util.date"
 require "scripts.management.brightness_manager"
 require "scripts.management.user_data_manager"

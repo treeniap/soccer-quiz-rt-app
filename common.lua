@@ -4,16 +4,18 @@
 == Time: 11:01
 ==============]]--
 
-CONTENT_WIDTH   = display.contentWidth + (display.screenOriginX*-2)
-CONTENT_HEIGHT  = display.contentHeight + (display.screenOriginY*-2)
-SCREEN_TOP      = display.screenOriginY + display.topStatusBarContentHeight
-SCREEN_BOTTOM   = display.contentHeight + (-display.screenOriginY)
-SCREEN_LEFT     = display.screenOriginX
-SCREEN_RIGHT    = display.contentWidth + (-display.screenOriginX)
-IS_SIMULATOR    = system.getInfo("environment") == "simulator"
-IS_ANDROID      = system.getInfo("platformName") == "Android"
-DEBUG_MODE      = false -- TODO test mode
-MINUTE_DURATION = 60000
+STATUS_BAR_HEIGHT = (display.topStatusBarContentHeight >= 20) and display.topStatusBarContentHeight or
+        (system.getInfo("platformVersion"):sub(1, 1) == "3" and display.topStatusBarContentHeight or 20)
+CONTENT_WIDTH     = display.contentWidth + (display.screenOriginX*-2)
+CONTENT_HEIGHT    = display.contentHeight + (display.screenOriginY*-2)
+SCREEN_TOP        = display.screenOriginY + STATUS_BAR_HEIGHT
+SCREEN_BOTTOM     = display.contentHeight + (-display.screenOriginY)
+SCREEN_LEFT       = display.screenOriginX
+SCREEN_RIGHT      = display.contentWidth + (-display.screenOriginX)
+IS_SIMULATOR      = system.getInfo("environment") == "simulator"
+IS_ANDROID        = system.getInfo("platformName") == "Android"
+DEBUG_MODE        = false -- TODO test mode
+MINUTE_DURATION   = 60000
 
 function getDeviceName()
     return IS_ANDROID and system.getInfo("platformName") or system.getInfo("model")

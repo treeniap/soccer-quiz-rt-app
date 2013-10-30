@@ -78,7 +78,8 @@ function InGameScore:updateLive()
         if self.isDestroyed then
             return
         end
-        if self.liveIndex >= #response.live_feed then
+        self.timerLive = timer.performWithDelay(60000, function() self:updateLive() end)
+        if not response or not response.live_feed or self.liveIndex >= #response.live_feed then
             return
         end
         self.liveIndex = #response.live_feed
@@ -88,8 +89,10 @@ function InGameScore:updateLive()
         local widget = require "widget"
         -- Create a ScrollView
         local _maskFile = "images/masks/live_mask"
-        if display.screenOriginY < 0 then
+        if display.screenOriginY < -40 then
             _maskFile = _maskFile .. "_iphone5"
+        elseif display.screenOriginY < -20 then
+            _maskFile = _maskFile .. "_android"
         end
         _maskFile = _maskFile .. ".png"
 
@@ -168,7 +171,6 @@ function InGameScore:updateLive()
         liveScroll.y = 154 + (display.screenOriginY)
         self.live = liveScroll
         self:insert(liveScroll)
-        self.timerLive = timer.performWithDelay(60000, function() self:updateLive() end)
     end)
 end
 

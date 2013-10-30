@@ -157,7 +157,9 @@ function UserData:checkRating()
                                     if IS_ANDROID then
                                         url = "market://details?id=" .. Params.rateId
                                     else
-                                        url = "https://itunes.apple.com/us/app/chute-premiado-create-stake/id" .. Params.rateId .. "?mt=8"
+                                        url = "itms-apps://ax.itunes.apple.com/WebObjects/MZStore.woa"
+                                        url = url .. "/wa/viewContentsUserReviews?"
+                                        url = url .. "type=Purple+Software&id=" .. Params.rateId
                                     end
                                     system.openURL(url)
                                 elseif 2 == i then
