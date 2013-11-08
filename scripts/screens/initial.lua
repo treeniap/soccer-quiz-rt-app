@@ -181,18 +181,15 @@ local function createMatchView(match, y, currentDate)
     vs:setReferencePoint(display.TopRightReferencePoint)
     vs.x = -59
     vs.y = 48
-
-    local homeTeamBadge = TextureManager.newLogo(getLogoFileName(match.home_team.id, 2), 64, false)
-    homeTeamBadge.x = -110
-    homeTeamBadge.y = 50
-    local awayTeamBadge = TextureManager.newLogo(getLogoFileName(match.guest_team.id, 2), 64, false)
-    awayTeamBadge.x = -25
-    awayTeamBadge.y = 50
-
     matchGroup:insert(time)
     matchGroup:insert(vs)
-    matchGroup:insert(homeTeamBadge)
-    matchGroup:insert(awayTeamBadge)
+
+    local homeTeamBadge = TextureManager.newLogo(getLogoFileName(match.home_team.id, 2), 64, matchGroup)
+    homeTeamBadge.x = -110
+    homeTeamBadge.y = 50
+    local awayTeamBadge = TextureManager.newLogo(getLogoFileName(match.guest_team.id, 2), 64, matchGroup)
+    awayTeamBadge.x = -25
+    awayTeamBadge.y = 50
 
     matchGroup:setReferencePoint(display.TopRightReferencePoint)
     matchGroup.x = (160 + (-display.screenOriginX))*0.5 - 4 + display.screenOriginX*0.5
@@ -459,6 +456,7 @@ function InitialScreen:showUp(onComplete)
                     return true
                 end)
             end
+            PushNotification:parseUnsubscribe()
         end))
     end)
 end
@@ -488,7 +486,9 @@ function updateMatchesFoil()
         transition.from(matchesGroup, {delay = 500, time = 500, alpha = 0, onComplete = function()
             if matchesGroup then
                 timer.performWithDelay(1000, function()
-                    matchesGroup.scrolling = false
+                    if matchesGroup then
+                        matchesGroup.scrolling = false
+                    end
                     unlockScreen()
                 end)
                 matchesGroup:scrollTo("bottom", {time = 1000})

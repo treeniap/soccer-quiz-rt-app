@@ -279,7 +279,9 @@ function openBG(button, champNum)
     isBgOpen = true
     selectMatchGroup.openButton = button
     selectMatchGroup.openChampNum = champNum
-    selectMatchGroup:insert(1, createChampionshipMatchesView(MatchManager:getChampionshipsList()[champNum].incoming_matches, yOpenPart + 8))
+    if MatchManager:getChampionshipsList()[champNum] then
+        selectMatchGroup:insert(1, createChampionshipMatchesView(MatchManager:getChampionshipsList()[champNum].incoming_matches, yOpenPart + 8))
+    end
     local distToBottom = SCREEN_BOTTOM - yOpenPart
     partHeight = distToBottom < 262 and distToBottom or (selectMatchGroup[1].height < 262 and selectMatchGroup[1].height + 4 or 262)
     selectMatchGroup.bg:open(yOpenPart, partHeight, function()

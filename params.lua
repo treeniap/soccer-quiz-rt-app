@@ -14,7 +14,7 @@ end
 if IS_ANDROID then
     Params.rateId = "com.welovequiz.chutepremiado" -- Android Bundle Name
 else
-    Params.rateId = "731495715" -- App id
+    Params.rateId = "670063656" -- App id
 end
 
 return Params

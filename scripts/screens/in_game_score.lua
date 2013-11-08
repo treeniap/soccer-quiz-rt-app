@@ -8,6 +8,7 @@ InGameScore = {}
 InGameScore.screenName = "Score"
 InGameScore.imgName = "icon_jogo_"
 InGameScore.defaultState = true
+local homeGoals, awayGoals
 
 local function createChampionshipInfo()
     local championshipRound, championshipName, championshipBadge = MatchManager:getChampionshipInfo()
@@ -80,7 +81,19 @@ function InGameScore:updateLive()
         end
         self.timerLive = timer.performWithDelay(60000, function() self:updateLive() end)
         if not response or not response.live_feed or self.liveIndex >= #response.live_feed then
+            if self.liveIndex == 0 and not self.aquecimentoTxt then
+                local status, time = MatchManager:getMatchTimeStatus()
+                local aquecimentoTxt = display.newText(self, status, 0, 0, "MyriadPro-BoldCond", 32)
+                aquecimentoTxt.x = display.contentCenterX
+                aquecimentoTxt.y = display.contentCenterY
+                aquecimentoTxt:setTextColor(135)
+                self.aquecimentoTxt = aquecimentoTxt
+            end
             return
+        end
+        if self.aquecimentoTxt then
+            self.aquecimentoTxt:removeSelf()
+            self.aquecimentoTxt = nil
         end
         self.liveIndex = #response.live_feed
         if self.live then
@@ -205,14 +218,16 @@ function InGameScore:updateMatch(isFirst)
             return
         end
         if not isFirst then
-            if response.match.home_goals > currentMatchInfo.home_goals then
+            if response.match.home_goals > homeGoals then
                 --InGameScreen:goal()
                 onGoal(response, "homeTeam", response.match.home_team.id, currentMatchInfo.guest_team.id == UserData.attributes.favorite_team_id)
             end
-            if response.match.guest_goals > currentMatchInfo.guest_goals then
+            if response.match.guest_goals > awayGoals then
                 onGoal(response, "awayTeam", response.match.guest_team.id, currentMatchInfo.home_team.id == UserData.attributes.favorite_team_id)
             end
         end
+        homeGoals = response.match.home_goals
+        awayGoals = response.match.guest_goals
         currentMatchInfo = response.match
         currentMatchInfo.starts_at = date(currentMatchInfo.starts_at):tolocal()
         if currentMatchInfo.status_updated_at then
@@ -295,6 +310,7 @@ function InGameScore:create()
     teamsNames.y = score.y + score.height*0.45
     infoGroup:insert(teamsNames)
 
+    homeGoals, awayGoals = 0, 0
     infoGroup:updateMatch(true)
     infoGroup:updateLive()
 

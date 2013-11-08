@@ -400,9 +400,13 @@ function InGameEvent.betResultListener(message)
     InGameScreen:onEventEnd(_resultInfo)
 end
 
-function InGameEvent:showUp(onComplete)
-    local MOVE_TIME = 300
-    local SHOW_DURATION = 1500
+function InGameEvent:showUp(onComplete, timeLeft)
+    local mult = 1
+    if timeLeft <= 5 then
+        mult = 0.2
+    end
+    local MOVE_TIME = 300*mult
+    local SHOW_DURATION = 1500*mult
     self.phase = "began"
     transition.to(self.eventFoil, {time = MOVE_TIME, x = SCREEN_LEFT, transition = easeOutQuad})
     transition.to(self.whistle, {time = MOVE_TIME, x = SCREEN_RIGHT - 50, transition = easeOutQuad, onComplete = function()
@@ -576,19 +580,23 @@ function InGameEvent:create(eventInfo)
                 end
                 Server:getUserInventory(nil, function()
                     InGameScreen:updateTotalCoins()
-                    --native.showAlert("ERRO", "Possíveis causas:\n- O lance pode ter sido cancelado.\n- Você não possui uma boa conexão com a internet.\n- Suas configurações de data e hora estão erradas.", {"Ok"}, ScreenManager.callNext)
                     native.showAlert("Aposta não enviada.", alertText, {"Ok"}, ScreenManager.callNext)
                 end)
                 AnalyticsManager.conectivity("LateClientResponse")
                 AudioManager.playStopBetAnswerWait()
+                InGameScreen:stopEventRolling()
             end
             local function listener(response, status)
-                if not response or status ~= 200 then
-                    --print("Bet Error", status)
-                    timer.performWithDelay(2000, ScreenManager.callNext)
-                    return
+                if status ~= 200 then
+                    local alertText = "Houve uma falha de comunicação com nosso serviço. Suas fichas foram devolvidas."
+                    Server:getUserInventory(nil, function()
+                        InGameScreen:updateTotalCoins()
+                        native.showAlert("Aposta não enviada.", alertText, {"Ok"}, ScreenManager.callNext)
+                    end)
+                    AnalyticsManager.conectivity("BetUnsuccessful")
+                    AudioManager.playStopBetAnswerWait()
+                    InGameScreen:stopEventRolling()
                 end
-                --print("Bet Ok", status)
             end
             Server.postBet(url, UserData.info.user_id, coins, onClientError, listener)
         end

@@ -292,10 +292,14 @@ end
 ----/////////////////////////////
 ---//////-- Conectivity --//////
 --/////////////////////////////
-function AnalyticsManager.eventToDisplay(_timeInSeconds, MIN_USER_BET_TIME)
+function AnalyticsManager.eventToDisplay(_timeInSeconds, MIN_USER_BET_TIME, anotherRolling)
     local connectionType = Server.connectionName
     eventTimeInSeconds = _timeInSeconds
-    if _timeInSeconds < 0 then
+    if anotherRolling then
+        analytics.logEvent("EventNotDisplayedAnotherRolling", {
+            ConnectionType = connectionType
+        })
+    elseif _timeInSeconds < 0 then
         analytics.logEvent("EventNotDisplayedAppSuspended", {
             ConnectionType = connectionType
         })
@@ -328,7 +332,7 @@ end
 ---//////////-- Init --//////////
 --//////////////////////////////
 function AnalyticsManager.init()
-    if IS_SIMULATOR then -- test: analytics
+    if IS_SIMULATOR or DEBUG_MODE then -- test: analytics
         analytics = {
             init = function() end,
             logEvent = function(eventName, params)

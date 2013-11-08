@@ -15,12 +15,12 @@ application =
             ["@4x"] = 3.0,
         },
     },
-    --notification =
-    --{
-    --    iphone = {
-    --        types = {
-    --            "badge", "sound", "alert"
-    --        }
-    --    }
-    --}
+    notification =
+    {
+        iphone = {
+            types = {
+                "badge", "sound", "alert"
+            }
+        }
+    }
 }

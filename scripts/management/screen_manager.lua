@@ -18,7 +18,7 @@ local currentScreen
 local previousScreen
 local answer
 local tutorial
-local MIN_USER_BET_TIME = 4
+local MIN_USER_BET_TIME = 1
 
 local eventsInfo = {
     penalty = {
@@ -95,13 +95,13 @@ local function showMatch()
 end
 
 local function prepareMatch()
-    local error, result = pcall(function()
+    local noError, result = pcall(function()
         currentScreen = require("scripts.screens.in_game")
         display.getCurrentStage():insert(2, currentScreen:new())
         Server:downloadTeamsLogos({sizes = {1, 2}, listener = showMatch})
     end)
-    --print(result)
-    if not error then
+    --print(noError, result)
+    if not noError then
         currentScreen = nil
         ScreenManager:show("initial")
     end
@@ -112,6 +112,7 @@ local function matchServerListener(message)
     if message.state and message.state == "cancelled" then
         timer.performWithDelay(2000, ScreenManager.callNext)
         InGameScreen:updateTotalCoins()
+        InGameScreen:stopEventRolling()
         native.showAlert("", "O evento que estavamos aguardando foi cancelado e suas fichas apostadas foram devolvidas.", { "Ok" })
         return
     end
@@ -124,10 +125,11 @@ local function matchServerListener(message)
     _eventInfo.userBetTimeout = date(message.user_bet_timeout):tolocal()
     local secondsToEvent = date.diff(_eventInfo.userBetTimeout, date(os.date("*t"))):spanseconds()
 
+    local anotherRolling
     if secondsToEvent >= MIN_USER_BET_TIME then
-        currentScreen:onEventStart(_eventInfo)
+        anotherRolling = currentScreen:onEventStart(_eventInfo, secondsToEvent - MIN_USER_BET_TIME)
     end
-    AnalyticsManager.eventToDisplay(secondsToEvent, MIN_USER_BET_TIME)
+    AnalyticsManager.eventToDisplay(secondsToEvent, MIN_USER_BET_TIME, anotherRolling)
 end
 
 function ScreenManager:updateTotalCoin()
@@ -189,7 +191,12 @@ end
 
 function ScreenManager:enterMatch(channel)
     Server.pubnubSubscribe(channel, matchServerListener)
-    currentScreen:hide(prepareMatch)
+    PushNotification:parseSubscribe("m" .. channel)
+    if currentScreen then
+        currentScreen:hide(prepareMatch)
+    else
+        prepareMatch()
+    end
     lockScreen()
     BrightnessManager.onEnterMatch()
 end
@@ -217,6 +224,21 @@ function ScreenManager.init()
         LoadingBall:dismissScreen()
     end
     tutorial = nil
+    -- White Status Bar for iOS7
+    local statusBarBg = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, STATUS_BAR_HEIGHT)
+    statusBarBg:setFillColor(0)
+    display.getCurrentStage():insert(3, statusBarBg)
+end
+
+function ScreenManager.quickInit()
+    TextureManager.loadMainSheet()
+    if not mainBackground then
+        mainBackground = TextureManager.newSpriteRect("stru_bg01", 360, 570) --1520 x 2280
+        mainBackground.x = display.contentCenterX
+        mainBackground.y = display.contentCenterY
+        display.getCurrentStage():insert(1, mainBackground)
+    end
+    LoadingBall:dismissScreen()
     -- White Status Bar for iOS7
     local statusBarBg = display.newRect(display.screenOriginX, display.screenOriginY, CONTENT_WIDTH, STATUS_BAR_HEIGHT)
     statusBarBg:setFillColor(0)

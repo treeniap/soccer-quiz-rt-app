@@ -14,8 +14,8 @@ local store = require("store")
 --       DEFINING PROPERTIES TO BE USED ALONG THE GAME         --
 -----------------------------------------------------------------
 local productsIDs = {
-    "com.power.chute.pacotedemoedas",
-    "com.power.chute.semana"
+    "com.ffgfriends.chutepremiado.pacotedemoedas",
+    "com.ffgfriends.chutepremiado.semana"
 }
 local validProducts, invalidProducts = {}, {}
 
@@ -80,6 +80,9 @@ local function transactionCallback(event)
                     store.finishTransaction(transaction)
                     UserData:setInventory(response)
                     ScreenManager:updateTotalCoin()
+                    if VideosScreen then
+                        VideosScreen:setBillingComplete()
+                    end
                 elseif status >= 500 then
                     native.showAlert(
                         "Comunicação não estabelecida.",
@@ -209,10 +212,10 @@ local function setupMyStore()
 end
 
 function StoreManager.initStore()
+    productPrefix = "com.ffgfriends.chutepremiado."
     if store.availableStores.apple then
         store.init("apple", transactionCallback)
         timer.performWithDelay(500, setupMyStore)
-        productPrefix = "com.power.chute."
     elseif store.availableStores.google then
         store.init("google", transactionCallback)
         isStoreInitialized = true

@@ -409,9 +409,9 @@ function MatchManager:getMatchTimeStatus()
     end
     CurrentMatch.period = period
 
-    if not CurrentMatch.enteredFinished then
-        checkLocalNotification(CurrentMatch.matchInfo.status_updated_at, period, time)
-    end
+    --if not CurrentMatch.enteredFinished then
+    --    checkLocalNotification(CurrentMatch.matchInfo.status_updated_at, period, time)
+    --end
 
     status = sanitizeStatus(CurrentMatch.matchInfo, status)
 
@@ -516,7 +516,7 @@ function MatchManager:getTeamsList()
 end
 
 function MatchManager:getUserTeamTwitter()
-    if not UserData.attributes.favorite_team_id then
+    if not UserData.attributes or not UserData.attributes.favorite_team_id then
         return
     end
     local team = Teams:getTeamById(UserData.attributes.favorite_team_id)

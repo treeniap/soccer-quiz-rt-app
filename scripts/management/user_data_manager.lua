@@ -6,7 +6,7 @@
 UserData = {}
 
 function UserData:getUserPicture()
-    return getPictureFileName(self.info.facebook_profile.id and self.info.user_id or "demo")
+    return getPictureFileName(self.demoModeOn and "demo" or self.userId)
 end
 
 function UserData:setUserId(userId)
@@ -177,6 +177,8 @@ function UserData:checkRating()
 end
 
 function UserData:checkTutorial()
+    self.tutorial = false
+    self.soundOn = true
     self.session = 1
     self.rating = 0
     self.lastNotificationDate = getCurrentDate()
@@ -185,17 +187,18 @@ function UserData:checkTutorial()
     self.demoModeOn = false
     self.userId = "empty"
     self.favoriteTeamId = " "
+    self.parseObjectId = " "
+
     local path = system.pathForFile("user.txt", system.DocumentsDirectory)
     local file = io.open(path, "r")
     if file then
         io.close(file)
         for line in io.lines(path) do
-
             if(line:sub(1, 6) == "sound=") then
                 self.soundOn = (tonumber(line:sub(7)) == 1)
                 AudioManager.setVolume(self.soundOn)
             elseif(line:sub(1, 9) == "tutorial=") then
-                -- = tonumber(line:sub(10))
+                self.tutorial = (tonumber(line:sub(10)) == 1)
             elseif(line:sub(1, 8) == "session=") then
                 self.session = tonumber(line:sub(9)) + 1
             elseif(line:sub(1, 7) == "rating=") then
@@ -212,18 +215,23 @@ function UserData:checkTutorial()
                 self.userId = line:sub(8)
             elseif(line:sub(1, 15) == "favoriteTeamId=") then
                 self.favoriteTeamId = line:sub(16)
+            elseif(line:sub(1, 14) == "parseObjectId=") then
+                self.parseObjectId = line:sub(15)
             end
         end
         self:save()
-
-        return true
     end
-    AudioManager.setVolume(true)
-    return false
+    AudioManager.setVolume(self.soundOn)
+    return self.tutorial
+end
+
+function UserData:setParseObjectId(id)
+    self.parseObjectId = id
+    self:save()
 end
 
 function UserData:setTutorialCompleted()
-    self.soundOn = true
+    self.tutorial = true
     self:save()
 end
 
@@ -231,7 +239,7 @@ function UserData:save()
     local path = system.pathForFile("user.txt", system.DocumentsDirectory)
     local file = io.open(path, "w+")
 
-    file:write("tutorial=1")
+    file:write("tutorial=" .. (self.tutorial and 1 or 0))
     file:write("\nsound=" .. (self.soundOn and 1 or 0))
     file:write("\nsession=" .. self.session or 1)
     file:write("\nrating=" .. self.rating or 0)
@@ -241,6 +249,7 @@ function UserData:save()
     file:write("\ndemoModeOn=" .. (self.demoModeOn and 1 or 0))
     file:write("\nuserId=" .. (self.userId or "empty"))
     file:write("\nfavoriteTeamId=" .. (self.favoriteTeamId or " "))
+    file:write("\nparseObjectId=" .. (self.parseObjectId or " "))
 
     io.close(file)
 end

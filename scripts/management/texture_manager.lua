@@ -81,6 +81,9 @@ function TextureManager.newLogo(logoFileName, size, group, provisionalLogo)
         local logo
         if provisionalLogo then
             logo = provisionalLogo
+            if not provisionalLogo.x then
+                return
+            end
         else
             logo = display.newGroup()
             logo:insert(TextureManager.newImageRect("images/badges/clubes_empty.png", size, size))
@@ -88,7 +91,7 @@ function TextureManager.newLogo(logoFileName, size, group, provisionalLogo)
                 group:insert(logo)
             end
         end
-        timer.performWithDelay(1000, function()
+        timer.performWithDelay(2000, function()
             TextureManager.newLogo(logoFileName, size, group, logo)
         end)
         return logo

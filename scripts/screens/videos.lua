@@ -12,6 +12,7 @@ local videosGroup
 local topBar
 local spinner
 local buttons
+local waitingBilling
 
 local function createScrollView(topY)
     -- Create a ScrollView
@@ -159,6 +160,9 @@ end
 
 local function videoPreviewTouchListener(scrollView)
     return function(button, event)
+        if waitingBilling then
+            return true
+        end
         if event.phase == "began" then
             display.getCurrentStage():setFocus(button)
             button.isFocus = true
@@ -189,6 +193,12 @@ local function videoPreviewTouchListener(scrollView)
                             local i = event.index
                             if 1 == i then
                             elseif 2 == i then
+                                waitingBilling = true
+                                spinner = widget.newSpinner{width = 128, height = 128}
+                                spinner.x = display.contentCenterX
+                                spinner.y = display.contentCenterY
+                                spinner:start()
+                                videosGroup:insert(spinner)
                                 StoreManager.buyThis("semana")
                             end
                         end
@@ -232,6 +242,15 @@ local function createVideoList()
             end
         end
     end)
+end
+
+function VideosScreen:setBillingComplete()
+    waitingBilling = false
+    if spinner then
+        spinner:stop()
+        spinner:removeSelf()
+        spinner = nil
+    end
 end
 
 function VideosScreen:showUp(onComplete)
@@ -286,7 +305,7 @@ function VideosScreen:destroy()
         end
         buttons = nil
     end
-
+    spinner = nil
     topBar:removeSelf()
     topBar = nil
     videosGroup:removeSelf()

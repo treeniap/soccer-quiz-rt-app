@@ -11,6 +11,7 @@ require "scripts.management.audio_manager"
 require "scripts.management.analytics_manager"
 require "scripts.widgets.view.loading_ball"
 require "scripts.network.server_communication"
+require "scripts.network.push_notification"
 LoadingBall:newScreen()
 
 local tutorialCompleted = UserData:checkTutorial()
@@ -32,7 +33,11 @@ local function onUpdateNeeded()
 
                 system.openURL(url)
             elseif 2 == i then
-                os.exit()
+                if IS_ANDROID then
+                    native.requestExit()
+                else
+                    os.exit()
+                end
             end
         end
     end
@@ -68,6 +73,17 @@ local function load()
     else
         ScreenManager:startTutorial()
     end
+    --Server.init()
+    --Server.pubnubSubscribe(UserData.userId, require("scripts.screens.in_game_event").betResultListener)
+    --ScreenManager.quickInit()
+    --
+    --UserData.info = {}
+    --UserData.inventory = {coins = "", subscribed = false}
+    --UserData.attributes = {favorite_team_id = UserData.favoriteTeamId}
+    --
+    --MatchManager:resquestMatches(function()
+    --    MatchManager:setCurrentMatch("526d50d4d23b1a1c700007b3")
+    --end)
 
     local onSystem = function(event)
         if event.type == "applicationSuspend" then
@@ -110,7 +126,7 @@ local function load()
                     local i = event.index
                     if 1 == i then
                         --require("engine.quiz_data_user").closeDatabase()
-                        os.exit()
+                        native.requestExit()
                     elseif 2 == i then
                     end
                 end
@@ -152,19 +168,20 @@ local function onMessagesReceived(response, status)
 end
 timer.performWithDelay(12000, function() Server:getMessages(onMessagesReceived) end)
 
---- LOCAL NOTIFICATION
+--- LOCAL AND PUSH NOTIFICATION
 native.setProperty("applicationIconBadgeNumber", 0)
 
 local function notificationListener( event )
     --print("=====================")
     --printTable(event)
+    --print("=====================")
     if ( event.type == "remote" ) then
         --handle the push notification
-
+    elseif event.type == "remoteRegistration" then
+        PushNotification:parseInstall(event.token)
     elseif ( event.type == "local" ) then
         --handle the local notification
     end
-
     native.setProperty("applicationIconBadgeNumber", 0)
 end
 

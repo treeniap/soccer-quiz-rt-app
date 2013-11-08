@@ -9,7 +9,7 @@ require "scripts.widgets.view.button_tutorial"
 
 local slideView
 local tutorialSheetInfo, tutorialSheetImage
-local pushNotificationOn
+local pushNotificationOn = true
 local favoriteTeamId
 
 local function createScreen1()

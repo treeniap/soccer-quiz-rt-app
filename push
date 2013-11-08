@@ -1,0 +1,53 @@
+curl -X POST -H 'X-Parse-Application-Id: H4G8No01QP7Ws4eHwuCADYIL1qGzkIkxtRs45Ho0' -H 'X-Parse-REST-API-Key: ToDgUIBZmCPeMspmk3SOLyfjLqXPDC224BYc0aCe' -H 'Content-Type: application/json' -d ' {"channels": ["m526d50d4d23b1a1c700007b5"], "data": { "alert": "Escanteio para o Grêmio.", "custom": { "team_id" : "519c26c35ae16dbe35000029", "template" : { "key" : "corner_kick", "alternatives" : { "missed" : { "multiplier" : 3, "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=missed" }, "cleared" : { "multiplier" : 1.5, "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=cleared" }, "goal" : { "multiplier" : 5, "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=goal" }, "saved" : { "multiplier" : 3.5, "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=saved" } } }, "user_bet_timeout" : "2013-11-06T17:27:41Z" } } }' https://api.parse.com/1/push
+curl -X POST -H 'X-Parse-Application-Id: H4G8No01QP7Ws4eHwuCADYIL1qGzkIkxtRs45Ho0' -H 'X-Parse-REST-API-Key: ToDgUIBZmCPeMspmk3SOLyfjLqXPDC224BYc0aCe' -H 'Content-Type: application/json' -d ' {"channels": ["t51f15d2f4ea16d2299000001"], "data": { "title" : "Chute Premiado", "alert": "GOOOOOL do Palmeiras!", "sound" : "sounds/notifications/51f15d2f4ea16d2299000001.m4a" } }' https://api.parse.com/1/push
+
+type = remote
+name = notification
+custom
+   template
+      key = corner_kick
+   team_id = 519c26c35ae16dbe35000011
+alert = Bola pra fora do Grêmio!
+applicationState = inactive
+
+
+{ "team_id" : "519c26c35ae16dbe35000029", "template" : { "key" : "corner_kick", "alternatives" : { "missed" : { "multiplier" : 3, "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=missed" }, "cleared" : { "multiplier" : 1.5, "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=cleared" }, "goal" : { "multiplier" : 5, "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=goal" }, "saved" : { "multiplier" : 3.5, "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=saved" } } }, "user_bet_timeout" : "2013-11-06T17:27:41Z" }
+
+{ "team_id" : "519c26c35ae16dbe35000029",
+"template" : {
+   "key" : "corner_kick",
+   "alternatives" : {
+      "missed" : {
+         "multiplier" : 3,
+         "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=missed" },
+      "cleared" : {
+         "multiplier" : 1.5,
+         "url : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=cleared" },
+      "goal" : {
+         "multiplier" : 5,
+         "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=goal" },
+      "saved" : {
+         "multiplier" : 3.5,
+         "url" : "http://soccer-questions-api-test.herokuapp.com/questions/527a7c0165033f6cf5000002/bets?alternative_key=saved" } } },
+"user_bet_timeout" : "2013-11-06T17:27:41Z" }
+
+
+
+    NSLog(@"####################");
+    UIRemoteNotificationType types = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
+    if (types == UIRemoteNotificationTypeNone) {
+        NSLog(@"UIRemoteNotificationTypeNone");
+    }
+    if (types & UIRemoteNotificationTypeBadge) {
+        NSLog(@"UIRemoteNotificationTypeBadge");
+    }
+    if (types & UIRemoteNotificationTypeSound) {
+        NSLog(@"UIRemoteNotificationTypeSound");
+    }
+    if (types & UIRemoteNotificationTypeAlert) {
+        NSLog(@"UIRemoteNotificationTypeAlert");
+    }
+    if (types & UIRemoteNotificationTypeNewsstandContentAvailability) {
+        NSLog(@"UIRemoteNotificationTypeNewsstandContentAvailability");
+    }
+	NSLog(@"####################");

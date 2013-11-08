@@ -22,7 +22,7 @@ local LEADERBOARD_URL       = DEBUG_MODE and "http://leaderboards-api-test.herok
 local USERS_URL             = DEBUG_MODE and "http://users-api-test.herokuapp.com/v1/"           or "http://api.users.welovequiz.com/v1/"
 local INVENTORY_URL         = DEBUG_MODE and "http://inventory-api-test.herokuapp.com/v1/users/" or "http://api.inventory.welovequiz.com/v1/users/"
 local QUESTIONS_URL         = DEBUG_MODE and "http://soccer-questions-api-test.herokuapp.com/"   or "http://api.questions.soccer.welovequiz.com/"
-local CLOUD_URL             = "http://d1a6cxe4fj6xw1.cloudfront.net/"
+local CLOUD_URL             = "https://s3-sa-east-1.amazonaws.com/chutepremiado-br/"
 local APP_INVENTORIES_URL   = DEBUG_MODE and "http://inventory-api-test.herokuapp.com/v1/apps/" or "http://api.inventory.welovequiz.com/v1/apps/"
 
 --
@@ -84,11 +84,12 @@ function Server.addNetworkStatusListener(listener)
     networkStatusChangeListeners[#networkStatusChangeListeners + 1] = listener
 end
 
-local function encode(_payload)
+local function encode(_payload, timeout)
     local content = Json.Encode(_payload)
     return {
         ["headers"] = { ["Accept"] = "application/json", ["Content-Type"] = "application/json" },
-        ["body"] = content
+        ["body"] = content,
+        ["timeout"] = timeout or 4
     }
 end
 
@@ -253,7 +254,12 @@ function serverResponseHandler(_request)
         --Server Error
         if event.isError or status >= 500  or status == -1 then
             printTable(event)
-            onError(_request, status)
+            if Server.isNetworkReachable() then
+                onError(_request, status)
+            else
+                Server.addNetworkStatusListener(function() networkRequest(_request) end)
+                native.showAlert("Sem internet!", "Conecte-se a uma boa rede 3G ou Wi-Fi para jogar um jogo inteiro sem interrupções.", { "Tentar novamente" })
+            end
             return
         end
         --Client Error
@@ -264,7 +270,10 @@ function serverResponseHandler(_request)
             return
         end
         --No Error
-        local noError, jsonContent = pcall(Json.Decode, event.response)
+        local noError, jsonContent
+        if event.response and event.response ~= " " then
+            noError, jsonContent = pcall(Json.Decode, event.response)
+        end
         if noError and jsonContent then
             --log("-----====RESPONSE START")
             ----printTable(jsonContent)
@@ -283,23 +292,18 @@ function serverResponseHandler(_request)
 end
 
 function networkRequest(_request)
-    if Server.isNetworkReachable() then
-        local URL = _request.url
-        if not URL then
-            log("Error (nil url): " .. _request.name)
-            return
-        end
-        log(_request.name .. " " .. URL)
-        if not _request.retries_count then
-            _request.retries_count = _request.retries_number
-        end
-        _request.startTime = system.getTimer()
-        local params = _request.post_params or encode({})
-        network.request(URL, _request.method, serverResponseHandler(_request), params)
-    else
-        Server.addNetworkStatusListener(function() networkRequest(_request) end)
-        native.showAlert("Sem internet!", "Conecte-se a uma boa rede 3G ou Wi-Fi para jogar um jogo inteiro sem interrupções.", { "Tentar novamente" })
+    local URL = _request.url
+    if not URL then
+        log("Error (nil url): " .. _request.name)
+        return
     end
+    log(_request.name .. " " .. URL)
+    if not _request.retries_count then
+        _request.retries_count = _request.retries_number
+    end
+    _request.startTime = system.getTimer()
+    local params = _request.post_params or encode({})
+    network.request(URL, _request.method, serverResponseHandler(_request), params)
 end
 
 ---============================================================---
@@ -695,6 +699,7 @@ function Server:claimFavoriteTeamCoins(matchId)
     local payload = {}
     payload.user_id = UserData.info.user_id
     payload.match_id = matchId
+    payload.favorite_team_id = UserData.favoriteTeamId
 
     local function listener(response, status)
         timer.performWithDelay(4000, function()
@@ -904,6 +909,7 @@ function Server.postBet(url, id, coins, onClientError, listener)
         user_id = id,
         coins = coins
     }
+    local timeout = 2
     networkRequest{
         name = "postBet",
         url = url,
@@ -911,8 +917,8 @@ function Server.postBet(url, id, coins, onClientError, listener)
         listener = listener,
         on_no_response = listener,
         on_client_error = onClientError,
-        retries_number = 0,
-        post_params = encode(payload)
+        retries_number = 2,
+        post_params = encode(payload, timeout)
     }
 end
 
@@ -930,7 +936,7 @@ end
 ---=====================================================---
 ---/////////////////////////////////////////////////////---
 ---=====================================================---
-network.setStatusListener("http://soccer-questions-api.herokuapp.com", networkStatusListener)
+network.setStatusListener("www.google.com", networkStatusListener)
 networkStatusChangeListeners = {}
 
 function Server.init()

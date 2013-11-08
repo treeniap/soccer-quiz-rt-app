@@ -202,6 +202,10 @@ function InGameScreen:onPreKickOffQuestions(challengeInfo)
     inGameGroup:insert(1, InGameQuestions:create(challengeInfo))
 end
 
+function InGameScreen:stopEventRolling()
+    timer.performWithDelay(2000, function() inGameGroup.eventRolling = false end)
+end
+
 function InGameScreen:onGame()
     display.getCurrentStage():setFocus(nil)
     questionsBar:onGame()
@@ -218,9 +222,9 @@ function InGameScreen:onGame()
     stateManager:showUp()
 end
 
-function InGameScreen:onEventStart(eventInfo)
+function InGameScreen:onEventStart(eventInfo, timeLeft)
     if inGameGroup.eventRolling then
-        return
+        return true
     end
     inGameGroup.eventRolling = true
     display.getCurrentStage():setFocus(nil)
@@ -238,8 +242,9 @@ function InGameScreen:onEventStart(eventInfo)
     inGameGroup:insert(2, eventView)
     eventView:showUp(function()
         questionsBar:onEventBet(eventView.onTimeUp, eventInfo.userBetTimeout)
-    end)
+    end, timeLeft)
     questionsBar:lock()
+    return false
 end
 
 function InGameScreen:onEventEnd(resultInfo)
@@ -250,10 +255,10 @@ function InGameScreen:onEventEnd(resultInfo)
             questionsBar:onEventResult()
             topBar:updateTotalCoins(resultInfo.totalCoins)
             UserData:setTotalCoins(resultInfo.totalCoins)
-            timer.performWithDelay(2000, function() inGameGroup.eventRolling = false end)
         end)
     end
     --Server:getPlayerRanking(nil, checkScore)
+    InGameScreen:stopEventRolling()
 end
 
 function InGameScreen:onGameOver(finalResultInfo, enteredAfterMatchEnd)
