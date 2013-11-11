@@ -49,18 +49,26 @@ function PushNotification:parseInstall(token)
 end
 
 function PushNotification:parseSubscribe(channel)
-    if UserData.parseObjectId ~= " " then
-        local message = {deviceType = "ios", deviceToken = deviceToken, channels = {"t" .. UserData.favoriteTeamId, channel}}
-        params.body = Json.Encode(message)
-        network.request(baseUrl .. UserData.parseObjectId, "PUT", updateListener,  params)
+    if IS_ANDROID then
+        SystemControl.parseSubscribe(channel)
+    else
+        if UserData.parseObjectId ~= " " then
+            local message = {deviceType = "ios", deviceToken = deviceToken, channels = {"t" .. UserData.favoriteTeamId, channel}}
+            params.body = Json.Encode(message)
+            network.request(baseUrl .. UserData.parseObjectId, "PUT", updateListener,  params)
+        end
     end
 end
 
 function PushNotification:parseUnsubscribe()
-    if UserData.parseObjectId ~= " " then
-        local message = {deviceType = "ios", deviceToken = deviceToken, channels = {"t" .. UserData.favoriteTeamId}}
-        params.body = Json.Encode(message)
-        network.request(baseUrl .. UserData.parseObjectId, "PUT", updateListener,  params)
+    if IS_ANDROID then
+        SystemControl.parseUnsubscribe("t" .. UserData.favoriteTeamId)
+    else
+        if UserData.parseObjectId ~= " " then
+            local message = {deviceType = "ios", deviceToken = deviceToken, channels = {"t" .. UserData.favoriteTeamId}}
+            params.body = Json.Encode(message)
+            network.request(baseUrl .. UserData.parseObjectId, "PUT", updateListener,  params)
+        end
     end
 end
 
