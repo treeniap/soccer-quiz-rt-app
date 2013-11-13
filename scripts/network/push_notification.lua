@@ -62,7 +62,7 @@ end
 
 function PushNotification:parseUnsubscribe()
     if IS_ANDROID then
-        SystemControl.parseUnsubscribe("t" .. UserData.favoriteTeamId)
+        SystemControl.parseUnsubscribe("t" .. UserData.favoriteTeamId, UserData.userId)
     else
         if UserData.parseObjectId ~= " " then
             local message = {deviceType = "ios", deviceToken = deviceToken, channels = {"t" .. UserData.favoriteTeamId}}

@@ -222,7 +222,9 @@ function UserData:checkTutorial()
         self:save()
     end
     AudioManager.setVolume(self.soundOn)
-    return self.tutorial
+    if self.favoriteTeamId ~= " " then
+        return self.tutorial
+    end
 end
 
 function UserData:setParseObjectId(id)
