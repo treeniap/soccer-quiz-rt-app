@@ -14,7 +14,7 @@ SCREEN_LEFT       = display.screenOriginX
 SCREEN_RIGHT      = display.contentWidth + (-display.screenOriginX)
 IS_SIMULATOR      = system.getInfo("environment") == "simulator"
 IS_ANDROID        = system.getInfo("platformName") == "Android"
-DEBUG_MODE        = false -- TODO test mode
+DEBUG_MODE        = true -- TODO test mode
 MINUTE_DURATION   = 60000
 
 function getDeviceName()

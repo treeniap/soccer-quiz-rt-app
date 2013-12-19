@@ -497,11 +497,11 @@ local function getWeeklyRankingCallback(button)
 end
 
 local function getCurrentWeekRanking(button)
-    Server:getTopRanking("current_week", getWeeklyRankingCallback(button))
+    Server:getTopRanking("current_month", getWeeklyRankingCallback(button))
 end
 
 local function getLastWeekRanking(button)
-    Server:getTopRanking("last_week", getWeeklyRankingCallback(button))
+    Server:getTopRanking("last_month", getWeeklyRankingCallback(button))
 end
 
 local function getWeekDates(days)
@@ -516,14 +516,14 @@ local function createRankingsList()
     local rankingsList
     if UserData.demoModeOn then
         rankingsList = {
-            {name = "geral - semana " .. getWeekDates(0), getRanking = getCurrentWeekRanking},
-            {name = "geral - semana " .. getWeekDates(-7), getRanking = getLastWeekRanking}
+            {name = "geral - mês atual", getRanking = getCurrentWeekRanking},
+            {name = "geral - mês anterior", getRanking = getLastWeekRanking}
         }
     else
         rankingsList = {
             {name = "amigos - todos os tempos", getRanking = getAmigosRanking},
-            {name = "geral - semana " .. getWeekDates(0), getRanking = getCurrentWeekRanking},
-            {name = "geral - semana " .. getWeekDates(-7), getRanking = getLastWeekRanking}
+            {name = "geral - mês atual", getRanking = getCurrentWeekRanking},
+            {name = "geral - mês anterior", getRanking = getLastWeekRanking}
         }
     end
     local Y_RANKING = 50
